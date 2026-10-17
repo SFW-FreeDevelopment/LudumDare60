@@ -108,6 +108,8 @@ namespace Balloonatic.Core
                     return _state.VelocityX.ToString("0.00", CultureInfo.InvariantCulture);
                 case "ballast":
                     return _state.BallastHeld.ToString(CultureInfo.InvariantCulture);
+                case "drops":
+                    return _state.DropsSeen.ToString(CultureInfo.InvariantCulture);
                 case "level":
                     return a.Length == 0 ? _state.LevelId : SetLevel(a);
                 case "delivered":
@@ -306,6 +308,7 @@ namespace Balloonatic.Core
               .Append("\"altitude\":").Append(_state.Altitude.ToString("0.00", CultureInfo.InvariantCulture)).Append(',')
               .Append("\"velocityY\":").Append(_state.VelocityY.ToString("0.00", CultureInfo.InvariantCulture)).Append(',')
               .Append("\"ballastHeld\":").Append(_state.BallastHeld.ToString(CultureInfo.InvariantCulture)).Append(',')
+              .Append("\"drops\":").Append(_state.DropsSeen.ToString(CultureInfo.InvariantCulture)).Append(',')
               .Append("\"x\":").Append(_state.X.ToString("0.00", CultureInfo.InvariantCulture)).Append(',')
               .Append("\"velocityX\":").Append(_state.VelocityX.ToString("0.00", CultureInfo.InvariantCulture)).Append(',')
               .Append("\"level\":\"").Append(_state.LevelId).Append("\",")

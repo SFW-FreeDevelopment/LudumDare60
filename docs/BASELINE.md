@@ -14,7 +14,7 @@ exactly the way an entry host would.
 | `dotnet build` (5 projects, Release) | ~11 s | measured |
 | `dotnet publish` Blazor WebGL head | ~11 s (no `wasm-tools`, so no AOT) | measured |
 | Playwright suite | 36 tests, 2 viewports, ~27 s | `npx playwright test` |
-| xunit suite | 46 tests | `dotnet test` |
+| xunit suite | 47 tests | `dotnet test` |
 
 Budgets to watch (set in I12, warned about now): boot under ~3 s on a normal connection, payload under
 ~8 MB transferred, 60 fps in a Chromium tab. The 17 MB on disk is mostly uncompressed framework files
@@ -55,6 +55,7 @@ pinned in one place and cannot drift between browser and unit tests.
 | `advance()` | the player's R after a delivery: next authored level (wraps after the last), fresh run on a derived seed, unpaused (`ok:<hash>`) |
 | `deliver([sec])` | the autopilot flies the run onto the delivery deck, stepping directly (`ok:delivered` / `error:not-delivered`) |
 | `delivered()`, `complete()`, `stars()`, `bounces()` | the landing rule's readouts; `state()` carries the same as `delivered`/`complete`/`stars`/`bounces`/`completedAtTick` |
+| `drops()` | sandbags released this run (`SimState.DropsSeen`), also in `state()` as `drops` — the falling-bag art draws from the release records, and the hash covers them |
 | `frames()`, `metrics()` | renderer-side counters: frame count, viewport/backbuffer/scale |
 
 Rules this enforces: only the harness advances time; `pause()` stops the game loop dead; rendering

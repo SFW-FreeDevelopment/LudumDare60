@@ -240,6 +240,35 @@ namespace Balloonatic.Tests
         }
 
         [Fact]
+        public void A_dropped_bag_is_recorded_where_it_was_released_and_moves_the_hash()
+        {
+            // The renderer draws the falling bag from these records, so the records are the contract:
+            // one per real release, at the exact world position, and covered by the state hash.
+            TestHarness a = new TestHarness();
+            TestHarness b = new TestHarness();
+            a.Handle("reset", "b091");   // hex, like every seed
+            b.Handle("reset", "b091");
+
+            a.Handle("set", "ballast=1");
+            a.Handle("step", "1");
+            a.State.DropsSeen.Should().Be(1);
+            a.State.DropTick[0].Should().Be(a.State.Tick);                   // recorded the step it left
+            a.State.DropAltitude[0].Should().Be(SimTuning.DeckTopAltitude);  // released from the deck
+            a.State.BallastHeld.Should().Be(SimTuning.BagCapacity - 1);
+            a.Handle("state", "").Should().Contain("\"drops\":1");
+            b.Handle("step", "1");                                           // same tick, same sky —
+            a.Handle("hash", "").Should().NotBe(b.Handle("hash", ""));       // only the dropped bag differs
+
+            a.Handle("set", "ballast=1");
+            a.Handle("step", "30");
+            a.State.DropsSeen.Should().Be(2);                                // second bag, second record
+            a.Handle("set", "ballast=1");
+            a.Handle("step", "30");
+            a.State.DropsSeen.Should().Be(2);                                // nothing held: nothing to drop,
+            a.State.BallastHeld.Should().Be(0);                              // and nothing remembered
+        }
+
+        [Fact]
         public void The_same_playthrough_seed_grows_the_same_sky_on_every_head()
         {
             // The advance chain must be pure arithmetic: desktop and WASM grow identical skies from

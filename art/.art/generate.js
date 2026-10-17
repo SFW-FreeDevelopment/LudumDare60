@@ -263,7 +263,7 @@ function sandbag() {
   return ring.concat(body);
 }
 
-function windsock(strength) {
+function windsock(strength, alt = false) {
   // build the sock as a region, then outline its silhouette and paint stripes — an outline drawn
   // after the stripes would eat the pattern, so the ink ring goes down first
   const cells = new Map();
@@ -272,7 +272,8 @@ function windsock(strength) {
   for (let i = 0; i < len; i++) {
     const along = i / len;
     const taper = Math.floor(along * (5 - strength));
-    const sag = Math.floor(along * along * droop);
+    // the alt frame shivers the outer third — cloth snapping in a real wind, not a new shape
+    const sag = Math.floor(along * along * droop) + (alt && along > 0.6 ? 1 : 0);
     for (let row = taper; row < 18 - taper; row++) cells.set(`${3 + i},${2 + row + sag}`, i);
   }
   const px = [];
@@ -319,6 +320,59 @@ function heart(filled) {
   ], 0, 0, { h: filled ? "heart" : "heartOff" });
 }
 
+// ================================================================ islands
+// design 120x50 -> internal 240x100, origin 4 px above the deck line so the sprite carries the
+// whole stack: bunting (delivery only), plank deck, grass cap, rock underbelly to a point.
+// Launch and delivery differ in deck wood and the bunting — same silhouette builder.
+function island(delivery) {
+  const W = 240, px = [];
+  const deckTop = 8, deckH = 8;                       // internal: 4 design px of plank at y 8..15
+  const capTop = 16, pointY = 100;                    // grass cap starts, rock tapers to here
+  const deckWood = delivery ? "w0" : "w1";
+  // bunting: gold pips on a line across the delivery deck (the prize reads at a glance)
+  if (delivery) {
+    for (let x = 30; x < W - 30; x += 18) px.push([x, 4, PAL.gold], [x + 1, 4, PAL.gold], [x, 5, PAL.gold], [x + 1, 5, PAL.gold]);
+    for (let x = 12; x < W - 12; x++) px.push([x, 3, PAL.K]); // the string, post to post
+  }
+  // deck: lit top line, plank seams every 16 px, shaded bottom edge. Width matches the sim's
+  // landing tolerance exactly: DeckHalfWidth 56 design px = 112 internal, centred.
+  for (let x = W / 2 - 112; x < W / 2 + 112; x++) {
+    px.push([x, deckTop, PAL.K], [x, deckTop + deckH + 1, PAL.K]);
+    for (let y = deckTop + 1; y <= deckTop + deckH; y++) px.push([x, y, PAL[deckWood]]);
+    if ((x - (W / 2 - 112)) % 16 === 0) for (let y = deckTop + 1; y <= deckTop + deckH; y++) px.push([x, y, PAL.w2]);
+    px.push([x, deckTop + 1, (x & 1) ? PAL.w0 : PAL[deckWood]]);
+  }
+  // grass cap + rock body: per-row half-widths, smooth taper to a point
+  const halfAt = (y) => {
+    const t = (y - capTop) / (pointY - capTop);       // 0 at cap, 1 at point
+    const w = 224 * (1 - t * t * t);                  // cap slightly wider than the deck, long taper
+    return Math.max(0, w / 2);
+  };
+  for (let y = capTop; y < pointY; y++) {
+    const half = halfAt(y);
+    const left = Math.round(W / 2 - half), right = Math.round(W / 2 + half);
+    const grass = y < capTop + 6;                     // cap depth: leaf, then moss, then rock
+    for (let x = left; x < right; x++) {
+      const edge = x - left < 2 || right - x <= 2;
+      if (edge) { px.push([x, y, PAL.K]); continue; }
+      let hex;
+      if (grass) hex = y < capTop + 2 ? PAL.grass : y < capTop + 4 ? PAL.leaf : PAL.moss;
+      else {
+        const u = (x - left) / Math.max(1, right - left - 1);
+        hex = u > 0.72 ? PAL.rockD : PAL.rock;        // sun from the left, shade right
+        if ((x * 31 + y * 17) % 97 === 0) hex = PAL.rockD; // sparse cracks
+      }
+      px.push([x, y, hex]);
+    }
+    // a couple of grass tufts lean off the cap edge
+    if (y === capTop && half > 40) {
+      px.push([left + 3, y - 2, PAL.grass], [left + 4, y - 1, PAL.grass]);
+      px.push([right - 4, y - 3, PAL.grass], [right - 5, y - 2, PAL.grass], [right - 6, y - 1, PAL.grass]);
+    }
+  }
+  return px;
+}
+
 // ================================================================ sheet packing
 // frames stack vertically inside the name's column; slices.json (the loader's table) mirrors this.
 const SPRITES = {
@@ -328,8 +382,10 @@ const SPRITES = {
   "cloud-mid":    { w: 200, h: 66, frames: [cloud(200)] },
   "cloud-large":  { w: 280, h: 92, frames: [cloud(280)] },
   "windsock-1":   { w: 56, h: 26, frames: [windsock(1)] },
-  "windsock-2":   { w: 66, h: 26, frames: [windsock(2)] },
-  "windsock-3":   { w: 76, h: 26, frames: [windsock(3)] },
+  "windsock-2":   { w: 66, h: 26, frames: [windsock(2), windsock(2, true)] },
+  "windsock-3":   { w: 76, h: 26, frames: [windsock(3), windsock(3, true)] },
+  "island-launch":    { w: 240, h: 100, frames: [island(false)] },
+  "island-delivery":  { w: 240, h: 100, frames: [island(true)] },
   "star-off":     { w: 12, h: 9, frames: [star(false)] },
   "star-on":      { w: 12, h: 9, frames: [star(true)] },
   "heart-off":    { w: 12, h: 9, frames: [heart(false)] },

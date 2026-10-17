@@ -52,6 +52,7 @@ namespace Balloonatic.Screens
             DrawCloudLayer(canvas, level, state, camX, camAlt, far: false);
             DrawWindStreaks(canvas, level, state, camX, camAlt);
             DrawIslands(canvas, level, state, camX, camAlt);
+            DrawFallingBags(canvas, state, camX, camAlt);
             DrawBalloon(canvas, state, camX, camAlt);
             DrawHud(canvas, level, state);
             DrawLandingFeedback(canvas, level, state, camX, camAlt);
@@ -249,9 +250,9 @@ namespace Balloonatic.Screens
             if (x < -90 || x > Sim.DesignWidth + 90)
                 return;
 
-            // A grass-capped rock with a wooden deck: the sheet's floating islands, stand-in until I8.
-            Kit.Island(canvas, x - 60, groundY - 34, 120, 46);
-            canvas.Fill(x - SimTuning.DeckHalfWidth, groundY - 38, SimTuning.DeckHalfWidth * 2, 4, launch ? Theme.WoodMid : Theme.WoodLight);
+            // The sheet island: plank deck (exactly as wide as the sim's landing tolerance), grass
+            // cap, rock tapering to a point — delivery variant carries its own gold bunting.
+            Sprites.Draw(canvas, launch ? "island-launch" : "island-delivery", x - 60f, groundY - 42f);
 
             // A sign on the deck: what this island is for, in the paper-and-ink language of the sheet.
             // The board glides with the island; its lettering holds the coarse grid (Round) — text that
@@ -266,17 +267,42 @@ namespace Balloonatic.Screens
             // The windsock flies off the windward post of the deck — the truth about this altitude,
             // in world. The sheet sock inflates from its post downwind; a band blowing left mirrors it.
             WindBand band = level.BandAt(1f);
-            string sock = "windsock-" + band.Strength;
+            // Two frames of cloth snap, only for bands strong enough to snap cloth; the frozen
+            // results clock stops the flutter with everything else, because the world stands still.
+            string sock = band.Strength switch
+            {
+                1 => "windsock-1",
+                _ => $"windsock-{band.Strength}-{Clock(state) / 12 % 2}",
+            };
             Vector2 sockSize = Sprites.Size(sock);
             float postX = x + (band.Direction >= 0 ? -50 : 50);
             Sprites.Draw(canvas, sock, band.Direction >= 0 ? postX - 1 : postX - sockSize.X + 1,
                          groundY - 37, band.Direction < 0);
+        }
 
-            if (!launch)
+        /// <summary>
+        /// Every dropped sandbag falls where it was released: the sim recorded the release (tick,
+        /// position), and a constant visual fall rate derived from the clock draws it — the player
+        /// must see the bag leave the basket, because the bag IS the brake, and an invisible brake
+        /// teaches nothing. Gone at the ground or after a few seconds, whichever screen first.
+        /// </summary>
+        static void DrawFallingBags(DesignCanvas canvas, SimState state, float camX, float camAlt)
+        {
+            const float FallSpeed = 70f;      // design px/s, visual only — no physics pretence
+            int clock = Clock(state);
+            for (int i = 0; i < state.DropTick.Length; i++)
             {
-                // Delivery bunting across the deck: gold pips so the target reads as the prize at a glance.
-                for (int i = 0; i < 6; i++)
-                    canvas.Fill(x - 45 + i * 18, groundY - 42, 3, 3, Theme.StarGold);
+                if (state.DropsSeen <= i)
+                    continue;                 // slot never used
+                int age = clock - state.DropTick[i];
+                if (age < 0 || age > clock)   // clock is frozen on the results screen: a bag released
+                    continue;                 // before the freeze hangs on screen, as the world stops
+                float alt = state.DropAltitude[i] - FallSpeed * age / Sim.StepHz;
+                if (alt < 0f)
+                    continue;                 // it landed off-screen; the ground owns it now
+                Vector2 size = Sprites.Size("bag-falling");
+                Sprites.Draw(canvas, "bag-falling", ScreenX(state.DropX[i], camX) - size.X / 2,
+                             ScreenY(alt, camAlt) - size.Y / 2);
             }
         }
 

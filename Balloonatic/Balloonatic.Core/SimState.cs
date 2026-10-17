@@ -31,6 +31,18 @@ namespace Balloonatic.Core
         /// <summary>Sandbags still aboard. Dropping one is irreversible for the level.</summary>
         public int BallastHeld = SimTuning.BagCapacity;
 
+        /// <summary>Total bags released this run (each real decrement of BallastHeld is one).</summary>
+        public int DropsSeen;
+
+        /// <summary>
+        /// Where and when each bag was released — a ring of three, because that is more bags than can
+        /// be on screen at once. The sim records the release (physics truth); the renderer derives the
+        /// fall from elapsed ticks, so nothing here depends on drawing.
+        /// </summary>
+        public readonly int[] DropTick = new int[3];
+        public readonly float[] DropX = new float[3];
+        public readonly float[] DropAltitude = new float[3];
+
         /// <summary>Downwind distance travelled from the launch column, design px. Wind owns this, not the player.</summary>
         public float X;
 
@@ -74,26 +86,37 @@ namespace Balloonatic.Core
         /// </summary>
         public string? RequestedScreen;
 
-        public SimState Clone() => new SimState
+        public SimState Clone()
         {
-            Seed = Seed,
-            Tick = Tick,
-            Temperature = Temperature,
-            VelocityY = VelocityY,
-            Altitude = Altitude,
-            BallastHeld = BallastHeld,
-            X = X,
-            VelocityX = VelocityX,
-            LevelId = LevelId,
-            Delivered = Delivered,
-            Complete = Complete,
-            Bounces = Bounces,
-            BounceTick = BounceTick,
-            Stars = Stars,
-            CompletedAtTick = CompletedAtTick,
-            Heating = Heating,
-            Screen = Screen,
-        };
+            SimState copy = new SimState
+            {
+                Seed = Seed,
+                Tick = Tick,
+                Temperature = Temperature,
+                VelocityY = VelocityY,
+                Altitude = Altitude,
+                BallastHeld = BallastHeld,
+                DropsSeen = DropsSeen,
+                X = X,
+                VelocityX = VelocityX,
+                LevelId = LevelId,
+                Delivered = Delivered,
+                Complete = Complete,
+                Bounces = Bounces,
+                BounceTick = BounceTick,
+                Stars = Stars,
+                CompletedAtTick = CompletedAtTick,
+                Heating = Heating,
+                Screen = Screen,
+            };
+            for (int i = 0; i < DropTick.Length; i++)
+            {
+                copy.DropTick[i] = DropTick[i];
+                copy.DropX[i] = DropX[i];
+                copy.DropAltitude[i] = DropAltitude[i];
+            }
+            return copy;
+        }
     }
 
     /// <summary>
@@ -154,7 +177,16 @@ namespace Balloonatic.Core
             }
 
             if (input.DropBallast && state.BallastHeld > 0)
+            {
+                // The sim records the release — a bag exists out there now. Whether it has landed is
+                // the renderer's business; the record is state, hashed, so tests can prove the drop.
+                int slot = state.DropsSeen % state.DropTick.Length;
+                state.DropTick[slot] = state.Tick;
+                state.DropX[slot] = state.X;
+                state.DropAltitude[slot] = state.Altitude;
+                state.DropsSeen++;
                 state.BallastHeld--;
+            }
 
             float lift = state.Temperature * SimTuning.LiftGain;
             float weight = SimTuning.Gravity + state.BallastHeld * SimTuning.BallastPerBag;
@@ -229,6 +261,13 @@ namespace Balloonatic.Core
             h = Mix(h, Bits(state.VelocityY));
             h = Mix(h, Bits(state.Altitude));
             h = Mix(h, (ulong)state.BallastHeld);
+            h = Mix(h, (ulong)state.DropsSeen);
+            for (int i = 0; i < state.DropTick.Length; i++)
+            {
+                h = Mix(h, (ulong)state.DropTick[i]);
+                h = Mix(h, Bits(state.DropX[i]));
+                h = Mix(h, Bits(state.DropAltitude[i]));
+            }
             h = Mix(h, Bits(state.X));
             h = Mix(h, Bits(state.VelocityX));
             h = Mix(h, state.Delivered ? 1UL : 0UL);
