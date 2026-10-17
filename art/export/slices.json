@@ -11,10 +11,10 @@
 {"name":"windsock-2-1","x":348,"y":484,"w":66,"h":26},
 {"name":"windsock-3-0","x":418,"y":458,"w":76,"h":26},
 {"name":"windsock-3-1","x":418,"y":484,"w":76,"h":26},
-{"name":"island-launch","x":498,"y":458,"w":240,"h":100},
-{"name":"island-delivery","x":4,"y":562,"w":240,"h":100},
-{"name":"star-off","x":248,"y":562,"w":12,"h":9},
-{"name":"star-on","x":264,"y":562,"w":12,"h":9},
-{"name":"heart-off","x":280,"y":562,"w":12,"h":9},
-{"name":"heart-on","x":296,"y":562,"w":12,"h":9}
+{"name":"island-launch","x":498,"y":458,"w":240,"h":124},
+{"name":"island-delivery","x":4,"y":586,"w":240,"h":124},
+{"name":"star-off","x":248,"y":586,"w":12,"h":9},
+{"name":"star-on","x":264,"y":586,"w":12,"h":9},
+{"name":"heart-off","x":280,"y":586,"w":12,"h":9},
+{"name":"heart-on","x":296,"y":586,"w":12,"h":9}
 ]

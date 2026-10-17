@@ -250,9 +250,11 @@ namespace Balloonatic.Screens
             if (x < -90 || x > Sim.DesignWidth + 90)
                 return;
 
-            // The sheet island: plank deck (exactly as wide as the sim's landing tolerance), grass
-            // cap, rock tapering to a point — delivery variant carries its own gold bunting.
-            Sprites.Draw(canvas, launch ? "island-launch" : "island-delivery", x - 60f, groundY - 42f);
+            // The sheet island: plank deck (exactly as wide as the sim's landing tolerance), trees
+            // standing on the surface, grass cap, rock tapering to a point — delivery carries gold
+            // bunting and a waterfall. The deck line sits 16 design px below the sprite's top edge,
+            // so the draw offset puts it where it always was: groundY - 38.
+            Sprites.Draw(canvas, launch ? "island-launch" : "island-delivery", x - 60f, groundY - 54f);
 
             // A sign on the deck: what this island is for, in the paper-and-ink language of the sheet.
             // The board glides with the island; its lettering holds the coarse grid (Round) — text that

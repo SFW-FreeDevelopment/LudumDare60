@@ -172,42 +172,46 @@ function rigging() {
   rope(CX - 12, 90, 40, 124);
   rope(CX + 11, 90, 79, 124);
   rope(CX + 25, 90, 90, 124);
-  // ---- Charlotte: the sheet's chibi — big glossy eyes, brown hair with buns + pink beads,
-  // blush, open smile, pink dress. Painted in front of the rim she sits behind.
-  const hx = 34, hy = 102;                            // head box origin; head 24x22
-  px.push(...disc(hx + 4, hy + 3, 4.5, PAL.hair, PAL.K), ...disc(hx + 19, hy + 3, 4.5, PAL.hair, PAL.K)); // buns
-  px.push([hx + 3, hy + 1, PAL.gp], [hx + 4, hy + 1, PAL.gp], [hx + 19, hy + 1, PAL.gp], [hx + 20, hy + 1, PAL.gp]); // beads
-  px.push(...obox(hx + 5, hy + 2, 14, 16, PAL.skin, PAL.K));                                          // face
-  for (let x = hx + 5; x < hx + 19; x++) for (let y = hy + 2; y < hy + 6; y++) px.push([x, y, PAL.hair]); // hair cap
-  for (let x = hx + 6; x < hx + 18; x += 3) px.push([x, hy + 6, PAL.hair]);                            // bangs zigzag
-  for (let y = hy + 4; y < hy + 20; y++) {                                                             // side hair
-    px.push([hx + 4, y, PAL.hair], [hx + 3, y, PAL.K], [hx + 19, y, PAL.hair], [hx + 20, y, PAL.K]);
+  // ---- Charlotte: ONE chibi head, clearly below the burner and sitting inside the basket.
+  // The earlier pass stacked buns above the hairline so the hair read as a second head — buns
+  // now sit at the temples (space-buns off the sheet), the face is a compact block, and only
+  // her head and a sliver of dress rise above the basket rim.
+  px.push(...disc(41, 107, 3.5, PAL.hair, PAL.K), ...disc(55, 107, 3.5, PAL.hair, PAL.K));          // temple buns
+  px.push([40, 103, PAL.gp], [41, 103, PAL.gp], [55, 103, PAL.gp], [56, 103, PAL.gp]);              // pink beads on the buns
+  px.push(...obox(42, 104, 14, 13, PAL.skin, PAL.K));                                               // face
+  for (let x = 42; x <= 55; x++) for (let y = 104; y <= 106; y++) px.push([x, y, PAL.hair]);        // hair cap
+  for (let x = 43; x <= 55; x += 3) px.push([x, 107, PAL.hair]);                                    // bangs zigzag
+  for (let y = 106; y <= 119; y++) {                                                                // long side hair to the rim
+    px.push([40, y, PAL.hair], [41, y, PAL.hair], [56, y, PAL.hair], [57, y, PAL.hair]);
+    px.push([39, y, PAL.K], [58, y, PAL.K]);
   }
   // big glossy eyes: 3x4 ink with a cream shine pixel, the sheet's signature
-  ascii(["KKK", "KCK", "KKK", ".KK."], hx + 7, hy + 9, { K: "K", C: "C" }).forEach(p => px.push(p));
-  ascii(["KKK", "KCK", "KKK", ".KK."], hx + 14, hy + 9, { K: "K", C: "C" }).forEach(p => px.push(p));
-  px.push([hx + 5, hy + 14, PAL.cheek], [hx + 6, hy + 14, PAL.cheek], [hx + 18, hy + 14, PAL.cheek], [hx + 17, hy + 14, PAL.cheek]);
-  px.push([hx + 11, hy + 15, PAL.K], [hx + 12, hy + 15, PAL.K], [hx + 11, hy + 16, PAL.gP], [hx + 12, hy + 16, PAL.gP]); // smile
-  px.push(...obox(hx + 8, hy + 19, 8, 6, PAL.dress, PAL.K));                                           // dress body
-  // ---- the bunny, riding her right: cream, tall ears with pink insides, ink eye
-  const bx = 70, by = 108;
-  px.push(...obox(bx - 4, by - 6, 3, 9, PAL.cream, PAL.K), ...obox(bx + 1, by - 6, 3, 9, PAL.cream, PAL.K)); // ears
-  px.push([bx - 3, by - 4, PAL.gp], [bx - 3, by - 3, PAL.gp], [bx + 2, by - 4, PAL.gp], [bx + 2, by - 3, PAL.gp]); // inner ears
-  px.push(...disc(bx, by + 6, 6, PAL.cream, PAL.K));                                                   // head
-  px.push([bx - 2, by + 5, PAL.K], [bx - 2, by + 6, PAL.K]);                                           // eye
-  px.push([bx - 4, by + 8, PAL.gp]);                                                                   // nose
-  // ---- basket: oversize wicker with the sheet's heart emblem
+  ascii(["KKK", "KCK", "KKK", ".KK."], 44, 110, { K: "K", C: "C" }).forEach(p => px.push(p));
+  ascii(["KKK", "KCK", "KKK", ".KK."], 50, 110, { K: "K", C: "C" }).forEach(p => px.push(p));
+  px.push([42, 115, PAL.cheek], [43, 115, PAL.cheek], [54, 115, PAL.cheek], [55, 115, PAL.cheek]);  // blush
+  px.push([47, 116, PAL.K], [48, 116, PAL.K], [47, 117, PAL.gP], [48, 117, PAL.gP]);                // smile
+  for (let x = 44; x <= 53; x++) for (let y = 119; y <= 122; y++) px.push([x, y, PAL.dress]);       // dress above the rim
+  px.push([43, 119, PAL.K], [43, 120, PAL.K], [43, 121, PAL.K], [54, 119, PAL.K], [54, 120, PAL.K], [54, 121, PAL.K]);
+  // ---- the bunny: clearly NOT a second girl — smaller than Charlotte, ears far taller than
+  // his head, a 2 px ink eye and a pink nose in profile so the silhouette is unmistakable.
+  px.push(...obox(65, 105, 3, 8, PAL.cream, PAL.K), ...obox(71, 105, 3, 8, PAL.cream, PAL.K));      // tall ears
+  px.push([66, 107, PAL.gp], [66, 108, PAL.gp], [66, 109, PAL.gp], [72, 107, PAL.gp], [72, 108, PAL.gp], [72, 109, PAL.gp]); // inner ears
+  px.push(...disc(69, 116, 4.2, PAL.cream, PAL.K));                                                 // small head
+  px.push([66, 115, PAL.K], [66, 116, PAL.K]);                                                      // eye, facing Charlotte
+  px.push([64, 117, PAL.gp]);                                                                       // nose at the profile edge
+  for (let x = 65; x <= 73; x++) for (let y = 120; y <= 122; y++) px.push([x, y, PAL.cream]);       // body into the rim
+  // ---- basket: oversize wicker with the sheet's heart emblem. Weave reads as horizontal
+  // wicker rows (2 px lit / 2 px dark bands) with stakes over them, not a checkerboard.
   const L = 28, W = 64, T = 124, B = 148;
   px.push(...obox(L, T, W, B - T, PAL.wd, PAL.K));
-  for (let x = L + 1; x < L + W - 1; x++) px.push([x, T + 1, (x & 1) ? PAL.w0 : PAL.w1]);               // lit rim
+  for (let x = L + 1; x < L + W - 1; x++) { px.push([x, T + 1, (x & 1) ? PAL.w0 : PAL.w1]); px.push([x, T + 2, (x & 1) ? PAL.w1 : PAL.w2]); } // rope rim
   for (let y = T + 3; y < B - 4; y++) {
-    const offset = (y % 4 < 2) ? 0 : 2;                                                                // brick weave
+    const lit = ((y - T) >> 1) % 2 === 1;                                                           // 2-row wicker bands
     for (let x = L + 1; x < L + W - 1; x++) {
-      const cell = (((x - L + offset) >> 3) % 2) === 0;
-      let hex = cell ? PAL.wk : PAL.wd;
-      if (((x - offset) % 14) === 0) hex = PAL.bark;                                                   // stakes
-      if (x >= L + W - 6) hex = PAL.w2;                                                                // shaded face
-      if (y >= B - 8 && (x + y) % 2 === 0) hex = PAL.w2;                                               // foot dither
+      let hex = lit ? PAL.wk : PAL.wd;
+      if (((x - L) % 14) === 0) hex = PAL.bark;                                                     // stakes over the weave
+      if (x >= L + W - 6) hex = PAL.w2;                                                             // shaded face
+      if (y >= B - 8 && (x + y) % 2 === 0) hex = PAL.w2;                                            // foot dither
       px.push([x, y, hex]);
     }
   }
@@ -358,18 +362,18 @@ function heart(filled) {
 }
 
 // ================================================================ islands
-// design 120x50 -> internal 240x100, origin 4 px above the deck line so the sprite carries the
-// whole stack: bunting (delivery only), plank deck, grass cap, rock underbelly to a point.
-// Launch and delivery differ in deck wood and the bunting — same silhouette builder.
+// design 120x62 -> internal 240x124: 16 px of headroom above the deck so trees and bunting stand
+// ON the island surface, then bunting (delivery only), plank deck, grass cap, rock underbelly to
+// a point. Launch and delivery differ in deck wood, bunting, tree and waterfall side.
 function island(delivery) {
   const W = 240, px = [];
-  const deckTop = 8, deckH = 8;                       // internal: 4 design px of plank at y 8..15
-  const capTop = 16, pointY = 100;                    // grass cap starts, rock tapers to here
+  const deckTop = 32, deckH = 8;                      // 24 rows of headroom: trees stand ON the island
+  const capTop = 40, pointY = 124;                    // grass cap starts, rock tapers to here
   const deckWood = delivery ? "w0" : "w1";
   // bunting: gold pips on a line across the delivery deck (the prize reads at a glance)
   if (delivery) {
-    for (let x = 30; x < W - 30; x += 18) px.push([x, 4, PAL.gold], [x + 1, 4, PAL.gold], [x, 5, PAL.gold], [x + 1, 5, PAL.gold]);
-    for (let x = 12; x < W - 12; x++) px.push([x, 3, PAL.K]); // the string, post to post
+    for (let x = 30; x < W - 30; x += 18) px.push([x, deckTop - 4, PAL.gold], [x + 1, deckTop - 4, PAL.gold], [x, deckTop - 3, PAL.gold], [x + 1, deckTop - 3, PAL.gold]);
+    for (let x = 12; x < W - 12; x++) px.push([x, deckTop - 5, PAL.K]); // the string, post to post
   }
   // deck: lit top line, plank seams every 16 px, shaded bottom edge. Width matches the sim's
   // landing tolerance exactly: DeckHalfWidth 56 design px = 112 internal, centred.
@@ -401,7 +405,7 @@ function island(delivery) {
         if (y === LIP - 1 && (x & 1) === 0) hex = PAL.leaf;  // dithered fringe into the rock
       } else {
         const u = (x - left) / Math.max(1, right - left - 1);
-        const yUnder = 70 - Math.round(u * 12);       // the shadow line rides higher up the right face
+        const yUnder = 92 - Math.round(u * 12);       // the shadow line rides higher up the right face
         if (y >= yUnder) {                            // violet underside, gathering to ink at the tip
           const deep = (y - yUnder) / 34;
           hex = ((x + y) & 1) ? PAL.rockD : PAL.rock;
@@ -428,20 +432,21 @@ function island(delivery) {
     for (let i = 0; i < len; i++) px.push([vx, LIP + i, i === len - 1 ? PAL.leaf : (i & 1) ? PAL.moss : PAL.leaf]);
     px.push([vx + 1, LIP + len - 2, PAL.moss]);
   });
-  // tree clusters on the flanks below the deck line (the deck itself must stay clear to land on)
+  // tree clusters standing on the island surface beside the deck — the sheet's trees sit on top,
+  // not on the flank. Canopies clear the deck line; trunks run down behind the planks.
   const tree = (cx, cy, r) => {
-    px.push(...obox(cx - 2, cy + r - 4, 5, r, PAL.bark, PAL.K));                    // trunk
+    px.push(...obox(cx - 2, cy + r - 4, 5, r + 6, PAL.bark, PAL.K));                // trunk
     px.push(...disc(cx, cy, r + 1.15, PAL.K, PAL.K), ...disc(cx, cy, r, PAL.leaf, PAL.K));
     px.push(...disc(cx - Math.round(r * 0.3), cy - Math.round(r * 0.35), r * 0.55, PAL.grass, PAL.grass));
     px.push(...disc(cx + Math.round(r * 0.28), cy + Math.round(r * 0.34), r * 0.5, PAL.moss, PAL.moss));
   };
-  if (delivery) { tree(34, 44, 12); tree(56, 54, 8); }
-  else { tree(204, 44, 12); tree(184, 55, 8); }
+  if (delivery) { tree(30, 20, 12); tree(54, 28, 8); }
+  else { tree(208, 20, 12); tree(184, 28, 8); }
   // waterfall down the delivery island's right flank, following the rock face inward as it
   // narrows, with a dithered splash foot where it leaves the island
   if (delivery) {
     let foot = 0;
-    for (let y = LIP; y < 92; y++) {
+    for (let y = deckTop + 10; y < pointY - 10; y++) {
       const right = Math.round(W / 2 + halfAt(y));
       for (let x = right - 14; x <= right - 3; x++) px.push([x, y, (x & 1) ? PAL.cl : PAL.cw]);
       px.push([right - 15, y, PAL.K]);
@@ -449,7 +454,7 @@ function island(delivery) {
     }
     for (let x = foot - 18; x <= foot; x++) {
       const s = 1 - Math.abs(x - (foot - 9)) / 10;
-      for (let y = 92; y < 100; y++) if (((x + y) & 1) === 0 && s > (y - 92) / 8) px.push([x, y, PAL.C]);
+      for (let y = pointY - 10; y < pointY; y++) if (((x + y) & 1) === 0 && s > (y - (pointY - 10)) / 10) px.push([x, y, PAL.C]);
     }
   }
   return px;
@@ -466,8 +471,8 @@ const SPRITES = {
   "windsock-1":   { w: 56, h: 26, frames: [windsock(1)] },
   "windsock-2":   { w: 66, h: 26, frames: [windsock(2), windsock(2, true)] },
   "windsock-3":   { w: 76, h: 26, frames: [windsock(3), windsock(3, true)] },
-  "island-launch":    { w: 240, h: 100, frames: [island(false)] },
-  "island-delivery":  { w: 240, h: 100, frames: [island(true)] },
+  "island-launch":    { w: 240, h: 124, frames: [island(false)] },
+  "island-delivery":  { w: 240, h: 124, frames: [island(true)] },
   "star-off":     { w: 12, h: 9, frames: [star(false)] },
   "star-on":      { w: 12, h: 9, frames: [star(true)] },
   "heart-off":    { w: 12, h: 9, frames: [heart(false)] },
