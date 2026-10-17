@@ -96,6 +96,19 @@ namespace Balloonatic.Rendering
 
         public void Fill(Rectangle bounds, Color color) => Fill(bounds.X, bounds.Y, bounds.Width, bounds.Height, color);
 
+        /// <summary>
+        /// Draws a sprite whose pixels are internal resolution (1 sheet px = 1/Px design px): the
+        /// source rectangle lands 1:1 on the 2x target at any snapped design position, so sprites
+        /// ride the half-pixel camera without ever sampling between their own pixels.
+        /// </summary>
+        public void DrawSprite(Texture2D texture, Rectangle source, float x, float y, bool flip, Color? tint = null)
+        {
+            x = Snap(x);
+            y = Snap(y);
+            _spriteBatch.Draw(texture, new Vector2(x, y), source, tint ?? Color.White, 0f, Vector2.Zero,
+                              new Vector2(1f / Px), flip ? SpriteEffects.FlipHorizontally : SpriteEffects.None, 0f);
+        }
+
         /// <summary>One design-pixel border, and the frame that proves the letterbox is honest.</summary>
         public void Outline(Rectangle bounds, Color color)
         {

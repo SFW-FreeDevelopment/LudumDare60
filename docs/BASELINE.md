@@ -154,3 +154,20 @@ Steven flew the desktop head and reported three things; each became a rule, not 
   Courses and pars were kept; the delivery autopilot re-plans every second and absorbed the
   halving without a single constant changing, which is the argument for planning over patterns.
   A balloon rides a breeze: these are the approved floor numbers, not a temporary softening.
+
+## Decisions recorded by I8 (art)
+
+- **Sprites are generated, not painted by hand in an editor session.** `art/.art/generate.js` holds
+  every pixel rule (profiles, gore tables, ramps, ASCII blocks) and produces the sheet through
+  `render.js` → Aseprite MCP (`art/src/balloonatic.aseprite`, palette + slices live there) →
+  `art/export/sheet.png` + `slices.json`. `node art/.art/audit.js` decodes the export and fails on
+  any off-palette pixel or out-of-bounds slice — the same palette rule `Theme.cs` enforces, now
+  enforced on the PNG itself.
+- **Sheet pixels are internal-resolution** (2 per design px), matching the 2x canvas: sprites ride
+  the half-pixel camera without subpixel sampling, so motion is smooth and edges stay hard.
+- **Animation is baked frames + clock index.** Flame/burner frames are separate slices
+  (`balloon-0..2`) chosen by `Clock(state)` and `Heating`; the sheet holds no timeline, so a
+  deterministically stepped state always draws the identical pixels.
+- **Payload**: the sheet is 8.5 KB embedded in `Balloonatic.Game.dll` (compressed delta inside the
+  noise of the 2.83 MB transfer baseline); both heads load it from one embedded stream — no disk
+  reads, no platform branch.

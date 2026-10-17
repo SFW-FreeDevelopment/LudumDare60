@@ -87,7 +87,8 @@ namespace Balloonatic.Screens
             int seconds = state.CompletedAtTick / Sim.StepHz;
             string timeLine = "TIME " + seconds + "S   PAR " + level.ParSeconds + "S";
             PixelFont.DrawCentered(canvas, timeLine, x + w / 2, y + 42, seconds <= level.ParSeconds ? Theme.GrassLight : Theme.SignCream);
-            Kit.Stars(canvas, x + w / 2 - 15, y + 56, state.Stars, 3, 2);
+            for (int s = 0; s < 3; s++)
+                Sprites.Draw(canvas, s < state.Stars ? "star-on" : "star-off", x + w / 2 - 11 + s * 8, y + 55);
 
             // Tell the player exactly what R will do, because R does different things after a delivery
             // than it does mid-crash: the next course, or one more flight when there are no more courses.
@@ -185,8 +186,13 @@ namespace Balloonatic.Screens
                 if (x < -160 || x > Sim.DesignWidth + 40 || y < -24 || y > Sim.DesignHeight + 20)
                     continue;
 
-                int width = 70 + Hash(i, seedSalt + 2) % 70;
-                Kit.Cloud(canvas, x, y, width, far ? Theme.CloudShade : Theme.CloudWhite);
+                // Three sheet clouds, mirrored and depth-tinted: the far layer sits behind a
+                // lavender veil so parity between the two reads as distance, not duplication.
+                string[] tiers = { "cloud-small", "cloud-mid", "cloud-large" };
+                string tier = tiers[Hash(i, seedSalt + 2) % 3];
+                Vector2 size = Sprites.Size(tier);
+                Sprites.Draw(canvas, tier, x - size.X / 2, y, (i & 1) == 1,
+                             far ? Theme.CloudShade : (Color?)null);
             }
         }
 
@@ -257,9 +263,14 @@ namespace Balloonatic.Screens
             canvas.Fill(x - 15, signY - 1, 30, 12, Theme.TagCream);
             PixelFont.Draw(canvas, name, xi - name.Length * 3 + 1, Round(signY) + 2, Theme.Ink);
 
-            // The windsock flies off the windward post of the deck — the truth about this altitude, in world.
+            // The windsock flies off the windward post of the deck — the truth about this altitude,
+            // in world. The sheet sock inflates from its post downwind; a band blowing left mirrors it.
             WindBand band = level.BandAt(1f);
-            Kit.Windsock(canvas, x + (band.Direction >= 0 ? -50 : 50), groundY - 36, band.Direction, band.Strength);
+            string sock = "windsock-" + band.Strength;
+            Vector2 sockSize = Sprites.Size(sock);
+            float postX = x + (band.Direction >= 0 ? -50 : 50);
+            Sprites.Draw(canvas, sock, band.Direction >= 0 ? postX - 1 : postX - sockSize.X + 1,
+                         groundY - 37, band.Direction < 0);
 
             if (!launch)
             {
@@ -271,10 +282,15 @@ namespace Balloonatic.Screens
 
         static void DrawBalloon(DesignCanvas canvas, SimState state, float camX, float camAlt)
         {
-            // The craft sits at its true world position; when the camera leads it, the offset reads as speed.
+            // The craft sits at its true world position; when the camera leads it, the offset reads as
+            // speed. The sheet balloon is anchored by its basket bottom on the altitude line, so it
+            // visibly touches the deck at touchdown instead of hovering a hand above it. The burner
+            // flickers only while the sim says heat is on — three frames, clock-driven, deterministic.
             float x = ScreenX(state.X, camX);
-            float top = ScreenY(state.Altitude, camAlt) - 40;   // basket bottom rides the altitude line
-            Kit.Balloon(canvas, x, top, state.Heating, Clock(state));
+            float foot = ScreenY(state.Altitude, camAlt) + 4f;
+            int frame = state.Heating ? 1 + Clock(state) / 8 % 2 : 0;
+            Vector2 size = Sprites.Size("balloon-0");
+            Sprites.Draw(canvas, "balloon", frame, x - size.X / 2, foot - size.Y);
         }
 
         /// <summary>

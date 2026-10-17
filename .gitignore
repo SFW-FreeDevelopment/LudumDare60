@@ -430,3 +430,6 @@ _toDelete/
 # Screenshots under docs/ are reviewed artefacts and stay in git
 !docs/screenshots/
 !docs/screenshots/**
+# art build products (re-derivable by art/.art)
+art/.art/pixels.json
+art/src/sheet-draft.png

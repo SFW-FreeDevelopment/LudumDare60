@@ -28,4 +28,11 @@
     <ProjectReference Include="..\Balloonatic.Core\Balloonatic.Core.csproj" />
   </ItemGroup>
 
+  <!-- Sprite sheet built by art/.art (Aseprite MCP). Embedded so the desktop head and the WASM
+       head read the same bytes through the same stream — no platform file loading. -->
+  <ItemGroup>
+    <EmbeddedResource Include="..\..\art\export\sheet.png" Link="content\sheet.png" />
+    <EmbeddedResource Include="..\..\art\export\slices.json" Link="content\slices.json" />
+  </ItemGroup>
+
 </Project>

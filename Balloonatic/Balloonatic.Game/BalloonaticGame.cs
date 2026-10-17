@@ -119,6 +119,7 @@ namespace Balloonatic
         {
             spriteBatch = new SpriteBatch(GraphicsDevice);
             canvas = new DesignCanvas(this, GraphicsDevice, spriteBatch);
+            Sprites.Load(GraphicsDevice);   // the Aseprite sheet, from embedded bytes, once
         }
 
         protected override void UnloadContent()
