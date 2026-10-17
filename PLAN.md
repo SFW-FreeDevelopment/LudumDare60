@@ -65,9 +65,9 @@ Milestones: **feel gate** (I5) by Sun ~20:00 · **content freeze** (I10) by Mon 
   weight, seeded RNG, state hash. **No horizontal input at all.** All tunables in `SimTuning.cs`.
   *Done when:* xunit proves heating rises, cooling descends, ballast raises the ceiling, momentum
   overshoots after heat stops, and identical hashes for identical inputs.
-- [ ] **I3 — Wind layers + level data** (~60m)
-  Three+ altitude bands of direction/strength, authored per level; horizontal velocity chases band
-  wind with inertia; gust-zone hook.
+- [x] **I3 — Wind layers + level data** (~60m)
+  Three+ altitude bands of direction/strength, authored per level (`LevelCatalog`); horizontal
+  velocity chases band wind with inertia; gust-zone hook; PD-loop autopilot.
   *Done when:* tests prove velocity never snaps across a band boundary, and an autopilot (heat toward
   a target band) reaches a target x — the same test reused for every level later.
 - [ ] **I4 — Draw layer + camera** (~90m)

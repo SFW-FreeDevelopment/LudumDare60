@@ -25,11 +25,11 @@ test('scaffold frame matches its snapshot @shot @screens', async ({ page }, test
   await bootGame(page);
   await poseForScreenshot(page);
 
-  const name = `00-scaffold-${testInfo.project.name}`;
+  const name = `00-scaffold`;
   await expect(page).toHaveScreenshot(`${name}.png`, { timeout: 60_000 });
 
   fs.mkdirSync(SHOTS_DIR, { recursive: true });
-  const buffer = await page.screenshot({ path: path.join(SHOTS_DIR, `${name}.png`) });
+  const buffer = await page.screenshot({ path: path.join(SHOTS_DIR, `${name}-${testInfo.project.name}.png`) });
   expect(buffer.length).toBeGreaterThan(1000);
   expect(errors, `console/JS errors while rendering: ${errors.join(' | ')}`).toEqual([]);
 });
@@ -49,11 +49,11 @@ test('style sheet matches its snapshot @shot @screens', async ({ page }, testInf
   // and of tick 12, whatever the WASM's scheduling happened to do.
   await expect.poll(() => page.evaluate(() => window.__GAME.screen()), { timeout: 10_000 }).toBe('style');
 
-  const name = `01-style-${testInfo.project.name}`;
+  const name = `01-style`;
   await expect(page).toHaveScreenshot(`${name}.png`, { timeout: 60_000 });
 
   fs.mkdirSync(SHOTS_DIR, { recursive: true });
-  const buffer = await page.screenshot({ path: path.join(SHOTS_DIR, `${name}.png`) });
+  const buffer = await page.screenshot({ path: path.join(SHOTS_DIR, `${name}-${testInfo.project.name}.png`) });
   expect(buffer.length).toBeGreaterThan(1000);
   expect(errors, `console/JS errors while rendering: ${errors.join(' | ')}`).toEqual([]);
 });

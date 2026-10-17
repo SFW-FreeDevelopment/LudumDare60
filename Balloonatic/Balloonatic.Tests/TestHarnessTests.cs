@@ -122,6 +122,17 @@ namespace Balloonatic.Tests
         }
 
         [Fact]
+        public void Horizontal_distance_and_direction_move_the_hash()
+        {
+            var a = new SimState { Seed = 1 };
+            var b = new SimState { Seed = 1, X = 0.01f };
+            var c = new SimState { Seed = 1, VelocityX = -40f };
+
+            SimRules.HashHex(a).Should().NotBe(SimRules.HashHex(b));
+            SimRules.HashHex(a).Should().NotBe(SimRules.HashHex(c));
+        }
+
+        [Fact]
         public void The_bridge_exposes_no_horizontal_control()
         {
             // docs/CONCEPT.md critical design rule: the balloon has no left/right input, and the

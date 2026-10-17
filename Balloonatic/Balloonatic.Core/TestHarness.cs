@@ -95,8 +95,14 @@ namespace Balloonatic.Core
                     return _state.Altitude.ToString("0.00", CultureInfo.InvariantCulture);
                 case "velocity":
                     return _state.VelocityY.ToString("0.00", CultureInfo.InvariantCulture);
+                case "x":
+                    return _state.X.ToString("0.00", CultureInfo.InvariantCulture);
+                case "velocityx":
+                    return _state.VelocityX.ToString("0.00", CultureInfo.InvariantCulture);
                 case "ballast":
                     return _state.BallastHeld.ToString(CultureInfo.InvariantCulture);
+                case "level":
+                    return a.Length == 0 ? _state.LevelId : SetLevel(a);
                 case "hash":
                     return SimRules.HashHex(_state);
                 case "state":
@@ -153,6 +159,25 @@ namespace Balloonatic.Core
             return "ok:requested=" + id;
         }
 
+        /// <summary>
+        /// Switches the authored level and re-launches the balloon: position, temperature and ballast
+        /// reset, seed and tick stay so a scripted replay remains comparable across the switch.
+        /// </summary>
+        string SetLevel(string id)
+        {
+            if (!LevelCatalog.TryGet(id, out LevelDef level))
+                return "error:unknown-level:" + id;
+
+            _state.LevelId = level.Id;
+            _state.X = 0f;
+            _state.VelocityX = 0f;
+            _state.Altitude = SimTuning.GroundAltitude;
+            _state.VelocityY = 0f;
+            _state.Temperature = SimTuning.TempAmbient;
+            _state.BallastHeld = SimTuning.BagCapacity;
+            return "ok:level=" + level.Id;
+        }
+
         string HandleSet(string arg)
         {
             int eq = arg.IndexOf('=');
@@ -198,6 +223,9 @@ namespace Balloonatic.Core
               .Append("\"altitude\":").Append(_state.Altitude.ToString("0.00", CultureInfo.InvariantCulture)).Append(',')
               .Append("\"velocityY\":").Append(_state.VelocityY.ToString("0.00", CultureInfo.InvariantCulture)).Append(',')
               .Append("\"ballastHeld\":").Append(_state.BallastHeld.ToString(CultureInfo.InvariantCulture)).Append(',')
+              .Append("\"x\":").Append(_state.X.ToString("0.00", CultureInfo.InvariantCulture)).Append(',')
+              .Append("\"velocityX\":").Append(_state.VelocityX.ToString("0.00", CultureInfo.InvariantCulture)).Append(',')
+              .Append("\"level\":\"").Append(_state.LevelId).Append("\",")
               .Append("\"hash\":\"").Append(SimRules.HashHex(_state)).Append('"')
               .Append('}');
             return sb.ToString();

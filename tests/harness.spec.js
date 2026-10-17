@@ -21,12 +21,12 @@ test('boots in a browser and the harness answers @smoke', async ({ page }, testI
     state: await window.__GAME.state(),
   }));
 
-  expect(protocol.version).toBe('i2');
+  expect(protocol.version).toBe('i3');
   expect(protocol.screen).toBe('scaffold');
   expect(protocol.seed).toMatch(/^[0-9a-f]{16}$/);
   expect(protocol.hash).toMatch(/^[0-9a-f]{16}$/);
   expect(protocol.state.tick).toBeGreaterThanOrEqual(0);
-  expect(protocol.state.version).toBe('i2');
+  expect(protocol.state.version).toBe('i3');
 
   // Reported for the record; the budget itself is an I12 concern, this is the baseline it compares to.
   console.log(
@@ -111,6 +111,34 @@ test('the balloon flies the same model in the browser: heat climbs, coast descen
   expect(flown.cooled.alt).toBeLessThan(flown.hot.alt);        // and cold air brings it back down
   expect(flown.cooled.temp).toBeCloseTo(0.3, 1);               // toward what the air itself is
   expect(flown.ballast).toBe('1');                             // one sandbag, gone for the level
+});
+
+test('the wind bands own horizontal travel, and switching levels relaunches', async ({ page }) => {
+  watchForErrors(page);
+  await bootGame(page);
+
+  // The same model asserted in WindLayerTests, but through WASM: heat alone buys altitude, and the
+  // band that altitude buys decides the horizontal velocity. Levels are configuration, so switching
+  // one re-launches the flight rather than teleporting a balloon mid-course.
+  const flown = await page.evaluate(async () => {
+    await window.__GAME.reset('1234');
+    await window.__GAME.set('heat', 1);
+    await window.__GAME.step(300);
+    const drift = parseFloat(await window.__GAME.x());
+    const vx = parseFloat(await window.__GAME.velocityX());
+    const bad = await window.__GAME.level('nowhere-level');
+    const switched = await window.__GAME.level('night-crossing');
+    const afterSwitch = parseFloat(await window.__GAME.x());
+    const levelNow = await window.__GAME.level();
+    return { drift, vx, bad, switched, afterSwitch, levelNow };
+  });
+
+  expect(flown.drift).toBeGreaterThan(100);                 // climbing into the + band moved us downwind
+  expect(flown.vx).toBeGreaterThan(50);                     // ...and velocity is chasing that band's wind
+  expect(flown.bad).toBe('error:unknown-level:nowhere-level');
+  expect(flown.switched).toBe('ok:level=night-crossing');
+  expect(flown.afterSwitch).toBe(0);                        // switched = relaunched, not teleported
+  expect(flown.levelNow).toBe('night-crossing');
 });
 
 test('the protocol rejects horizontal control and bad arguments', async ({ page }) => {

@@ -29,6 +29,15 @@ namespace Balloonatic.Core
         /// <summary>Sandbags still aboard. Dropping one is irreversible for the level.</summary>
         public int BallastHeld = SimTuning.BagCapacity;
 
+        /// <summary>Downwind distance travelled from the launch column, design px. Wind owns this, not the player.</summary>
+        public float X;
+
+        /// <summary>Horizontal velocity, design px/s. Chases the current band's wind with inertia (I3).</summary>
+        public float VelocityX;
+
+        /// <summary>Which authored level this run is on. Bands, gusts and the course length come from it.</summary>
+        public string LevelId = LevelCatalog.DefaultId;
+
         /// <summary>Heat as applied on the last step. Kept in state so rendering can show the flame
         /// without reading a device, and so the hash covers it.</summary>
         public bool Heating;
@@ -49,6 +58,9 @@ namespace Balloonatic.Core
             VelocityY = VelocityY,
             Altitude = Altitude,
             BallastHeld = BallastHeld,
+            X = X,
+            VelocityX = VelocityX,
+            LevelId = LevelId,
             Heating = Heating,
             Screen = Screen,
         };
@@ -76,7 +88,9 @@ namespace Balloonatic.Core
         ///
         /// Horizontal velocity arrives in I3 with wind bands; the player still cannot steer sideways.
         /// </summary>
-        public static void Step(SimState state, SimInput input)
+        public static void Step(SimState state, SimInput input) => Step(state, input, LevelCatalog.Get(state.LevelId));
+
+        public static void Step(SimState state, SimInput input, LevelDef level)
         {
             float dt = Sim.StepSeconds;
             state.Seed = Sim.NextSeed(state.Seed);
@@ -121,6 +135,13 @@ namespace Balloonatic.Core
                 if (state.VelocityY < 0f)
                     state.VelocityY = 0f;
             }
+
+            // Horizontal: the air decides, with inertia. The balloon's velocity chases the wind of the
+            // band it is currently inside; entering a new band is a settle over ~1 s, never a snap. This
+            // is why altitude is the only steering — the player chooses which air to be in, not where to go.
+            float wind = level.WindAt(state.Altitude);
+            state.VelocityX += (wind - state.VelocityX) * SimTuning.WindFollowRate * dt;
+            state.X += state.VelocityX * dt;
         }
 
         /// <summary>
@@ -136,8 +157,12 @@ namespace Balloonatic.Core
             h = Mix(h, Bits(state.VelocityY));
             h = Mix(h, Bits(state.Altitude));
             h = Mix(h, (ulong)state.BallastHeld);
+            h = Mix(h, Bits(state.X));
+            h = Mix(h, Bits(state.VelocityX));
             h = Mix(h, state.Heating ? 1UL : 0UL);
             foreach (char c in state.Screen)
+                h = Mix(h, c);
+            foreach (char c in state.LevelId)
                 h = Mix(h, c);
             return h;
         }

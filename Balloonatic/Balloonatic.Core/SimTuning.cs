@@ -44,6 +44,13 @@ namespace Balloonatic.Core
         /// <summary>Altitude of the ground plane. The balloon never goes below it.</summary>
         public const float GroundAltitude = 0f;
 
+        /// <summary>
+        /// How fast horizontal velocity chases the band's wind, per second. A first-order lag with a time
+        /// constant of half a second: crossing a boundary between +75 and -110 px/s takes over a second to
+        /// settle, which is the difference between "the wind caught me" and "the teleporter moved me".
+        /// </summary>
+        public const float WindFollowRate = 2.0f;
+
         // Terminal rise at pegged heat with no ballast: (LiftGain - Gravity) / Drag ≈ 85 px/s, so one
         // 120 px wind band is crossed in well under two seconds while a coast down takes several. Those
         // two numbers — snappy up, patient down — are the feel gate's first subject in I5.
