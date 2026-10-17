@@ -99,12 +99,17 @@ Milestones: **feel gate** (I5) by Sun ~20:00 · **content freeze** (I10) by Mon 
   viewports.
 
 ### Content
-- [ ] **I8 — Aseprite asset pipeline** (~90m)
+- [x] **I8 — Aseprite asset pipeline** (~90m)
   Committed generator script (Aseprite MCP) + `.aseprite` sources + exported PNGs under `art/`:
   balloon (idle/rise/hurt), Charlotte expressions, bunny, sandbag, stars, packages, platform/island
   sets for levels 1–3, HUD bits, title logo. Build-time import, one re-export command.
   *Done when:* placeholders replaced everywhere, screenshots reviewed against the concept sheet, and
   the WebGL payload is measured, not guessed.
+  *Status:* pipeline + all world/game sprites shipped (plan steps A–F ticked, commits `629d6d3`…`4ce0ef1`):
+  hero balloon with Charlotte + bunny, 3 clouds, 2 islands, 3 windsock fills + flutter, falling bag,
+  stars/hearts — palette-audited export, embedded sheet 8.5 KB, every world placeholder replaced, screenshots
+  judged both viewports. Title logo + Charlotte portrait + HUD gauge/tags are the *same pipeline's* next
+  sprites, scheduled inside I6 which owns that screen.
 - [ ] **I9 — Hazards + damage** (~90m)
   Floating rocks, birds on authored paths, storm-cloud gust zones; knockback, hearts, invulnerability
   flicker, reduced-motion-safe shake.
