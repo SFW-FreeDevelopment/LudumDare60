@@ -73,6 +73,10 @@ When behind, cut a feature before cutting polish — one small, sharp, good-look
   from screenshots. Screenshots are for judging looks, tests are for judging behaviour.
 - Content stays small: procedural/prerendered at build time over large art dumps, so the WebGL build
   and the LD zip stay light and boot fast.
+- Assets are generated and reproducible: pixel art comes from Aseprite driven through the Aseprite MCP
+  by a committed generator script (`.aseprite` sources + exported PNGs under `art/`); audio comes from
+  ElevenLabs with provenance noted in `assets/audio/SOURCES.md`. Re-exporting must be one command, and
+  nothing depends on a file sitting outside the repo.
 - No warnings tolerated in shared core; `null`-hostile APIs wrapped once, at the bridge.
 
 ## Verification loop (Playwright)

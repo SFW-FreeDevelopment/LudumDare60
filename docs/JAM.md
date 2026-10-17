@@ -32,14 +32,21 @@ the browser build is viable this jam, not a risk to plan around.
 **Head plan:** scaffold from `kni-multiplatform` so shared code is one class library with a fast
 Windows desktop head for iteration and a Blazor WebGL head that is the actual submission.
 
-## Open questions before planning
-1. Game concept — what "Old Tech" means for us (mechanic, not just a CRT filter).
-2. Scope target: compo (Sun 18:00) or jam (Mon 18:00), and how much of the weekend is actually
-   available.
-3. Art direction: whose pixels (Savannah's? procedural? Aseprite pass?) and the fidelity we can hold
-   in the time left.
-4. Audio: chiptune/WebAudio synth vs. dropped files (affects zip size and boot time).
-5. Submission logistics: hosting for the WebGL build and where the archive lives.
+## Decisions (2026-10-17)
+1. **Build to the Jam deadline** — Mon Oct 19, 18:00 EDT. Compo is not the target.
+2. **Concept:** Steven has it; it gets written here as a one-paragraph pitch before `PLAN.md` is cut.
+   The mechanic must come from "Old Tech", not just dress up a generic game in a CRT filter.
+3. **Art:** generated in **Aseprite** (driven through the Aseprite MCP from an idempotent generator
+   script). Committed: `.aseprite` sources plus their exported PNGs under `art/`.
+4. **Audio:** generated with **ElevenLabs**, committed under `assets/audio/`, with each clip's origin
+   recorded in `assets/audio/SOURCES.md` so the entry page can state provenance. Watch total download
+   size — audio is usually what makes a WebGL build fat.
+5. **Push policy:** `main` is pushed once per completed initiative.
+
+## Still open
+- The concept paragraph (blocking `PLAN.md`).
+- Submission logistics: where the WebGL build is hosted for the entry page, and the archive that goes
+  with it.
 
 ## References
 - KNI engine: https://github.com/kniEngine/kni (templates: `nkast.Kni.Templates`)
