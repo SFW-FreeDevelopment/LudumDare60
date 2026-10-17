@@ -19,6 +19,7 @@
 //   window.__GAME.hash() / tick() / seed()
 //   window.__GAME.pause() / resume()     // hand the clock to/from the test
 //   window.__GAME.frames()               // renderer frame counter (for frame-rate budgets)
+//   window.__GAME.audio()                // audio kit: unlocked/broken/music/burner (I11)
 //   window.__GAME.settings()             // the mirrored settings string, e.g. "music=8;sfx=8;assist=0;motion=0"
 //   window.__GAME.settings('assist=1')   // apply one key=value pair, read back the whole line
 //   window.__GAME.hearts()               // hearts left this run (I9)
@@ -63,6 +64,7 @@
         hash: function () { return text('hash'); },
         frames: function () { return text('frames'); },
         metrics: function () { return text('metrics'); },
+        audio: function () { return text('audio'); },
         reset: function (seed) { return text('reset', seed); },
         restart: function () { return text('restart'); },
         advance: function () { return text('advance'); },

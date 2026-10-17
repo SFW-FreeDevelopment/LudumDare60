@@ -116,3 +116,21 @@ test('the voyage flies all three courses start to finish, charting each one home
   expect(await act(page, 'hearts')).toBe('3');     // fresh sky, fresh hearts — a wrap is a launch, not a carry-over
   expect(errors, `console/JS errors during the voyage: ${errors.join(' | ')}`).toEqual([]);
 });
+
+test('a gesture wakes the audio kit and it never breaks @smoke', async ({ page }) => {
+  // PLAN I11's "zero console errors" made testable: audio starts asleep (no loading, so a headless
+  // boot never touches the stack), a real pointer press wakes it, and the kit must come up playing
+  // without retiring itself. Console errors are asserted on top, as everywhere else.
+  const errors = watchForErrors(page);
+  await bootGame(page);
+  expect(await act(page, 'audio')).toBe('unlocked=0;broken=0;music=none;burner=none');
+
+  await clickDesign(page, 60, 340);   // empty corner of the title — a press, not a slat
+
+  await expect.poll(async () => {
+    const pairs = Object.fromEntries((await page.evaluate(() => window.__GAME.audio())).split(';').map((kv) => kv.split('=')));
+    return pairs.unlocked === '1' && pairs.broken === '0' && pairs.music === 'playing';
+  }, { timeout: 5_000, message: 'audio kit should wake on a gesture and stay unbroken' }).toBe(true);
+
+  expect(errors, `console/JS errors around audio: ${errors.join(' | ')}`).toEqual([]);
+});

@@ -13,7 +13,7 @@ exactly the way an entry host would.
 | Published payload on disk | 17.18 MB across 204 files (59 `.br` sidecars, 2.81 MB) | `export/web/` after `dotnet publish` |
 | `dotnet build` (5 projects, Release) | ~11 s | measured |
 | `dotnet publish` Blazor WebGL head | ~11 s (no `wasm-tools`, so no AOT) | measured |
-| Playwright suite | 70 tests, 2 viewports, ~80 s | `npx playwright test` |
+| Playwright suite | 72 tests, 2 viewports, ~80 s | `npx playwright test` |
 | xunit suite | 58 tests | `dotnet test` |
 
 Budgets to watch (set in I12, warned about now): boot under ~3 s on a normal connection, payload under
@@ -42,7 +42,7 @@ pinned in one place and cannot drift between browser and unit tests.
 | Call | Purpose |
 | --- | --- |
 | `ready`, `readyAtMs` | first drawn frame reached, and how long boot took |
-| `version()` | bridge protocol (`i9`) |
+| `version()` | bridge protocol (`i11`) |
 | `screen()` | which screen the game is actually drawing |
 | `screen(id)` | request a screen change; answered `ok:requested=<id>`, applied by the game's own frame loop, so callers poll `screen()` to confirm it |
 | `reset(seed)`, `seed()`, `tick()`, `hash()`, `state()` | scripted replays with a comparable hash |
@@ -61,6 +61,7 @@ pinned in one place and cannot drift between browser and unit tests.
 | `raw('hearts')` | hearts left this run (I9) — also mirrored in `state()` as `hearts` |
 | `raw('hazards')` | the authored hazards as of the current tick: `rock:x,y;…;bird:x,y;…;storm:cx,cy` — the same closed-form functions the collision test and the renderer call |
 | `raw('warp', 'x=alt')` | park the balloon motionless and vulnerable at x/alt — scripted collisions and hazard screenshots |
+| `audio()` | renderer-side kit readout: `unlocked/broken/music/burner` (I11) — proof the browser audio stack woke on a gesture and never retired itself |
 | `key(code=1\|0)`, `keyclear()` | internal: the WebGL head's keyboard feed (`WebKeys`), fired by `index.html`'s DOM listeners |
 
 Rules this enforces: only the harness advances time; `pause()` stops the game loop dead; rendering
@@ -273,3 +274,26 @@ Steven flew the desktop head and reported three things; each became a rule, not 
   paper lost between sessions.
 - **The whole voyage is a Playwright test**: three courses delivered start-to-finish in WebGL
   through the real keyboard (R, Enter), ending wrapped on the first course with fresh hearts.
+
+## Decisions recorded by I11 (audio)
+
+- **The kit is generated, not fetched.** `node audio/.audio/generate.js` synthesizes every sample —
+  square/triangle/noise chiptune voices at 11.025 kHz mono (~330 KB for all seven clips) — and the
+  WAVs embed into the Game assembly beside the sprite sheet. PLAN named ElevenLabs; this machine
+  has no ElevenLabs access, so the kit ships procedural-first (a documented deviation in
+  `assets/audio/SOURCES.md`): swapping in an ElevenLabs render later is a file drop at the same
+  clip name, nothing in the game changes.
+- **Mute-first architecture**: nothing loads until a real gesture (first pointer press or key edge)
+  unlocks the kit; from then on every call is volume-gated and try/caught, and any single failure
+  retires the whole kit rather than spamming a broken call per frame. A scripted test bed that only
+  pokes the harness never touches audio at all — which is also why the boot path stays error-free.
+- **The director reads state edges, renderer side**: burner breathes while `Heating` (the one
+  sound that is a state, not an event), creak on bounce edges, thump on ballast drops, giggle when
+  a heart goes missing (she laughs it off), jingle + three staggered chimes on delivery. Music runs
+  everywhere but behind the pause veil and on the test beds. Sim hash never sees any of it.
+- **Volumes are live**: the settings sliders (0..8) re-echo into the playing instances the frame
+  they move; sfx at zero silences the burner loop and every one-shot, music at zero only the tune.
+- **`audio()` proves it woke**: the smoke test asserts the kit is asleep at boot
+  (`unlocked=0;...music=none`), a title-screen press wakes it into `music=playing`, and `broken`
+  stays 0 with zero console errors — the KNI 4.3 WebAudio backend works in Chromium.
+- **Protocol bumped to `i11`** for the new verb.

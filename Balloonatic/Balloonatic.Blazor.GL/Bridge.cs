@@ -39,6 +39,8 @@ namespace Balloonatic
                 return game.FrameCount.ToString(System.Globalization.CultureInfo.InvariantCulture);
             if (name == "metrics")
                 return game.RenderMetrics();
+            if (name == "audio")
+                return game.AudioStatus();   // the audio kit lives renderer side, like the frame counters
             if (name == "surface")
             {
                 string[] parts = (arg ?? string.Empty).Split('x');

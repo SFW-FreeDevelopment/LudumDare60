@@ -48,6 +48,11 @@ namespace Balloonatic
         // snapshot is differenced against the last one and then remembered.
         bool enterWasPressed, escapeWasPressed, upWasPressed, downWasPressed, leftWasPressed, rightWasPressed;
         bool rWasPressed;
+
+        // I11 audio edge cache: the director turns state into sound by watching for edges here,
+        // renderer side — it reads state, never writes it, like every other decoration.
+        int prevBounces, prevHearts, prevDrops;
+        bool prevDelivered;
         bool mouseWasPressed;
 
         protected BalloonaticGame()
@@ -182,6 +187,14 @@ namespace Balloonatic
 
             UiFrame frame = BuildUiFrame(keyboard, mouse);
 
+            // The first deliberate touch — a press or a key — is the player saying they are here,
+            // and the browser's definition of when audio may exist. Until then the audio stack
+            // never loads, which also keeps a scripted test bed that only pokes the harness
+            // (harness calls are not gestures) entirely out of the audio path.
+            if (!Audio.Sound.Unlocked &&
+                (frame.Click || frame.Enter || frame.Back || frame.Restart || frame.Up || frame.Down || frame.Left || frame.Right))
+                Audio.Sound.Unlock();
+
             // Back is the dev head's kill switch on every screen. Escape belongs to whoever is
             // showing: pause the flight, step back out of a menu, quit from the title. On the test
             // beds it still quits, because those beds are why the key existed.
@@ -246,6 +259,7 @@ namespace Balloonatic
                 AppProgress.Mark(Harness.State.LevelId, Harness.State.Stars);
 
             ApplyScreenRequest();
+            RunAudioDirector();
 
             // Every key has been read for this frame: release the fresh-press latches so a sub-frame
             // tap is exactly one frame of held, never a stuck key.
@@ -341,7 +355,11 @@ namespace Balloonatic
         /// Wind Assist is felt by the flight in the air, not just the next one: the running state takes
         /// the setting the moment it changes. The volumes reach nothing until I11 ships the sounds.
         /// </summary>
-        void UiHost.LiveSettingsChanged() => Harness.State.WindAssist = AppSettings.WindAssist;
+        void UiHost.LiveSettingsChanged()
+        {
+            Harness.State.WindAssist = AppSettings.WindAssist;
+            Audio.Sound.ApplyVolumes();   // the sliders are live the frame they move, music and kit alike
+        }
 
         static readonly bool DiagEnabled = System.Environment.GetEnvironmentVariable("BALLOON_DIAG") == "1";
 
@@ -369,6 +387,41 @@ namespace Balloonatic
         }
 
         int LastDiagFrame;
+
+        /// <summary>Renderer-side audio readout for the bridge (<c>__GAME.audio()</c>).</summary>
+        public string AudioStatus() => Audio.Sound.Status();
+
+        /// <summary>
+        /// Sound from state, once per Update, watching only for edges (I11). The music holds behind
+        /// the pause veil and on the test beds; the burner is the one sound that is a state, not an
+        /// event — it breathes while the sim says heat is on, and only on the world screen.
+        /// Everything funnels through <see cref="Audio.Sound"/>, whose mute-first rules mean this
+        /// method does honest work for free when audio is off, locked, or broken.
+        /// </summary>
+        void RunAudioDirector()
+        {
+            SimState s = Harness.State;
+            bool onWorld = s.Screen == SimState.ScreenWorld;
+            Audio.Sound.SetMusic(s.Screen is not (SimState.ScreenPause or SimState.ScreenScaffold or SimState.ScreenStyle));
+            Audio.Sound.SetBurner(onWorld && s.Heating && !s.Complete);
+
+            if (s.Bounces > prevBounces) Audio.Sound.Play("creak");
+            if (s.Hearts < prevHearts) Audio.Sound.Play("giggle");         // she laughs it off — losing is not a scold
+            if (s.DropsSeen > prevDrops) Audio.Sound.Play("thump");
+            if (s.Delivered && !prevDelivered)
+            {
+                Audio.Sound.Play("jingle");
+                Audio.Sound.PlaySoon("chime", 42);                          // the stars ring in one after another
+                Audio.Sound.PlaySoon("chime", 74);
+                Audio.Sound.PlaySoon("chime", 106);
+            }
+
+            prevBounces = s.Bounces;
+            prevHearts = s.Hearts;
+            prevDrops = s.DropsSeen;
+            prevDelivered = s.Delivered;
+            Audio.Sound.Tick();
+        }
 
         /// <summary>
         /// Screen changes are applied by the game, not by the caller: the harness can ask for any string it

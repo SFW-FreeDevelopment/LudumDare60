@@ -35,4 +35,12 @@
     <EmbeddedResource Include="..\..\art\export\slices.json" Link="content\slices.json" />
   </ItemGroup>
 
+  <!-- Audio kit built by audio/.audio (same philosophy: one generator, reproducible bytes,
+       logical names stable across heads). 11.025 kHz mono keeps the whole kit at ~330 KB raw. -->
+  <ItemGroup>
+    <EmbeddedResource Include="..\..\audio\export\*.wav">
+      <LogicalName>Balloonatic.content.audio.%(Filename).wav</LogicalName>
+    </EmbeddedResource>
+  </ItemGroup>
+
 </Project>
