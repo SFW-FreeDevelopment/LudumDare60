@@ -24,9 +24,9 @@ namespace Balloonatic.Screens
         // Deliberately far below the camera speed: the world itself already sweeps past at wind speed,
         // and background layers that ride along at near-world speed make the sky feel like it is flying
         // at the player (playtest: motion sickness at 2x scale). Distance should read as slowness.
-        const float StarsParallax = 0.2f;
-        const float FarCloudParallax = 0.35f;
-        const float MidCloudParallax = 0.55f;
+        const float StarsParallax = 0.15f;
+        const float FarCloudParallax = 0.25f;
+        const float MidCloudParallax = 0.40f;
 
         // Stepped sky ramp by altitude: the higher the balloon, the older and darker the air gets.
         static readonly (float Altitude, Color Color)[] SkyRamp =
@@ -174,7 +174,7 @@ namespace Balloonatic.Screens
                 // player's ambient wind read — and the drift is state-derived (tick), so frames are stable.
                 // A slow suggestion of drift, not the band's full speed: big pale shapes crossing fast
                 // are exactly what the eye cannot ignore and the stomach cannot forgive.
-                float drift = Clock(state) * band.Direction * LevelDef.WindSpeed(band.Strength) * (far ? 0.10f : 0.16f);
+                float drift = Clock(state) * band.Direction * LevelDef.WindSpeed(band.Strength) * (far ? 0.06f : 0.10f);
 
                 int x = Wrap(wx + (int)drift - (int)(camX * parallax), span) - span / 4;
                 int y = ScreenY(altitude - (int)(camAlt * (1f - parallax)), camAlt);
@@ -199,7 +199,7 @@ namespace Balloonatic.Screens
                 if (y < 6 || y > Sim.DesignHeight - 6)
                     continue;
 
-                float travel = Clock(state) * LevelDef.WindSpeed(band.Strength) * 0.05f * band.Direction;
+                float travel = Clock(state) * LevelDef.WindSpeed(band.Strength) * 0.04f * band.Direction;
                 for (int wx = -640; wx <= (int)level.CourseLength + 640; wx += 160)
                 {
                     int x = ScreenX(wx, camX) + (int)Wrap(travel, 160f * band.Direction) % 160 * band.Direction;

@@ -14,7 +14,7 @@ exactly the way an entry host would.
 | `dotnet build` (5 projects, Release) | ~11 s | measured |
 | `dotnet publish` Blazor WebGL head | ~11 s (no `wasm-tools`, so no AOT) | measured |
 | Playwright suite | 36 tests, 2 viewports, ~27 s | `npx playwright test` |
-| xunit suite | 43 tests | `dotnet test` |
+| xunit suite | 46 tests | `dotnet test` |
 
 Budgets to watch (set in I12, warned about now): boot under ~3 s on a normal connection, payload under
 ~8 MB transferred, 60 fps in a Chromium tab. The 17 MB on disk is mostly uncompressed framework files
@@ -124,7 +124,8 @@ reads state and never writes it, so effects cannot perturb a replay.
   committed fall under the deck, return band) forward ~12 s on cloned state, scores the imagined
   ending with the landing read, and flies the winner for a second before re-imagining. Player-legal
   verbs only, fully deterministic, and every authored level ships with a proof it can be delivered
-  (all three land <= 24 s, clean, 3 stars).
+  (all three land clean inside par — a dedicated test demands 3 stars from the ghost pilot, so
+  par stays a promise that a good human flight exists, never fiction).
 - **Levels are re-authored until the autopilot can land them.** `winding-trail`'s lowest band now
   carries gently toward the deck, and `night-crossing` became a calm floor with a fast ceiling; the
   solvability test (`Every_authored_level_can_actually_be_delivered`) is what licenses the wind data,
@@ -146,6 +147,10 @@ Steven flew the desktop head and reported three things; each became a rule, not 
   The banner states which one R will do.
 - **Background layers move slower than the world, not with it** (playtest: "making me sick").
   The camera already sweeps at wind speed; mid clouds sat at 0.75 parallax and drifted at 40 % of
-  band speed on top of that. They are far layers now (0.55/0.35 parallax, 10–16 % drift, chevron
-  travel halved). Distance reads as slowness. If motion sickness survives this, the next lever is
-  the band speeds themselves (40/75/110 px/s) — deliberately untouched until a playtest says so.
+  band speed on top of that. They are far layers now (0.40/0.25 parallax, 6–10 % drift).
+- **Round 2 pulled the last lever: the wind bands themselves are halved** (40/75/110 → 20/38/55
+  px/s, gusts scaled with them). Decoration tuning had not been enough — the whole world was
+  sweeping past the camera at band speed, and at the old numbers the sky flew *at* the player.
+  Courses and pars were kept; the delivery autopilot re-plans every second and absorbed the
+  halving without a single constant changing, which is the argument for planning over patterns.
+  A balloon rides a breeze: these are the approved floor numbers, not a temporary softening.

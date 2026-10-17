@@ -122,6 +122,24 @@ namespace Balloonatic.Tests
         [InlineData("nursery-skies")]
         [InlineData("winding-trail")]
         [InlineData("night-crossing")]
+        public void The_ghost_pilot_lands_inside_par_so_the_speed_star_stays_earnable(string levelId)
+        {
+            // Par is a promise that a good human flight exists. The ghost pilot is the proof: if even
+            // the planner cannot beat par (clean), the par is fiction and the second star is dead.
+            LevelDef level = LevelCatalog.Get(levelId);
+            SimState s = new SimState { Seed = 0xC0FFEE, LevelId = level.Id };
+
+            Autopilot.Deliver(s, level, 120f).Should().BeTrue();
+
+            s.Stars.Should().Be(3, $"{levelId}: a flown-by-the-book delivery must earn all three stars");
+            s.Bounces.Should().Be(0);
+            s.Tick.Should().BeLessThan(level.ParSeconds * Sim.StepHz);
+        }
+
+        [Theory]
+        [InlineData("nursery-skies")]
+        [InlineData("winding-trail")]
+        [InlineData("night-crossing")]
         public void Delivery_is_reproducible_from_one_seed(string levelId)
         {
             LevelDef level = LevelCatalog.Get(levelId);

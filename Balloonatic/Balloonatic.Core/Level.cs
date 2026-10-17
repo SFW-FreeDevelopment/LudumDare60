@@ -84,12 +84,17 @@ namespace Balloonatic.Core
         public bool OverLaunchDeck(float x) => Math.Abs(x) <= SimTuning.DeckHalfWidth;
         public bool OverDeliveryDeck(float x) => Math.Abs(x - CourseLength) <= SimTuning.DeckHalfWidth;
 
-        /// <summary>Design px/s of band wind by strength. Three readable steps, no more.</summary>
+        /// <summary>
+        /// Design px/s of band wind by strength. Three readable steps, no more. Halved from
+        /// 40/75/110 after the I5 feel playtest: the whole world sweeps past the camera at these
+        /// speeds, and at the old numbers the sky flew at the player (motion sickness on record).
+        /// A balloon rides a breeze — the calm numbers are now the floor the playtest approved.
+        /// </summary>
         public static float WindSpeed(int strength) => strength switch
         {
-            <= 1 => 40f,
-            2 => 75f,
-            _ => 110f,
+            <= 1 => 20f,
+            2 => 38f,
+            _ => 55f,
         };
 
         public WindBand BandAt(float altitude)
@@ -150,7 +155,7 @@ namespace Balloonatic.Core
                     new WindBand(240f, 360f, -1, 2),
                     new WindBand(360f, 520f, +1, 3),
                 },
-                new[] { new GustZone(240f, 300f, -1, 35f) },
+                new[] { new GustZone(240f, 300f, -1, 20f) },
                 700f, 60),
 
             // Night: a long haul under a fast ceiling, above a calm floor. The middle air barely
@@ -165,7 +170,7 @@ namespace Balloonatic.Core
                     new WindBand(300f, 460f, -1, 1),
                     new WindBand(460f, 600f, +1, 2),
                 },
-                new[] { new GustZone(460f, 540f, +1, 40f) },
+                new[] { new GustZone(460f, 540f, +1, 22f) },
                 900f, 80),
         };
 
