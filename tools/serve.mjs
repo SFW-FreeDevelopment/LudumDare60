@@ -6,7 +6,11 @@ import { createReadStream, existsSync, statSync } from 'node:fs';
 import { dirname, extname, join, normalize, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const root = resolve(dirname(fileURLToPath(import.meta.url)), '..', 'export', 'web', 'wwwroot');
+// ROOT overrides the served directory (the zip check serves an unzipped archive; a fresh clone uses
+// its own export/) so the same brotli-aware host proves every artifact the entry pipeline makes.
+const root = process.env.ROOT
+  ? resolve(process.env.ROOT)
+  : resolve(dirname(fileURLToPath(import.meta.url)), '..', 'export', 'web', 'wwwroot');
 const port = Number(process.env.PORT || 4173);
 const encoded = process.env.RAW !== undefined ? false : true;
 

@@ -407,6 +407,7 @@ Unity/.idea
 # KNI / .NET build output
 artifacts/
 /export/
+dist/
 publish/
 *.binlog
 

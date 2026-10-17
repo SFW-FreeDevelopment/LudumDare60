@@ -24,12 +24,53 @@ a Windows desktop head exists so the balloon's feel can be judged at the keyboar
 
 ```bash
 npm install
-npm run dev      # desktop head: Space or left mouse = heat, B or right mouse = drop ballast
-npm test         # Playwright against the published WebGL build, two viewports
+npm run dev      # desktop head — fastest way to feel it
+npm run web      # publish the WebGL entry build to export/web/
+npm run serve    # serve it at http://localhost:4173 like an entry host would
+npm test         # Playwright against the served WebGL build, two viewports
 npm run check    # build + unit tests + WebGL publish + Playwright — the commit gate
 ```
 
-Served at `http://localhost:4173` after `npm run web && npm run serve`.
+## Controls
+
+| Input | Action |
+| --- | --- |
+| <kbd>Space</kbd> / hold left mouse | Burner — heat rises |
+| release | Cool air — sink |
+| <kbd>B</kbd> / right mouse | Drop a sandbag (there are two; they are the brake) |
+| <kbd>↑↓</kbd> / <kbd>W</kbd><kbd>S</kbd> | Menu focus |
+| <kbd>Enter</kbd> | Confirm · fly on from the world map |
+| <kbd>R</kbd> | After a delivery: the voyage chart. After a crash or empty hearts: fly this sky again |
+| <kbd>Esc</kbd> | Pause in flight · back out of a menu |
+
+Fully keyboard-playable; the focus ring is as designed as the hover state. Settings offer music and
+sfx volume, wind assist, and Reduced Motion (which removes shake, flicker, puffs, and screen
+transitions — the visuals were tuned against a motion-sickness floor, and they stay there).
+
+## The theme, carried honestly
+
+**Old Tech** is the machine, not a filter: a burner you feather by hand, a temperature gauge with a
+live flame, rope and wicker, sandbags as the only brake, windsocks and storm banks you read like a
+chart. No CRT scanlines anywhere — the 16-bit look comes from what the balloon *is*, and there are
+no left/right controls because a balloon has no rudder: horizontal travel is the wind's, and the
+wind is chosen by altitude.
+
+## Credits & provenance
+
+- Engine: [KNI](https://github.com/kniEngine/kni) 4.3 (MonoGame-family, .NET), shipped as Blazor
+  WebAssembly/WebGL.
+- Art: generated — `art/.art/generate.js` computes every sprite through the Aseprite MCP
+  (sources + exports under `art/`, palette audit in `art/.art/audit.js`).
+- Audio: generated — `audio/.audio/generate.js` synthesizes the whole chiptune kit
+  (`assets/audio/SOURCES.md` records each clip's recipe).
+- Font: hand-authored 5×7 pixel face (`PixelFont.cs`).
+- Design and code: Steven Garberg. *For Charlotte ♥*
+
+## Submitting
+
+`npm run zip` builds `dist/charlottes-balloonatic-ld60-web.zip` — the published `wwwroot` with
+`index.html` at the archive root, which is what the LD page wants. Copy-paste entry text (blurb,
+controls, theme note, credits) lives in [`docs/LD_ENTRY.md`](docs/LD_ENTRY.md).
 
 ## Layout
 

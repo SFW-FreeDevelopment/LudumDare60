@@ -9,6 +9,7 @@
     "unit": "dotnet test Balloonatic/Balloonatic.sln -c Release",
     "web": "dotnet publish Balloonatic/Balloonatic.Blazor.GL -c Release -o export/web",
     "serve": "node tools/serve.mjs",
+    "zip": "powershell -NoProfile -ExecutionPolicy Bypass -File tools/zip.ps1",
     "test": "playwright test",
     "shot": "playwright test --grep @shot --update-snapshots",
     "check": "npm run build && npm run unit && npm run web && playwright test"
