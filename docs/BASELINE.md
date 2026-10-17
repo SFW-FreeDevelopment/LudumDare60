@@ -13,7 +13,7 @@ exactly the way an entry host would.
 | Published payload on disk | 17.18 MB across 204 files (59 `.br` sidecars, 2.81 MB) | `export/web/` after `dotnet publish` |
 | `dotnet build` (5 projects, Release) | ~11 s | measured |
 | `dotnet publish` Blazor WebGL head | ~11 s (no `wasm-tools`, so no AOT) | measured |
-| Playwright suite | 40 tests, 2 viewports, ~34 s | `npx playwright test` |
+| Playwright suite | 42 tests, 2 viewports, ~35 s | `npx playwright test` |
 | xunit suite | 47 tests | `dotnet test` |
 
 Budgets to watch (set in I12, warned about now): boot under ~3 s on a normal connection, payload under
@@ -184,3 +184,16 @@ Steven flew the desktop head and reported three things; each became a rule, not 
 - **Payload**: the sheet is ~23 KB embedded in `Balloonatic.Game.dll` (compressed delta inside the
   noise of the 2.83 MB transfer baseline); both heads load it from one embedded stream — no disk
   reads, no platform branch.
+- **I6 HUD is the sheet's instrument set** (crate panel top-left: Charlotte's portrait in its
+   stitched frame, hearts, star rating, gift-box delivery counter; wind chevrons + band pips
+   top-centre; brass heat gauge with a live two-frame flame cap down the right edge; sprite
+   sandbags for ballast). Hearts draw full until I9 gives the sim a hearts field — the empty
+   sprite (`heart-hud-off`) is already on the sheet waiting for it.
+- **Every HUD number is mirrored in `__GAME.state()`** — `heating`, `temperature`, `ballastHeld`,
+   `drops`, `stars`, `delivered`, `level`, `altitude` — and the mirror spec asserts the fields
+   actually move (heat climbs, a dump decrements, altitude changes the band). The wind chevrons
+   have no field of their own because the wind *is* level + altitude: the HUD derives the band
+   with the same `BandAt` the sim steers by.
+- **HUD sprites are sheet-authored**: `portrait` (44×48), `heart-hud`/`heart-hud-off` (26×22),
+   `star-hud` (26×22), `gift` (26×26), `flame-hud` (2×28×28), `bag-falling` reused for ballast —
+   the frame and violet backing are painted into the portrait sprite, so the HUD draws one thing.

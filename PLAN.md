@@ -88,7 +88,7 @@ Milestones: **feel gate** (I5) by Sun ~20:00 · **content freeze** (I10) by Mon 
   plan"* — re-tune offer stands after the I8 art initiative.
 
 ### Presentation
-- [ ] **I6 — HUD** (~90m)
+- [x] **I6 — HUD** (~90m)
   Charlotte portrait, hearts, stars, delivery counter, vertical heat meter with flame, ballast pips,
   wind arrow + band marker — all kit-drawn, all mirrored in `__GAME` so tests can assert them.
   *Done when:* screenshots reviewed at 1280×720 and 420×760 with nothing clipped or unreadable.

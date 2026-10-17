@@ -328,25 +328,88 @@ namespace Balloonatic.Screens
         /// </summary>
         static int Clock(SimState state) => state.Complete ? state.CompletedAtTick : state.Tick;
 
+        // The heart row is drawn full until damage exists; the I9 hazards initiative gives the sim a
+        // hearts field, and then the empty slots and the __GAME mirror arrive with it.
+        const int HeartsTotal = 3;
+
+        /// <summary>
+        /// The instrument panel of the concept sheet: a wooden crate panel top-left carrying Charlotte's
+        /// portrait, hearts, the star rating and a gift-box delivery count; the wind readout top-centre;
+        /// and the burner's own heat gauge down the right edge, capped with a live flame. Every number
+        /// shown is mirrored in the __GAME state — heating, temperature, ballastHeld, stars, delivered,
+        /// level, and the altitude that picks the band — so tests assert the HUD's data, not its pixels.
+        /// </summary>
         static void DrawHud(DesignCanvas canvas, LevelDef level, SimState state)
         {
-            // Heat gauge, right edge, flame cap at the hot end: the burner's own instrument.
-            var bounds = new Rectangle(Sim.DesignWidth - 26, 150, 14, 68);
-            float fill = (state.Temperature - SimTuning.TempAmbient) / (SimTuning.TempMax - SimTuning.TempAmbient);
-            Kit.HeatMeter(canvas, bounds, fill, state.Heating);
-            Kit.Tag(canvas, Sim.DesignWidth - 40, 222, "HEAT");
+            int clock = Clock(state);
 
-            // Ballast bags, bottom left: what's aboard, in things you could touch.
-            Kit.Sandbags(canvas, 12, Sim.DesignHeight - 26, state.BallastHeld, SimTuning.BagCapacity);
-            Kit.Tag(canvas, 12, Sim.DesignHeight - 40, "BALLAST");
+            // ---- crate panel, top left: who is flying, and how she is doing ----
+            Kit.Panel(canvas, new Rectangle(8, 8, 118, 44));
+            Sprites.Draw(canvas, "portrait", 13, 11);
+            canvas.CutRectangle(39, 10, 68, 32, 1, Theme.Dim);              // inner well behind the counters
+            for (int i = 0; i < HeartsTotal; i++)
+                Sprites.Draw(canvas, "heart-hud", 42 + i * 16, 12);
+            Sprites.Draw(canvas, "star-hud", 42, 28);
+            PixelFont.DrawShadowed(canvas, "x" + state.Stars, 58, 31, Theme.TagCream);
+            Sprites.Draw(canvas, "gift", 78, 27);
+            PixelFont.DrawShadowed(canvas, DeliveriesDone(state) + "/" + LevelCatalog.Levels.Length, 94, 31, Theme.TagCream);
 
-            // Steering readout: the wind of the band the balloon is actually inside, big and central-left
-            // where the eye already is. This is the HUD's only job.
+            // ---- steering readout, top centre: the wind of the band the balloon is actually inside.
+            // This is the HUD's only real job — the sole steering the player has.
             WindBand here = level.BandAt(state.Altitude);
-            Kit.WindChevrons(canvas, 12, 12, here.Direction, here.Strength, BandTint(Index(level, here)), 3);
-            Kit.Tag(canvas, 12, 30, "WIND");
+            int band = Index(level, here);
+            Kit.WindChevrons(canvas, 216, 10, here.Direction, here.Strength, BandTint(band), 3);
+            Kit.Tag(canvas, 220, 30, "WIND");
+            for (int i = 0; i < level.Bands.Length; i++)                    // band pips: the ladder of air
+            {
+                Color pip = i == band ? BandTint(i) : Color.Lerp(BandTint(i), Theme.Ink, 0.72f);
+                canvas.Fill(226 + i * 6, 44, 4, 4, pip);
+                if (i == band)
+                    canvas.Outline(new Rectangle(225 + i * 6, 43, 6, 6), Theme.Cream);
+            }
 
-            // Course ruler bottom: travelled vs the delivery column, with the goal as a gold notch.
+            // ---- heat gauge, right edge: a brass instrument capped with a live flame, the way the
+            // sheet draws the burner's own thermometer ----
+            var gauge = new Rectangle(Sim.DesignWidth - 26, 142, 16, 74);
+            canvas.CutRectangle(gauge.X, gauge.Y, gauge.Width, gauge.Height, 2, Theme.Ink);
+            canvas.Fill(gauge.X + 1, gauge.Y + 1, gauge.Width - 2, gauge.Height - 2, Theme.Dim);
+            canvas.Fill(gauge.X + 2, gauge.Y + 1, 1, gauge.Height - 2, Theme.RockSlate);           // metal rim
+            canvas.Fill(gauge.Right - 3, gauge.Y + 1, 1, gauge.Height - 2, Theme.RockDark);
+
+            float fill = (state.Temperature - SimTuning.TempAmbient) / (SimTuning.TempMax - SimTuning.TempAmbient);
+            int inner = gauge.Height - 4;
+            int filled = (int)Math.Round(MathHelper.Clamp(fill, 0f, 1f) * inner);
+            for (int row = 0; row < filled; row++)
+            {
+                // Gradient along the fill: how close the fabric is to too hot, the way any thermometer reads.
+                float position = row / (float)Math.Max(1, inner);
+                Color color = position > 0.72f ? Theme.FlameRed : position > 0.4f ? Theme.FlameOrange : Theme.FlameYellow;
+                canvas.Fill(gauge.X + 2, gauge.Bottom - 2 - row, gauge.Width - 4, 1, color);
+                canvas.Fill(gauge.Right - 3, gauge.Bottom - 2 - row, 1, 1, Color.Lerp(color, Theme.Ink, 0.35f)); // glass shade
+            }
+
+            for (int tick = 0; tick <= 4; tick++)
+                canvas.Fill(gauge.X + 2, gauge.Bottom - 2 - inner * tick / 4, 2, 1, Theme.Cream);
+
+            canvas.Fill(gauge.X + 5, gauge.Bottom, 6, 2, Theme.RockSlate);   // burner nozzle under the well
+            canvas.Fill(gauge.X + 6, gauge.Bottom + 2, 4, 1, Theme.RockDark);
+
+            // The cap flame is still at rest and flickers while the burner fires; it rides on the
+            // decoration clock, so a results screen behind a frozen run keeps a frozen flame.
+            int flameFrame = state.Heating && clock % 12 >= 6 ? 1 : 0;
+            Sprites.Draw(canvas, "flame-hud", flameFrame, gauge.X + 1, gauge.Y - 12);
+            Kit.Tag(canvas, Sim.DesignWidth - 33, 222, "HEAT");
+
+            // ---- ballast, bottom left: the actual sandbags aboard, in things you could touch. The
+            // dropped slots keep their shape — an empty bag is still a bag on the rope. ----
+            for (int i = 0; i < SimTuning.BagCapacity; i++)
+            {
+                bool held = i < state.BallastHeld;
+                Sprites.Draw(canvas, "bag-falling", 12 + i * 7, Sim.DesignHeight - 33, false, held ? (Color?)null : Theme.WoodMid);
+            }
+            Kit.Tag(canvas, 12, Sim.DesignHeight - 44, "BALLAST");
+
+            // ---- course ruler bottom: travelled vs the delivery column, with the goal as a gold notch ----
             int left = 150;
             int width = 340;
             int y = Sim.DesignHeight - 14;
@@ -356,6 +419,18 @@ namespace Balloonatic.Screens
             int markX = left + (int)(Clamp(state.X, 0f, level.CourseLength) / level.CourseLength * (width - 4));
             canvas.Fill(markX, y, 3, 7, Theme.Cream);
             Kit.Tag(canvas, left, y - 14, level.NameUpper);
+        }
+
+        /// <summary>
+        /// Deliveries completed on this flight: the courses flown before this one, plus this one the
+        /// moment its package lands. Mirrored by state.level + state.delivered.
+        /// </summary>
+        static int DeliveriesDone(SimState state)
+        {
+            for (int i = 0; i < LevelCatalog.Levels.Length; i++)
+                if (string.Equals(LevelCatalog.Levels[i].Id, state.LevelId, StringComparison.OrdinalIgnoreCase))
+                    return i + (state.Delivered ? 1 : 0);
+            return 0;
         }
 
         static int Index(LevelDef level, WindBand band)

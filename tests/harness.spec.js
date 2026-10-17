@@ -167,6 +167,43 @@ test('the wind bands own horizontal travel, and switching levels relaunches', as
   expect(flown.levelNow).toBe('night-crossing');
 });
 
+test('every HUD readout is mirrored in the state for tests to assert', async ({ page }) => {
+  watchForErrors(page);
+  await bootGame(page);
+
+  // The HUD (I6) draws from sim state alone — this is the mirror it draws from. If any of these
+  // fields go missing or stop moving, the panel on screen is lying even though pixels still appear.
+  const hud = await page.evaluate(async () => {
+    await window.__GAME.reset('1234');
+    const rest = await window.__GAME.state();
+    await window.__GAME.set('heat', 1);
+    await window.__GAME.step(120);                       // two seconds of burner: the gauge climbs
+    const hot = await window.__GAME.state();
+    await window.__GAME.set('ballast', 1);
+    await window.__GAME.step(1);                         // a sandbag overboard: the bag row thins
+    const dumped = await window.__GAME.state();
+    return { rest, hot, dumped };
+  });
+
+  // The heat gauge fill and its flame cap both read these two.
+  expect(hud.rest.heating).toBe(false);
+  expect(hud.hot.heating).toBe(true);
+  expect(hud.hot.temperature).toBeGreaterThan(hud.rest.temperature);
+
+  // The sandbag row draws exactly this count, and it drops with every dump.
+  expect(hud.dumped.drops).toBe(hud.hot.drops + 1);
+  expect(hud.dumped.ballastHeld).toBe(hud.hot.ballastHeld - 1);
+
+  // The wind chevrons have no field of their own because the wind IS level plus altitude — the
+  // HUD derives the band with the same function the sim steers by, so climbing must change it.
+  expect(hud.rest.level).toBe('nursery-skies');
+  expect(hud.hot.altitude).toBeGreaterThan(hud.rest.altitude);
+
+  // The gift and star rows read these; they stay honest until a delivery earns them.
+  expect(hud.rest.delivered).toBe(false);
+  expect(hud.rest.stars).toBe(0);
+});
+
 test('the protocol rejects horizontal control and bad arguments', async ({ page }) => {
   watchForErrors(page);
   await bootGame(page);

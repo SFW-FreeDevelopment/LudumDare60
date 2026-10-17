@@ -460,6 +460,148 @@ function island(delivery) {
   return px;
 }
 
+// Double a 1x-authored block to internal resolution — every pixel becomes a crisp 2x2.
+function x2(px) {
+  const out = [];
+  for (const [x, y, hex] of px) out.push([2 * x, 2 * y, hex], [2 * x + 1, 2 * y, hex], [2 * x, 2 * y + 1, hex], [2 * x + 1, 2 * y + 1, hex]);
+  return out;
+}
+
+// ================================================================ HUD bits (I6)
+// The sheet's HUD is a stitched crate panel: Charlotte's portrait in a blue-backed cream frame,
+// pink hearts, a gold star, a gift box counter, and a heat gauge capped with a live flame. These
+// are those pieces; the panel itself is kit-drawn so it can size itself to the text it carries.
+
+// Charlotte's face, 24x26 design. Blue backing + stitched cream frame in the sprite itself, so
+// the HUD draws one thing. The face is the balloon basket's Charlotte, grown up for the frame:
+// bigger glossy eyes with two shine pixels, a pink headband with a bow, shoulders in her dress.
+function portrait() {
+  const px = [];
+  px.push(...obox(0, 0, 44, 48, PAL.paper, PAL.K));                                  // cream frame
+  for (let y = 3; y < 45; y += 3) for (let x = 3; x < 41; x += 3) px.push([x, y, PAL.paperWarm]); // stitching
+  px.push(...obox(5, 5, 34, 38, PAL.rockD, PAL.K));                                  // violet-blue backing
+  px.push(...disc(22, 16, 11, PAL.hair, PAL.K));                                     // hair mass
+  px.push(...obox(11, 15, 22, 20, PAL.skin, PAL.K));                                 // face
+  for (let x = 12; x <= 31; x++) for (let y = 15; y <= 17; y++) px.push([x, y, PAL.hair]); // fringe
+  for (let x = 12; x <= 31; x += 3) px.push([x, 18, PAL.hair]);                      // fringe zigzag
+  for (let y = 18; y <= 35; y++) { px.push([10, y, PAL.hair], [11, y, PAL.hair], [32, y, PAL.hair], [33, y, PAL.hair]); } // side hair
+  for (let x = 12; x <= 31; x++) px.push([x, 6, PAL.gP], [x, 7, PAL.gP]);            // headband
+  ascii([
+    "KK..KK",
+    "KggggK",
+    "KggggK",
+    ".KggK.",
+    "..KK..",
+  ], 27, 6, { g: "gP" }).forEach(p => px.push(p));                                   // bow pinned to the band
+  // big glossy eyes: 4x6 ink, cream shine at the top, a second speck low — the sheet's gloss
+  ascii(["KKKK", "KCKK", "KKKK", "KKKK", "KKCK", ".KK."], 14, 22, { K: "K", C: "C" }).forEach(p => px.push(p));
+  ascii(["KKKK", "KCKK", "KKKK", "KKKK", "KKCK", ".KK."], 25, 22, { K: "K", C: "C" }).forEach(p => px.push(p));
+  px.push([12, 29, PAL.cheek], [13, 29, PAL.cheek], [30, 29, PAL.cheek], [31, 29, PAL.cheek]); // blush
+  px.push([20, 31, PAL.K], [21, 31, PAL.K], [22, 31, PAL.K], [23, 31, PAL.K]);       // smile line
+  px.push([20, 32, PAL.gP], [21, 32, PAL.gP], [22, 32, PAL.gP], [23, 32, PAL.gP]);   // open smile
+  for (let x = 14; x <= 29; x++) for (let y = 38; y <= 43; y++) px.push([x, y, PAL.dress]);     // shoulders
+  for (let x = 16; x <= 27; x += 4) px.push([x, 38, PAL.gp]);                        // collar trim
+  return px;
+}
+
+// Pink HUD heart, 13x11 design: gP body, dithered gR shade along the bottom curve, two cream
+// shine pixels — the sheet's hearts sit lit at the top and deep at the chin.
+function heartHud(on) {
+  const px = [];
+  ascii([
+    ".KKK..KKK..",
+    "KhhhKKhhhK.",
+    "KshhhhhhhhK",
+    "KsChhhhhhhK",
+    "KsChhhhhhhK",
+    "KhhhhhhhhhK",
+    ".KhhhddhhhK",
+    "..KhdhdhK..",
+    "...KhddhK..",
+    "....KhhK...",
+    ".....KK....",
+  ], 0, 0, on ? { h: "gP", d: "gR", s: "gR", C: "C" } : { h: "heartOff", d: "heartOff", s: "w2", C: "w2" })
+    .forEach(p => px.push(p));
+  return px;
+}
+
+// Gold HUD star, 13x11 design: gold body, plum-shaded right edge, cream corner glint.
+function starHud() {
+  const px = [];
+  ascii([
+    "......KK.....",
+    ".....KCCK....",
+    ".....KCGK....",
+    ".KKKKGGKKKKK.",
+    "KGGGGGGGGGgK.",
+    "KgKGGGGGgKK..",
+    ".KKGGGGGKK...",
+    "..KGGgGgK....",
+    ".KGGKdKGGK...",
+    ".KKK.KKK.....",
+  ], 0, 0, { G: "brass", C: "C", g: "w2", d: "gL", K: "K" }).forEach(p => px.push(p));
+  return px;
+}
+
+// Gift box, 13x13 design: gold box, cream lid, pink ribbon and bow — the sheet's "deliver to
+// someone special" icon. Dots on the box are the wrapping paper.
+function gift() {
+  const px = [];
+  ascii([
+    "...KK.KK.....",
+    "..KrrKrrK....",
+    "..KrrKrrK....",
+    "...KKKKK.....",
+    "....KrK......",
+    ".KKKKKKKKKKK.",
+    ".KPPPPPPPPPK.",
+    ".KKKKrKKKKKK.",
+    ".KGGGrKGGGGK.",
+    ".KGDGrKSGGDG.",
+    ".KGGGrKGGGGK.",
+    ".KGGGrSGGGGK.",
+    ".KKKKKKKKKKK.",
+  ], 0, 0, { r: "gP", P: "paper", G: "brass", D: "C", S: "gL", K: "K" }).forEach(p => px.push(p));
+  return px;
+}
+
+// Heat-gauge flame cap, two frames (the gauge flickers while the burner fires), 14x14 design.
+// 1 = core, 2 = body, 3 = edge (same scheme as the burner flame).
+const FLAME_HUD = [
+  [
+    ".....1.......",
+    ".....1.......",
+    "....K1K..1...",
+    "....K2K......",
+    "...K222K.....",
+    "..K21113K....",
+    "..K111131K.1.",
+    ".K11222131K..",
+    ".K12222113K..",
+    ".K11222113K..",
+    ".K13113133K..",
+    "..K311333K...",
+    "...K3333K....",
+    "....KKKKK....",
+  ],
+  [
+    "......1......",
+    "......1......",
+    "..1...1......",
+    ".....K2K..1..",
+    ".....K2K.....",
+    "....K222K....",
+    "...K21113K...",
+    "..K1111131K..",
+    "..K1222213K..",
+    "..K1122213K..",
+    "...K131131K..",
+    "....K3113K...",
+    ".....K33K....",
+    "......KK.....",
+  ],
+].map(rows => ascii(rows, 0, 0, { "1": "f1", "2": "f2", "3": "f3", K: "K" }));
+
 // ================================================================ sheet packing
 // frames stack vertically inside the name's column; slices.json (the loader's table) mirrors this.
 const SPRITES = {
@@ -477,6 +619,12 @@ const SPRITES = {
   "star-on":      { w: 12, h: 9, frames: [star(true)] },
   "heart-off":    { w: 12, h: 9, frames: [heart(false)] },
   "heart-on":     { w: 12, h: 9, frames: [heart(true)] },
+  "portrait":     { w: 44, h: 48, frames: [portrait()] },
+  "heart-hud":    { w: 26, h: 22, frames: [x2(heartHud(true))] },
+  "heart-hud-off": { w: 26, h: 22, frames: [x2(heartHud(false))] },
+  "star-hud":     { w: 26, h: 22, frames: [x2(starHud())] },
+  "gift":         { w: 26, h: 26, frames: [x2(gift())] },
+  "flame-hud":    { w: 28, h: 28, frames: FLAME_HUD.map(x2) },
 };
 
 function pack(sheetWidth) {
