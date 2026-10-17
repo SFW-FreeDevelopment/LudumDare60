@@ -11,11 +11,21 @@ namespace Balloonatic.Rendering
     /// viewport is smaller (a phone in the LD page), always nearest-neighbour, always letterboxed.
     /// One code path for the desktop head and the WebGL head, so what I see in a browser is what the
     /// entry shows.
+    ///
+    /// The target behind the design grid is <see cref="Px"/> times larger (1280x720): world drawing
+    /// takes float design coordinates and snaps them to whole pixels of that finer grid, so a camera
+    /// moving at a gentle 15 px/s advances in half-design-pixel steps instead of whole ones. That is
+    /// the cure for the slow-motion strobe the feel playtest caught — motion smoothness without ever
+    /// sampling art between pixels, so everything stays hard-edged pixel art. HUD text stays on the
+    /// coarse integer grid: type must not wobble.
     /// </summary>
     sealed class DesignCanvas : IDisposable
     {
         /// <summary>Design-pixel grid everything snaps to, and the gutter every panel and HUD block uses.</summary>
         public const int Grid = 8;
+
+        /// <summary>Internal pixels per design pixel. Positions quantise to 1/Px of a design pixel.</summary>
+        public const float Px = 2f;
 
         readonly Game _game;
         readonly GraphicsDevice _device;
@@ -44,19 +54,45 @@ namespace Balloonatic.Rendering
         /// <summary>Begin drawing in design pixels.</summary>
         public void BeginDesign()
         {
-            if (_target == null || _target.Width != Width || _target.Height != Height)
+            int rtWidth = (int)(Width * Px);
+            int rtHeight = (int)(Height * Px);
+            if (_target == null || _target.Width != rtWidth || _target.Height != rtHeight)
             {
                 _target?.Dispose();
-                _target = new RenderTarget2D(_device, Width, Height, false, SurfaceFormat.Color, DepthFormat.None);
+                _target = new RenderTarget2D(_device, rtWidth, rtHeight, false, SurfaceFormat.Color, DepthFormat.None);
             }
 
             _device.SetRenderTarget(_target);
             _device.Clear(Theme.LetterBox);
-            _spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, null, null);
+            // Design coordinates in, internal pixels on the target: the scale transform is the whole
+            // of the 2x arrangement, so every existing integer call site lands where it always did.
+            _spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, null, null,
+                              null, Matrix.CreateScale(Px, Px, 1f));
         }
 
-        public void Fill(int x, int y, int w, int h, Color color) =>
-            _spriteBatch.Draw(_pixel, new Rectangle(x, y, w, h), color);
+        /// <summary>
+        /// Snap to the internal pixel grid (multiples of 1/Px design px): the smallest motion that can
+        /// be drawn without anti-aliasing, and identical on desktop and WASM because it is plain float
+        /// rounding of numbers the simulation already fixed.
+        /// </summary>
+        static float Snap(float v) => MathF.Round(v * Px) / Px;
+
+        /// <summary>
+        /// A filled rectangle in design coordinates. Float in, whole internal pixels out — world art
+        /// moves at half-pixel granularity through this call while the HUD, which passes integers,
+        /// is pixel-identical to the coarse grid it was authored on.
+        /// </summary>
+        public void Fill(float x, float y, float w, float h, Color color)
+        {
+            x = Snap(x);
+            y = Snap(y);
+            w = Snap(w);
+            h = Snap(h);
+            // Vector2 position + scale rather than Rectangle: Rectangle would re-quantise to whole
+            // design pixels and throw the half-pixel motion away again.
+            _spriteBatch.Draw(_pixel, new Vector2(x, y), null, color, 0f, Vector2.Zero, new Vector2(w, h),
+                              SpriteEffects.None, 0f);
+        }
 
         public void Fill(Rectangle bounds, Color color) => Fill(bounds.X, bounds.Y, bounds.Width, bounds.Height, color);
 
@@ -77,11 +113,24 @@ namespace Balloonatic.Rendering
             Fill(bounds.Right - thickness, bounds.Y, thickness, bounds.Height, color);
         }
 
+        /// <summary>Float form for world-space art; the coarse Rectangle overloads stay for the HUD.</summary>
+        public void Outline(float x, float y, float w, float h, int thickness, Color color)
+        {
+            Fill(x, y, w, thickness, color);
+            Fill(x, y + h - thickness, w, thickness, color);
+            Fill(x, y, thickness, h, color);
+            Fill(x + w - thickness, y, thickness, h, color);
+        }
+
         /// <summary>
         /// A rectangle with its corners cut — pixel-art rounding. Everything with a shape in this game
         /// (panels, meters, tags, balloons) uses it, so the whole UI shares one silhouette language.
         /// </summary>
-        public void CutRectangle(int x, int y, int w, int h, int cut, Color color)
+        public void CutRectangle(int x, int y, int w, int h, int cut, Color color) =>
+            CutRectangle((float)x, y, w, h, cut, color);
+
+        /// <summary>Float form for world-space art — the silhouette language at half-pixel positions.</summary>
+        public void CutRectangle(float x, float y, float w, float h, int cut, Color color)
         {
             if (cut < 1)
             {

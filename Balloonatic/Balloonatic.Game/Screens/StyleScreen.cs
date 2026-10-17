@@ -124,7 +124,7 @@ namespace Balloonatic.Screens
             var panel = new Rectangle(440, 164, 192, 112);
             Kit.Panel(canvas, panel, "WORLD");
 
-            Kit.Island(canvas, new Rectangle(panel.X + 12, panel.Y + 30, 72, 46));
+            Kit.Island(canvas, panel.X + 12, panel.Y + 30, 72, 46);
             Kit.Cloud(canvas, panel.X + 100, panel.Y + 20, 64, Theme.CloudWhite);
             Kit.Windsock(canvas, panel.X + 150, panel.Y + 74, +1, 3);
             Kit.Tag(canvas, panel.X + 96, panel.Bottom - 22, "WINDSOCK");

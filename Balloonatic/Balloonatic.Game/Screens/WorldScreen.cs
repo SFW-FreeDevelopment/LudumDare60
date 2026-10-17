@@ -1,3 +1,4 @@
+using System;
 using Balloonatic.Core;
 using Balloonatic.Rendering;
 using Microsoft.Xna.Framework;
@@ -43,7 +44,7 @@ namespace Balloonatic.Screens
         public void Draw(DesignCanvas canvas, SimState state)
         {
             LevelDef level = LevelCatalog.Get(state.LevelId);
-            (int camX, int camAlt) = Camera(state, level);
+            (float camX, float camAlt) = Camera(state, level);
 
             DrawSky(canvas, camAlt);
             DrawStars(canvas, camX, camAlt, state);
@@ -62,13 +63,13 @@ namespace Balloonatic.Screens
         /// and a delivery stops the world behind a panel with the three stars it earned (PLAN I5 — the
         /// reason the player failed or what they won, always on screen).
         /// </summary>
-        static void DrawLandingFeedback(DesignCanvas canvas, LevelDef level, SimState state, int camX, int camAlt)
+        static void DrawLandingFeedback(DesignCanvas canvas, LevelDef level, SimState state, float camX, float camAlt)
         {
             if (state.Bounces > 0 && !state.Complete
                 && state.Tick - state.BounceTick < SimTuning.BounceReasonSteps)
             {
-                int bx = ScreenX((int)state.X, camX);
-                int by = ScreenY(state.Altitude, camAlt) - 66;
+                int bx = Round(ScreenX(state.X, camX));
+                int by = Round(ScreenY(state.Altitude, camAlt)) - 66;
                 PixelFont.DrawCentered(canvas, "TOO FAST!", bx, by, Theme.FlameRed);
             }
 
@@ -101,29 +102,32 @@ namespace Balloonatic.Screens
         /// Camera centre in world coordinates. The only smoothing the game needs: the balloon's own
         /// velocity leads the view, and the edges of the world hold it back politely.
         /// </summary>
-        static (int camX, int camAlt) Camera(SimState state, LevelDef level)
+        static (float camX, float camAlt) Camera(SimState state, LevelDef level)
         {
-            int worldLeft = -WorldMargin;
-            int worldRight = (int)level.CourseLength + WorldMargin;
+            float worldLeft = -WorldMargin;
+            float worldRight = level.CourseLength + WorldMargin;
             float targetX = state.X + state.VelocityX * LookAheadSeconds;
 
             // Framing: the balloon rides the upper third (a 40 px lift) so the ground stays in frame
             // through launch, cruise, and landing up to ~220 px of altitude, and the view stops climbing
             // at the world roof. Pure state again — no render memory, byte-stable screenshots.
-            int camAlt = (int)Clamp(state.Altitude + state.VelocityY * LookAheadSeconds * 0.5f - 40f, 0f, level.WorldHeight);
+            float camAlt = Clamp(state.Altitude + state.VelocityY * LookAheadSeconds * 0.5f - 40f, 0f, level.WorldHeight);
 
             // Framing bias toward the goal: until the delivery is behind the balloon, the camera leans
             // downwind, so the course ahead stays in frame and the islands are visible from launch.
             // Pure state again — no render memory, byte-stable screenshots.
-            int courseBias = state.X < level.CourseLength ? Sim.DesignWidth / 4 : 0;
-            int camX = (int)Clamp(targetX + courseBias, worldLeft + Sim.DesignWidth / 2, worldRight - Sim.DesignWidth / 2);
+            float courseBias = state.X < level.CourseLength ? Sim.DesignWidth / 4 : 0;
+            float camX = Clamp(targetX + courseBias, worldLeft + Sim.DesignWidth / 2, worldRight - Sim.DesignWidth / 2);
             return (camX, camAlt);
         }
 
-        static int ScreenX(int worldX, int camX) => worldX - camX + Sim.DesignWidth / 2;
-        static int ScreenY(float altitude, int camAlt) => Sim.DesignHeight / 2 - (int)(altitude - camAlt);
+        static float ScreenX(float worldX, float camX) => worldX - camX + Sim.DesignWidth / 2f;
+        static float ScreenY(float altitude, float camAlt) => Sim.DesignHeight / 2f - (altitude - camAlt);
 
-        static void DrawSky(DesignCanvas canvas, int camAlt)
+        /// <summary>Text and only text keeps the coarse grid: type must not wobble by half a pixel.</summary>
+        static int Round(float v) => (int)MathF.Round(v);
+
+        static void DrawSky(DesignCanvas canvas, float camAlt)
         {
             // Quantised to 4 px rows: a stepped ramp reads as pixel art rather than a gradient, and the
             // 4 px quantum is cheap enough to repaint every frame on WebGL.
@@ -142,22 +146,22 @@ namespace Balloonatic.Screens
             return SkyRamp[0].Color;
         }
 
-        static void DrawStars(DesignCanvas canvas, int camX, int camAlt, SimState state)
+        static void DrawStars(DesignCanvas canvas, float camX, float camAlt, SimState state)
         {
             for (int i = 0; i < 40; i++)
             {
                 int wx = Wrap(Hash(i, 7) % (Sim.DesignWidth * 2), Sim.DesignWidth * 2);
                 float alt = 380f + Hash(i, 13) % 400f;
-                int x = wx - (int)(camX * StarsParallax) % (Sim.DesignWidth * 2);
-                int y = ScreenY(alt, (int)(camAlt * StarsParallax));
+                float x = WrapF(wx - camX * StarsParallax, Sim.DesignWidth * 2);
+                float y = ScreenY(alt, camAlt * StarsParallax);
                 if (x < -2 || x > Sim.DesignWidth + 2 || y < 0 || y > Sim.DesignHeight)
                     continue;
                 int twinkle = (Clock(state) / 20 + i) % 7 == 0 ? 0 : 1;
-                canvas.Fill(Wrap(x, Sim.DesignWidth), y, twinkle, twinkle, i % 3 == 0 ? Theme.Cream : Theme.CloudLavender);
+                canvas.Fill(WrapF(x, Sim.DesignWidth), y, twinkle, twinkle, i % 3 == 0 ? Theme.Cream : Theme.CloudLavender);
             }
         }
 
-        static void DrawCloudLayer(DesignCanvas canvas, LevelDef level, SimState state, int camX, int camAlt, bool far)
+        static void DrawCloudLayer(DesignCanvas canvas, LevelDef level, SimState state, float camX, float camAlt, bool far)
         {
             float parallax = far ? FarCloudParallax : MidCloudParallax;
             int seedSalt = far ? 101 : 202;
@@ -176,8 +180,8 @@ namespace Balloonatic.Screens
                 // are exactly what the eye cannot ignore and the stomach cannot forgive.
                 float drift = Clock(state) * band.Direction * LevelDef.WindSpeed(band.Strength) * (far ? 0.06f : 0.10f);
 
-                int x = Wrap(wx + (int)drift - (int)(camX * parallax), span) - span / 4;
-                int y = ScreenY(altitude - (int)(camAlt * (1f - parallax)), camAlt);
+                float x = WrapF(wx + drift - camX * parallax, span) - span / 4f;
+                float y = ScreenY(altitude - camAlt * (1f - parallax), camAlt);
                 if (x < -160 || x > Sim.DesignWidth + 40 || y < -24 || y > Sim.DesignHeight + 20)
                     continue;
 
@@ -186,7 +190,7 @@ namespace Balloonatic.Screens
             }
         }
 
-        static void DrawWindStreaks(DesignCanvas canvas, LevelDef level, SimState state, int camX, int camAlt)
+        static void DrawWindStreaks(DesignCanvas canvas, LevelDef level, SimState state, float camX, float camAlt)
         {
             // One chevron train per band, locked to the world grid: count reads strength, the point
             // reads direction, and the ink under-draw keeps them legible on every sky value.
@@ -195,14 +199,18 @@ namespace Balloonatic.Screens
                 WindBand band = level.Bands[b];
                 Color color = BandTint(b);
                 float middle = (band.FromAltitude + band.ToAltitude) / 2f;
-                int y = ScreenY(middle - (middle - camAlt) * 0.08f, camAlt);   // drift toward the camera plane
+                float y = ScreenY(middle - (middle - camAlt) * 0.08f, camAlt);   // drift toward the camera plane
                 if (y < 6 || y > Sim.DesignHeight - 6)
                     continue;
 
+                // Signed slow drift, wrapped into one 160 px cell: the trains repeat every 160 px of
+                // world, so wrapping the phase never visibly jumps — and it carries the band's sign,
+                // so each train slides the way its air blows at its own crawl.
                 float travel = Clock(state) * LevelDef.WindSpeed(band.Strength) * 0.04f * band.Direction;
+                float phase = WrapF(travel, 160f);
                 for (int wx = -640; wx <= (int)level.CourseLength + 640; wx += 160)
                 {
-                    int x = ScreenX(wx, camX) + (int)Wrap(travel, 160f * band.Direction) % 160 * band.Direction;
+                    float x = ScreenX(wx, camX) + phase;
                     if (x < -40 || x > Sim.DesignWidth + 10)
                         continue;
                     Kit.WindChevrons(canvas, x, y, band.Direction, band.Strength, color, 2);
@@ -210,16 +218,16 @@ namespace Balloonatic.Screens
             }
         }
 
-        static void DrawIslands(DesignCanvas canvas, LevelDef level, SimState state, int camX, int camAlt)
+        static void DrawIslands(DesignCanvas canvas, LevelDef level, SimState state, float camX, float camAlt)
         {
-            int groundY = ScreenY(0f, camAlt);
+            float groundY = ScreenY(0f, camAlt);
 
             // The ground plane: a grass line with a soil skirt, only while the camera is near the floor.
             if (groundY < Sim.DesignHeight)
             {
                 canvas.Fill(0, groundY, Sim.DesignWidth, Sim.DesignHeight - groundY, Theme.MossGreen);
                 canvas.Fill(0, groundY, Sim.DesignWidth, 2, Theme.GrassLight);
-                int soilTop = groundY + 18;
+                float soilTop = groundY + 18;
                 canvas.Fill(0, soilTop, Sim.DesignWidth, Sim.DesignHeight - soilTop, Theme.WoodDark);
             }
 
@@ -228,23 +236,26 @@ namespace Balloonatic.Screens
         }
 
         static void DrawIsland(
-            DesignCanvas canvas, LevelDef level, SimState state, int camX, int groundY,
-            int worldX, string name, bool launch)
+            DesignCanvas canvas, LevelDef level, SimState state, float camX, float groundY,
+            float worldX, string name, bool launch)
         {
-            int x = ScreenX(worldX, camX);
+            float x = ScreenX(worldX, camX);
             if (x < -90 || x > Sim.DesignWidth + 90)
                 return;
 
             // A grass-capped rock with a wooden deck: the sheet's floating islands, stand-in until I8.
-            Kit.Island(canvas, new Rectangle(x - 60, groundY - 34, 120, 46));
-            canvas.Fill(x - (int)SimTuning.DeckHalfWidth, groundY - 38, (int)SimTuning.DeckHalfWidth * 2, 4, launch ? Theme.WoodMid : Theme.WoodLight);
+            Kit.Island(canvas, x - 60, groundY - 34, 120, 46);
+            canvas.Fill(x - SimTuning.DeckHalfWidth, groundY - 38, SimTuning.DeckHalfWidth * 2, 4, launch ? Theme.WoodMid : Theme.WoodLight);
 
             // A sign on the deck: what this island is for, in the paper-and-ink language of the sheet.
-            int signY = groundY - 52;
+            // The board glides with the island; its lettering holds the coarse grid (Round) — text that
+            // half-steps inside a moving board looks broken, a board gliding under still text looks built.
+            float signY = groundY - 52;
+            int xi = Round(x);
             canvas.Fill(x - 1, signY + 12, 2, 8, Theme.BarkBrown);
             canvas.CutRectangle(x - 16, signY - 2, 32, 14, 1, Theme.Ink);
             canvas.Fill(x - 15, signY - 1, 30, 12, Theme.TagCream);
-            PixelFont.Draw(canvas, name, x - name.Length * 3 + 1, signY + 2, Theme.Ink);
+            PixelFont.Draw(canvas, name, xi - name.Length * 3 + 1, Round(signY) + 2, Theme.Ink);
 
             // The windsock flies off the windward post of the deck — the truth about this altitude, in world.
             WindBand band = level.BandAt(1f);
@@ -258,11 +269,11 @@ namespace Balloonatic.Screens
             }
         }
 
-        static void DrawBalloon(DesignCanvas canvas, SimState state, int camX, int camAlt)
+        static void DrawBalloon(DesignCanvas canvas, SimState state, float camX, float camAlt)
         {
             // The craft sits at its true world position; when the camera leads it, the offset reads as speed.
-            int x = ScreenX((int)state.X, camX);
-            int top = ScreenY(state.Altitude, camAlt) - 40;   // basket bottom rides the altitude line
+            float x = ScreenX(state.X, camX);
+            float top = ScreenY(state.Altitude, camAlt) - 40;   // basket bottom rides the altitude line
             Kit.Balloon(canvas, x, top, state.Heating, Clock(state));
         }
 
@@ -332,7 +343,7 @@ namespace Balloonatic.Screens
             return wrapped < 0 ? wrapped + span : wrapped;
         }
 
-        static float Wrap(float value, float span)
+        static float WrapF(float value, float span)
         {
             float wrapped = value % span;
             return wrapped < 0 ? wrapped + span : wrapped;

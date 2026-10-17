@@ -121,8 +121,9 @@ namespace Balloonatic.Rendering
                 Flame(canvas, bounds.X + bounds.Width / 2 - 2, bounds.Y - 5, 0);
         }
 
-        /// <summary>Three-band flame; <paramref name="tick"/> drives the flicker so it derives from sim time.</summary>
-        public static void Flame(DesignCanvas canvas, int x, int y, int tick)
+        /// <summary>Three-band flame; <paramref name="tick"/> drives the flicker so it derives from sim time.
+        /// Float positions because the flame rides a balloon that moves at half-pixel granularity.</summary>
+        public static void Flame(DesignCanvas canvas, float x, float y, int tick)
         {
             int widen = tick % 8 < 4 ? 0 : 1;
             canvas.Fill(x + 1, y, 2 + widen, 1, Theme.FlameYellow);
@@ -196,7 +197,7 @@ namespace Balloonatic.Rendering
         /// readout in the game — it is the only steering the player has. The ink under-draw is what keeps
         /// them legible on every sky value, including a band whose tint is close to the chevron's own.
         /// </summary>
-        public static void WindChevrons(DesignCanvas canvas, int x, int y, int direction, int strength,
+        public static void WindChevrons(DesignCanvas canvas, float x, float y, int direction, int strength,
             Color color, int scale = 1)
         {
             foreach ((int dx, int dy) in new[] { (1, 0), (0, 1), (1, 1) })
@@ -204,12 +205,12 @@ namespace Balloonatic.Rendering
             ChevronShape(canvas, x, y, direction, strength, color, scale);
         }
 
-        static void ChevronShape(DesignCanvas canvas, int x, int y, int direction, int strength,
+        static void ChevronShape(DesignCanvas canvas, float x, float y, int direction, int strength,
             Color color, int scale)
         {
             for (int i = 0; i < Math.Max(1, strength); i++)
             {
-                int origin = x + i * 5 * scale;
+                float origin = x + i * 5 * scale;
                 for (int step = 0; step < 3; step++)
                 {
                     int column = direction >= 0 ? step : 2 - step;
@@ -224,7 +225,7 @@ namespace Balloonatic.Rendering
         /// is carried by the machinery and the player can read the band without looking at the HUD. Big
         /// enough to read at a glance, with bands that taper as the sock empties downwind.
         /// </summary>
-        public static void Windsock(DesignCanvas canvas, int x, int y, int direction, int strength)
+        public static void Windsock(DesignCanvas canvas, float x, float y, int direction, int strength)
         {
             int pole = 22;
             canvas.Fill(x, y - pole, 1, pole, Theme.BarkBrown);
@@ -238,7 +239,7 @@ namespace Balloonatic.Rendering
                 // A loaded sock hangs full; an empty one droops, so the taper follows strength too.
                 float along = i / (float)length;
                 int taper = (int)(along * (6 - strength));
-                int sx = direction >= 0 ? x + 1 + i : x - 1 - i;
+                float sx = direction >= 0 ? x + 1 + i : x - 1 - i;
                 for (int row = taper; row < height - taper; row++)
                 {
                     Color color = (i / 4) % 2 == 0 ? Theme.TagCream : Theme.BalloonRed;
@@ -255,14 +256,14 @@ namespace Balloonatic.Rendering
         /// The striped balloon, basket, Charlotte and her bunny, drawn from the kit until I8 hands over the
         /// Aseprite sprites. Stripes follow the sheet: pink and cream panels with a red centre panel.
         /// </summary>
-        public static void Balloon(DesignCanvas canvas, int centerX, int top, bool heating, int tick)
+        public static void Balloon(DesignCanvas canvas, float centerX, float top, bool heating, int tick)
         {
             int envelopeHeight = EnvelopeWidths.Length * 2;
 
             for (int row = 0; row < EnvelopeWidths.Length; row++)
             {
                 int width = EnvelopeWidths[row];
-                canvas.Fill(centerX - width / 2 - 1, top + row * 2 - 1, width + 2, 4, Theme.Ink);
+                canvas.Fill(centerX - width / 2f - 1, top + row * 2 - 1, width + 2, 4, Theme.Ink);
             }
 
             Color[] stripes =
@@ -273,20 +274,20 @@ namespace Balloonatic.Rendering
             for (int row = 0; row < EnvelopeWidths.Length; row++)
             {
                 int width = EnvelopeWidths[row];
-                int left = centerX - width / 2;
+                float left = centerX - width / 2f;
                 bool crown = row < 2 || row > EnvelopeWidths.Length - 3;
                 for (int stripe = 0; stripe < stripes.Length; stripe++)
                 {
-                    int x = left + stripe * width / stripes.Length;
-                    int next = left + (stripe + 1) * width / stripes.Length;
+                    float x = left + stripe * width / (float)stripes.Length;
+                    float next = left + (stripe + 1) * width / (float)stripes.Length;
                     Color color = crown ? Color.Lerp(stripes[stripe], Theme.Cream, 0.3f) : stripes[stripe];
-                    canvas.Fill(x, top + row * 2, Math.Max(1, next - x), 2, color);
+                    canvas.Fill(x, top + row * 2, Math.Max(1f, next - x), 2, color);
                 }
                 // The fabric is round: the last column of every row sits in shade.
                 canvas.Fill(left + width - 2, top + row * 2, 2, 2, Color.Lerp(stripes[stripes.Length - 1], Theme.BalloonPlum, 0.45f));
             }
 
-            int basketTop = top + envelopeHeight + 6;
+            float basketTop = top + envelopeHeight + 6;
             canvas.Fill(centerX - 7, top + envelopeHeight - 2, 1, 8, Theme.WickerDark);
             canvas.Fill(centerX + 6, top + envelopeHeight - 2, 1, 8, Theme.WickerDark);
 
@@ -313,7 +314,7 @@ namespace Balloonatic.Rendering
         }
 
         /// <summary>Cloud puff built from cut rectangles; used by the parallax layers.</summary>
-        public static void Cloud(DesignCanvas canvas, int x, int y, int width, Color highlight)
+        public static void Cloud(DesignCanvas canvas, float x, float y, int width, Color highlight)
         {
             int h = Math.Max(8, width / 3);
             CutRectangle(canvas, x, y + h / 2, width, h / 2, Theme.CloudShade);
@@ -322,20 +323,20 @@ namespace Balloonatic.Rendering
         }
 
         /// <summary>Floating island: grass cap, flat top to land on, rock body tapering to a point.</summary>
-        public static void Island(DesignCanvas canvas, Rectangle bounds)
+        public static void Island(DesignCanvas canvas, float x, float y, int width, int height)
         {
-            int rows = bounds.Height - 6;
-            canvas.Fill(bounds.X, bounds.Y, bounds.Width, 3, Theme.LeafGreen);
-            canvas.Fill(bounds.X, bounds.Y + 3, bounds.Width, 2, Theme.MossGreen);
-            canvas.Fill(bounds.X, bounds.Y, bounds.Width, 1, Theme.GrassLight);
+            int rows = height - 6;
+            canvas.Fill(x, y, width, 3, Theme.LeafGreen);
+            canvas.Fill(x, y + 3, width, 2, Theme.MossGreen);
+            canvas.Fill(x, y, width, 1, Theme.GrassLight);
 
             for (int row = 0; row < rows; row++)
             {
-                int inset = row * bounds.Width / (rows * 3);
-                int width = Math.Max(2, bounds.Width - inset * 2);
-                canvas.Fill(bounds.X + inset, bounds.Y + 5 + row, width, 1, Theme.RockSlate);
-                canvas.Fill(bounds.X + inset, bounds.Y + 5 + row, Math.Max(1, width / 5), 1, Theme.RockDark);
-                canvas.Fill(bounds.X + inset + width - 1, bounds.Y + 5 + row, 1, 1, Theme.RockDark);
+                int inset = row * width / (rows * 3);
+                int w = Math.Max(2, width - inset * 2);
+                canvas.Fill(x + inset, y + 5 + row, w, 1, Theme.RockSlate);
+                canvas.Fill(x + inset, y + 5 + row, Math.Max(1, w / 5), 1, Theme.RockDark);
+                canvas.Fill(x + inset + w - 1, y + 5 + row, 1, 1, Theme.RockDark);
             }
         }
 
@@ -353,7 +354,7 @@ namespace Balloonatic.Rendering
         }
 
         /// <summary>Kit-wide cut rectangle, the silhouette language for every shape with thickness.</summary>
-        public static void CutRectangle(DesignCanvas canvas, int x, int y, int w, int h, Color color, int cut = 2) =>
+        public static void CutRectangle(DesignCanvas canvas, float x, float y, float w, float h, Color color, int cut = 2) =>
             canvas.CutRectangle(x, y, w, h, cut, color);
     }
 }
