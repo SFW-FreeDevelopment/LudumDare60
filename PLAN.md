@@ -126,7 +126,7 @@ Milestones: **feel gate** (I5) by Sun ~20:00 · **content freeze** (I10) by Mon 
   `assets/audio/SOURCES.md`; volumes live in settings; every call behind a mute check so a missing clip
   can never throw in the browser.
   *Done when:* the WebGL build boots and plays with zero console errors, and Steven has listened.
-- [ ] **I12 — Juice + performance** (~90m)
+- [x] **I12 — Juice + performance** (~90m)
   Burner puffs, star sparkles, sand puffs, basket sway, delivery celebration, screen shake behind the
   reduced-motion setting, screen transitions; then a budget pass: boot time, payload size, 60 fps in a
   Chromium tab.

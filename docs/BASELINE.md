@@ -13,7 +13,7 @@ exactly the way an entry host would.
 | Published payload on disk | 17.18 MB across 204 files (59 `.br` sidecars, 2.81 MB) | `export/web/` after `dotnet publish` |
 | `dotnet build` (5 projects, Release) | ~11 s | measured |
 | `dotnet publish` Blazor WebGL head | ~11 s (no `wasm-tools`, so no AOT) | measured |
-| Playwright suite | 72 tests, 2 viewports, ~80 s | `npx playwright test` |
+| Playwright suite | 78 tests, 2 viewports, ~90 s | `npx playwright test` |
 | xunit suite | 58 tests | `dotnet test` |
 
 Budgets to watch (set in I12, warned about now): boot under ~3 s on a normal connection, payload under
@@ -297,3 +297,21 @@ Steven flew the desktop head and reported three things; each became a rule, not 
   (`unlocked=0;...music=none`), a title-screen press wakes it into `music=playing`, and `broken`
   stays 0 with zero console errors — the KNI 4.3 WebAudio backend works in Chromium.
 - **Protocol bumped to `i11`** for the new verb.
+
+## Decisions recorded by I12 (juice + performance)
+
+- **Every decoration is a pure function of `Tick`/`Clock`** — burner puffs (a rolling 30-tick vent
+  cycle while heating), the star-mote celebration ring (`Tick - CompletedAtTick`, so it animates
+  live and freezes exactly where a paused screenshot caught it), sand-release dust and the falling
+  bag's grain trail, and the one-px load lean read straight off `VelocityY`. Stepped frames stay
+  byte-identical with juice on; nothing here can perturb a replay.
+- **The ink wash between screens is UI transition state** — wall-clock like hover and focus, ~100 ms
+  of lifting veil when a new screen is presented, absent under Reduced Motion. Screenshots settle
+  past it before shooting, so baselines never race a transition.
+- **The calmness floor held**: puffs and sparkles are 1–3 px dots near the (still) balloon, the lean
+  is one design pixel tied to real velocity, and Reduced Motion removes the lean, the puffs, the
+  twinkle and the wash. Nothing new moves the background.
+- **Measured budgets (2026-10-17, I12 pass, served localhost):** boot-to-title **565 ms**;
+  transferred payload **3.13 MB over 76 requests** (audio kit included, budget 8 MB); average rAF
+  frame time in live heated play **16.67 ms** with p95 16.80 ms — a steady 60 fps in the Chromium
+  tab. `tests/budget.spec.js` logs the first two and asserts all three every suite run.

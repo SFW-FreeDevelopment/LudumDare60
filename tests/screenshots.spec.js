@@ -188,7 +188,7 @@ test('the flying machine shows its machinery — burner puffs and a sand-releasi
     await window.__GAME.step(6);                      // the bag is six ticks from the basket
   });
   await page.waitForTimeout(300);
-  const st = JSON.parse(await page.evaluate(async () => await window.__GAME.state()));
+  const st = await page.evaluate(async () => await window.__GAME.state());   // shell returns the parsed object
   expect(st.heating).toBe(true);
   expect(st.drops).toBe(1);
   await shootPath(page, testInfo, '14-juice');
