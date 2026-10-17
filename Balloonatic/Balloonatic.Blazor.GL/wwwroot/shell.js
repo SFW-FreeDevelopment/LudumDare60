@@ -41,7 +41,7 @@
         bootError: '',
         raw: raw,
         version: function () { return text('version'); },
-        screen: function () { return text('screen'); },
+        screen: function (id) { return text('screen', id); },
         seed: function () { return text('seed'); },
         tick: function () { return text('tick'); },
         hash: function () { return text('hash'); },

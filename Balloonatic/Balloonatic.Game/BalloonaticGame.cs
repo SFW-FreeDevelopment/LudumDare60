@@ -22,7 +22,9 @@ namespace Balloonatic
         readonly GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch = null!;
         DesignCanvas canvas = null!;
-        IScreen screen = new ScaffoldScreen();
+        readonly IScreen scaffoldScreen = new ScaffoldScreen();
+        readonly IScreen styleScreen = new StyleScreen();
+        IScreen screen;
         double accumulatorSeconds;
         bool ballastWasPressed;
 
@@ -32,6 +34,7 @@ namespace Balloonatic
             Content.RootDirectory = "Content";
             Harness = new TestHarness();
             Instance = this;
+            screen = scaffoldScreen;
 
             // Fixed stepping is done here, not by the framework, so a browser tab that throttles
             // rAF or a test that steps manually cannot change the simulation's result.
@@ -49,6 +52,17 @@ namespace Balloonatic
 
         /// <summary>True once a frame has actually reached the screen, which is what "ready" means.</summary>
         public bool FirstFrameDrawn => FrameCount > 0;
+
+        /// <summary>
+        /// The screens that exist. I7 turns this into the menu flow; for now it is how the harness can ask
+        /// for the style sheet and how an unknown screen falls back loudly instead of showing a blank frame.
+        /// </summary>
+        IScreen Resolve(string? id) => id switch
+        {
+            SimState.ScreenStyle => styleScreen,
+            SimState.ScreenScaffold => scaffoldScreen,
+            _ => scaffoldScreen,
+        };
 
         /// <summary>Heads that own a window call this to pick a sane initial size.</summary>
         protected void ConfigureWindow(string title, int width, int height)
@@ -137,7 +151,25 @@ namespace Balloonatic
                 accumulatorSeconds = 0;
             }
 
+            ApplyScreenRequest();
+
             base.Update(gameTime);
+        }
+
+        /// <summary>
+        /// Screen changes are applied by the game, not by the caller: the harness can ask for any string it
+        /// likes, and this is where an unknown one is resolved to a screen that exists. It runs while paused
+        /// too, so a test can put the game on a screen and then step it.
+        /// </summary>
+        void ApplyScreenRequest()
+        {
+            string? requested = Harness.State.RequestedScreen;
+            if (requested == null)
+                return;
+
+            Harness.State.RequestedScreen = null;
+            screen = Resolve(requested);
+            Harness.State.Screen = screen.Id;
         }
 
         protected override void Draw(GameTime gameTime)

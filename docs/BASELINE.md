@@ -13,7 +13,7 @@ exactly the way an entry host would.
 | Published payload on disk | 17.18 MB across 204 files (59 `.br` sidecars, 2.81 MB) | `export/web/` after `dotnet publish` |
 | `dotnet build` (5 projects, Release) | ~11 s | measured |
 | `dotnet publish` Blazor WebGL head | ~11 s (no `wasm-tools`, so no AOT) | measured |
-| Playwright suite | 14 tests, 2 viewports, ~13 s | `npx playwright test` |
+| Playwright suite | 18 tests, 2 viewports, ~15 s | `npx playwright test` |
 | xunit suite | 8 tests | `dotnet test` |
 
 Budgets to watch (set in I12, warned about now): boot under ~3 s on a normal connection, payload under
@@ -42,8 +42,9 @@ pinned in one place and cannot drift between browser and unit tests.
 | Call | Purpose |
 | --- | --- |
 | `ready`, `readyAtMs` | first drawn frame reached, and how long boot took |
-| `version()` | bridge protocol (`i0`) |
-| `screen()` | which screen is showing |
+| `version()` | bridge protocol (`i1`) |
+| `screen()` | which screen the game is actually drawing |
+| `screen(id)` | request a screen change; answered `ok:requested=<id>`, applied by the game's own frame loop, so callers poll `screen()` to confirm it |
 | `reset(seed)`, `seed()`, `tick()`, `hash()`, `state()` | scripted replays with a comparable hash |
 | `set('heat', 1)`, `set('ballast', 1)` | inject input — **there is no left/right**, and the protocol rejects one |
 | `step(n)`, `pause()`, `resume()` | move the clock by hand, so screenshots do not depend on frame rate |
@@ -63,8 +64,17 @@ reads state and never writes it, so effects cannot perturb a replay.
    Pixel-art crispness on retina wants a `devicePixelRatio`-aware surface size — I6/I7 territory.
 2. **Fractional downscale** below 1× (a 420-px-wide phone) uses nearest sampling, so thin wind dashes
    shimmer slightly. Fix is a linear sampler below 1× — I12 polish pass.
-3. **No text yet**: the harness has no font, so nothing here proves the content-pipeline/text path.
-   I1 decides between a `.spritefont` through MGCB and a bitmap font shipped as a PNG, and that
-   decision unblocks real HUD work.
-4. **Placeholder art**: `Palette.cs` colors and the rectangle balloon are harness stand-ins, replaced
-   by I1's sampled palette and I8's Aseprite output.
+3. **Kit art stands in for real sprites**: the balloon, islands and clouds in the kit are procedural
+   stand-ins; I8's Aseprite output replaces them. The font decision is settled (hand-authored 5×7 in
+   `PixelFont.cs`, no content-pipeline dependency) and the style-sheet screenshot proves the text path
+   on WebGL.
+
+## Decisions recorded by I1
+
+- **Font**: hand-authored pixel font in code, not MGCB `.spritefont`. No font file in the payload, no
+  pipeline dependency, identical pixels on both heads; the display logo remains a drawn asset (I8).
+- **Palette**: sampled from the concept sheet, not chosen — `tools/sample-palette.ps1` prints the
+  evidence and `docs/STYLE.md` locks it. Where a ramp needed a step the sheet lacks, `Theme.cs` marks
+  it `INTERPOLATED`.
+- **Screen switching**: `screen(id)` is a request the game applies on its own frame, and `screen()`
+  reports only what is actually drawn — a test cannot make the game pretend to be on a screen.

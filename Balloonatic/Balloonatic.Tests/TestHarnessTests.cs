@@ -106,6 +106,20 @@ namespace Balloonatic.Tests
         }
 
         [Fact]
+        public void A_screen_request_waits_for_the_game_to_apply_it()
+        {
+            TestHarness h = new TestHarness();
+
+            h.Handle("screen", "style").Should().Be("ok:requested=style");
+            h.State.RequestedScreen.Should().Be("style");
+
+            // Until the game runs a frame, the reported screen is still the one being drawn.
+            h.Handle("screen", "").Should().Be(SimState.ScreenScaffold);
+
+            h.Handle("screen", new string('x', 33)).Should().Be("error:bad-arg:screen");
+        }
+
+        [Fact]
         public void The_bridge_exposes_no_horizontal_control()
         {
             // docs/CONCEPT.md critical design rule: the balloon has no left/right input, and the

@@ -14,11 +14,15 @@ namespace Balloonatic.Rendering
     /// </summary>
     sealed class DesignCanvas : IDisposable
     {
+        /// <summary>Design-pixel grid everything snaps to, and the gutter every panel and HUD block uses.</summary>
+        public const int Grid = 8;
+
         readonly Game _game;
         readonly GraphicsDevice _device;
         readonly SpriteBatch _spriteBatch;
         readonly Texture2D _pixel;
         RenderTarget2D? _target;
+        float _scale = 1f;
 
         public DesignCanvas(Game game, GraphicsDevice device, SpriteBatch spriteBatch)
         {
@@ -32,8 +36,8 @@ namespace Balloonatic.Rendering
         public int Width => Sim.DesignWidth;
         public int Height => Sim.DesignHeight;
 
-        /// <summary>Last scale applied when presenting; reported by the harness so scaling bugs are visible.</summary>
-        public float Scale { get; private set; } = 1f;
+        /// <summary>The scale last used to present. Tests assert the letterbox math through it.</summary>
+        public float Scale => _scale;
 
         public Vector2 Center => new Vector2(Width / 2f, Height / 2f);
 
@@ -47,7 +51,7 @@ namespace Balloonatic.Rendering
             }
 
             _device.SetRenderTarget(_target);
-            _device.Clear(Palette.BandMid);
+            _device.Clear(Theme.LetterBox);
             _spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, null, null);
         }
 
@@ -56,13 +60,38 @@ namespace Balloonatic.Rendering
 
         public void Fill(Rectangle bounds, Color color) => Fill(bounds.X, bounds.Y, bounds.Width, bounds.Height, color);
 
-        /// <summary>One design-pixel line, for borders and the frame that shows the letterbox is honest.</summary>
+        /// <summary>One design-pixel border, and the frame that proves the letterbox is honest.</summary>
         public void Outline(Rectangle bounds, Color color)
         {
             Fill(bounds.X, bounds.Y, bounds.Width, 1, color);
             Fill(bounds.X, bounds.Bottom - 1, bounds.Width, 1, color);
             Fill(bounds.X, bounds.Y, 1, bounds.Height, color);
             Fill(bounds.Right - 1, bounds.Y, 1, bounds.Height, color);
+        }
+
+        public void Outline(Rectangle bounds, int thickness, Color color)
+        {
+            Fill(bounds.X, bounds.Y, bounds.Width, thickness, color);
+            Fill(bounds.X, bounds.Bottom - thickness, bounds.Width, thickness, color);
+            Fill(bounds.X, bounds.Y, thickness, bounds.Height, color);
+            Fill(bounds.Right - thickness, bounds.Y, thickness, bounds.Height, color);
+        }
+
+        /// <summary>
+        /// A rectangle with its corners cut — pixel-art rounding. Everything with a shape in this game
+        /// (panels, meters, tags, balloons) uses it, so the whole UI shares one silhouette language.
+        /// </summary>
+        public void CutRectangle(int x, int y, int w, int h, int cut, Color color)
+        {
+            if (cut < 1)
+            {
+                Fill(x, y, w, h, color);
+                return;
+            }
+
+            Fill(x, y + cut, w, h - cut * 2, color);
+            Fill(x + cut, y, w - cut * 2, cut, color);
+            Fill(x + cut, y + h - cut, w - cut * 2, cut, color);
         }
 
         /// <summary>Finish design drawing and blit it scaled and centered onto the real backbuffer.</summary>
@@ -72,8 +101,8 @@ namespace Balloonatic.Rendering
             if (_target == null)
                 return;
 
-            // The drawing-buffer size is the truth about how many pixels exist; on the WebGL head the
-            // viewport can be narrower than the canvas if the head never told the device otherwise.
+            // The drawing buffer is the truth about how many pixels exist: on the WebGL head the viewport
+            // can stay smaller than the canvas unless the head is told the canvas size.
             PresentationParameters pp = _device.PresentationParameters;
             int surfaceWidth = pp.BackBufferWidth > 0 ? pp.BackBufferWidth : _device.Viewport.Width;
             int surfaceHeight = pp.BackBufferHeight > 0 ? pp.BackBufferHeight : _device.Viewport.Height;
@@ -81,14 +110,14 @@ namespace Balloonatic.Rendering
             float scale = Math.Min(surfaceWidth / (float)Width, surfaceHeight / (float)Height);
             if (scale >= 1f)
                 scale = (float)Math.Floor(scale);
-            Scale = scale;
+            _scale = scale;
 
             int drawW = (int)Math.Round(Width * scale);
             int drawH = (int)Math.Round(Height * scale);
             var destination = new Rectangle((surfaceWidth - drawW) / 2, (surfaceHeight - drawH) / 2, drawW, drawH);
 
             _device.SetRenderTarget(null);
-            _device.Clear(Palette.Letterbox);
+            _device.Clear(Theme.LetterBox);
             _spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.NonPremultiplied, SamplerState.PointClamp, null, null);
             _spriteBatch.Draw(_target, destination, Color.White);
             _spriteBatch.End();

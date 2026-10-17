@@ -19,10 +19,10 @@ When behind, cut a feature before cutting polish — one small, sharp, good-look
 1. **One commit per completed initiative.** When an initiative in `PLAN.md` is finished — code
    written, build clean, tests green, screenshots reviewed — commit it immediately, before starting
    the next one. Do not batch initiatives, and do not leave a finished initiative uncommitted.
-2. Conventional Commits with an initiative scope: `feat(crt-postfx): scanlines + phosphor bloom`,
-   `fix(menu): keyboard focus ring`, `chore(scaffold): ...`, `docs(plan): ...`, `test(...)`.
+2. Conventional Commits with an initiative scope: `feat(balloon-sim): heat, cooling, ballast, drag`,
+   `fix(menu): keyboard focus ring`, `chore(harness): ...`, `docs(plan): ...`, `test(wind): ...`.
 3. Commit body names the initiative and how it was verified, e.g.
-   `Initiative: 4 (CRT post-process)` + `Verified: playwright 12/12, docs/screenshots/04-*.png`.
+   `Initiative: 5 (delivery loop)` + `Verified: playwright 18/18, docs/screenshots/05-*.png`.
 4. Tick the initiative `- [x]` in `PLAN.md` in the **same** commit that completes it.
 5. **Never commit red.** Before committing an initiative:
    - `dotnet build -c Release` clean for shared core + desktop head + Blazor WebGL head

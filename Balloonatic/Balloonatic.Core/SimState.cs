@@ -11,6 +11,7 @@ namespace Balloonatic.Core
     public sealed class SimState
     {
         public const string ScreenScaffold = "scaffold";
+        public const string ScreenStyle = "style";
 
         public ulong Seed;
         public int Tick;
@@ -22,6 +23,12 @@ namespace Balloonatic.Core
         public bool Heating;
 
         public string Screen = ScreenScaffold;
+
+        /// <summary>
+        /// A screen the caller asked for that the game has not applied yet. Deliberately outside the hash:
+        /// it is pending input rather than state, and it is always empty after a step.
+        /// </summary>
+        public string? RequestedScreen;
 
         public SimState Clone() => new SimState
         {

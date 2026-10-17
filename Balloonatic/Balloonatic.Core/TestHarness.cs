@@ -84,7 +84,7 @@ namespace Balloonatic.Core
                 case "version":
                     return Sim.ProtocolVersion;
                 case "screen":
-                    return _state.Screen;
+                    return a.Length == 0 ? _state.Screen : RequestScreen(a);
                 case "seed":
                     return _state.Seed.ToString("x16", CultureInfo.InvariantCulture);
                 case "tick":
@@ -132,8 +132,20 @@ namespace Balloonatic.Core
             }
         }
 
-        string HandleSet(string arg)
+        /// <summary>
+        /// Records a screen change request. The game applies it and writes the real screen id into state, so
+        /// a caller cannot pretend the game is on a screen that does not exist: <c>screen()</c> only ever
+        /// reports what is actually being drawn.
+        /// </summary>
+        string RequestScreen(string id)
         {
+            if (id.Length == 0 || id.Length > 32)
+                return "error:bad-arg:screen";
+            _state.RequestedScreen = id;
+            return "ok:requested=" + id;
+        }
+
+        string HandleSet(string arg)        {
             int eq = arg.IndexOf('=');
             if (eq <= 0)
                 return "error:bad-arg:set";

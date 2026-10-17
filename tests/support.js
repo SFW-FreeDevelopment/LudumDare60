@@ -50,4 +50,17 @@ async function runScript(page, seed, script) {
   return await page.evaluate(() => window.__GAME.hash());
 }
 
-module.exports = { bootGame, watchForErrors, runScript, megabytes, SHOTS_DIR };
+/**
+ * Makes one harness call written as `name` or `name=argument`, which keeps the specs readable:
+ * `act(page, 'screen=style')` reads like the protocol it drives.
+ */
+async function act(page, call) {
+  return await page.evaluate(async (spec) => {
+    const index = spec.indexOf('=');
+    return index < 0
+      ? await window.__GAME[spec]()
+      : await window.__GAME[spec.slice(0, index)](spec.slice(index + 1));
+  }, call);
+}
+
+module.exports = { bootGame, watchForErrors, runScript, act, megabytes, SHOTS_DIR };

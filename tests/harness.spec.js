@@ -1,6 +1,6 @@
-// @ts-check
+﻿// @ts-check
 const { test, expect } = require('@playwright/test');
-const { bootGame, watchForErrors, runScript, megabytes } = require('./support');
+const { bootGame, watchForErrors, runScript, act, megabytes } = require('./support');
 
 /**
  * The WebGL head is the entry. These tests are the "never commit red" gate from AGENTS.md: they
@@ -21,12 +21,12 @@ test('boots in a browser and the harness answers @smoke', async ({ page }, testI
     state: await window.__GAME.state(),
   }));
 
-  expect(protocol.version).toBe('i0');
+  expect(protocol.version).toBe('i1');
   expect(protocol.screen).toBe('scaffold');
   expect(protocol.seed).toMatch(/^[0-9a-f]{16}$/);
   expect(protocol.hash).toMatch(/^[0-9a-f]{16}$/);
   expect(protocol.state.tick).toBeGreaterThanOrEqual(0);
-  expect(protocol.state.version).toBe('i0');
+  expect(protocol.state.version).toBe('i1');
 
   // Reported for the record; the budget itself is an I12 concern, this is the baseline it compares to.
   console.log(
@@ -93,6 +93,22 @@ test('the protocol rejects horizontal control and bad arguments', async ({ page 
   expect(replies.right).toBe('error:unknown-key:right');
   expect(replies.badStep).toBe('error:bad-arg:step');
   expect(replies.unknown).toBe('error:unknown-call:not-a-call');
+});
+
+test('the harness can put the game on a screen and reports what it actually drew', async ({ page }) => {
+  watchForErrors(page);
+  await bootGame(page);
+
+  // The request is answered at once, but only the game's own frame loop decides what is on screen, so the
+  // assertion waits for a frame rather than assuming the call already switched.
+  expect(await act(page, 'screen=style')).toBe('ok:requested=style');
+  await expect.poll(() => act(page, 'screen'), { timeout: 10_000 }).toBe('style');
+
+  // An unknown screen is accepted as a request, but the game resolves it to something it can really draw.
+  expect(await act(page, 'screen=nowhere')).toBe('ok:requested=nowhere');
+  await expect.poll(() => act(page, 'screen'), { timeout: 10_000 }).toBe('scaffold');
+
+  expect(await act(page, 'screen=' + 'x'.repeat(33))).toBe('error:bad-arg:screen');
 });
 
 test('the canvas owns the page and the design frame letterboxes inside it', async ({ page }) => {

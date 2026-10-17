@@ -34,6 +34,30 @@ test('scaffold frame matches its snapshot @shot @screens', async ({ page }, test
   expect(errors, `console/JS errors while rendering: ${errors.join(' | ')}`).toEqual([]);
 });
 
+test('style sheet matches its snapshot @shot @screens', async ({ page }, testInfo) => {
+  const errors = watchForErrors(page);
+  await bootGame(page);
+
+  // The style sheet is the palette and the kit in one picture: if this drifts, a visual decision changed,
+  // and the reviewer is supposed to see that happen rather than discover it in the game.
+  await page.evaluate(async () => {
+    await window.__GAME.reset('1234');
+    await window.__GAME.screen('style');
+    await window.__GAME.step(12);
+  });
+  // Capture only once the game itself says it is drawing the style sheet, so the image is of this screen
+  // and of tick 12, whatever the WASM's scheduling happened to do.
+  await expect.poll(() => page.evaluate(() => window.__GAME.screen()), { timeout: 10_000 }).toBe('style');
+
+  const name = `01-style-${testInfo.project.name}`;
+  await expect(page).toHaveScreenshot(`${name}.png`, { timeout: 60_000 });
+
+  fs.mkdirSync(SHOTS_DIR, { recursive: true });
+  const buffer = await page.screenshot({ path: path.join(SHOTS_DIR, `${name}.png`) });
+  expect(buffer.length).toBeGreaterThan(1000);
+  expect(errors, `console/JS errors while rendering: ${errors.join(' | ')}`).toEqual([]);
+});
+
 test('heat visibly drives the balloon and the meter @shot @screens', async ({ page }, testInfo) => {
   watchForErrors(page);
   await bootGame(page);

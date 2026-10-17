@@ -35,8 +35,9 @@ Milestones: **feel gate** (I5) by Sun ~20:00 · **content freeze** (I10) by Mon 
 8. **Ballast:** in the MVP — 2 sandbags per level, non-recoverable, and the most legible piece of
    "Old Tech" the balloon carries.
 9. **Resolution:** design canvas **640×360**, integer-scaled and letterboxed (1280×720 = ×2). Balloon
-   ≈40×56 design px, Charlotte ≈10×12 inside the basket, 16 px grid for island props, one 16-color
-   palette locked in I1.
+   ≈40×56 design px, Charlotte ≈10×12 inside the basket, 16 px grid for island props. The palette is
+   sampled from the concept sheet, not a fixed 16: the sheet is a modern pixel-art sheet (~50 values),
+   and I1 locks what it actually contains — see `docs/STYLE.md`.
 10. **Forgiveness:** a **Wind Assist** setting (softens the spread between bands and slows gusts),
     instant restart, and every level ships with an autopilot solvability test so no level is ever
     authored unsolvable.
@@ -51,11 +52,12 @@ Milestones: **feel gate** (I5) by Sun ~20:00 · **content freeze** (I10) by Mon 
   `ready`, `screen`, `step(n)`, `stateHash()`; a placeholder title screen using the I1 palette.
   *Done when:* WebGL build boots in headless Chromium, `dotnet test` green, boot screenshots at both
   viewports reviewed, timings recorded.
-- [ ] **I1 — Style lock + UI kit** (~60m)
-  `docs/STYLE.md` + `Theme.cs`: 16-color palette (sampled from `docs/reference/concept-sheet.png`),
-  pixel font + type scale, 8 px grid, panel/button/gauge/heart/star/pip components drawn from the kit.
-  *Done when:* a component-sheet scene renders every component from `Theme` only, screenshots reviewed
-  for legibility, no hardcoded hex outside `Theme.cs`.
+- [x] **I1 — Style lock + UI kit** (~60m)
+  `docs/STYLE.md` + `Theme.cs`: palette sampled from `docs/reference/concept-sheet.png`
+  (`tools/sample-palette.ps1` prints the evidence into `docs/reference/palette.txt`), hand-authored 5×7
+  pixel font + type scale, 8 px grid, panel/button/gauge/heart/star/pip/windsock components drawn from
+  the kit. *Done when:* a component-sheet scene renders every component from `Theme` only, screenshots
+  reviewed for legibility, no hardcoded hex outside `Theme.cs`.
 
 ### Core (the game is only as good as this)
 - [ ] **I2 — Balloon sim** (~90m)
