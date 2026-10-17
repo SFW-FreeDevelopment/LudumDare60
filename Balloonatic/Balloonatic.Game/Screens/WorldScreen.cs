@@ -73,6 +73,7 @@ namespace Balloonatic.Screens
             DrawHazards(canvas, level, state, camX, camAlt);          // I9: rocks and birds, before the balloon
             DrawFallingBags(canvas, state, camX, camAlt);
             DrawBalloon(canvas, state, camX, camAlt);
+            DrawCelebration(canvas, state, camX, camAlt);            // I12: post-delivery star sparkle
             DrawHud(canvas, level, state);
             DrawPauseTab(canvas);
             DrawLandingFeedback(canvas, level, state, camX, camAlt);
@@ -360,8 +361,26 @@ namespace Balloonatic.Screens
                 if (alt < 0f)
                     continue;                 // it landed off-screen; the ground owns it now
                 Vector2 size = Sprites.Size("bag-falling");
-                Sprites.Draw(canvas, "bag-falling", ScreenX(state.DropX[i], camX) - size.X / 2,
-                             ScreenY(alt, camAlt) - size.Y / 2);
+                float bx = ScreenX(state.DropX[i], camX) - size.X / 2;
+                float by = ScreenY(alt, camAlt) - size.Y / 2;
+                Sprites.Draw(canvas, "bag-falling", bx, by);
+
+                // I12 sand puffs: the release shakes a three-mote cloud that spreads for a fifth of a
+                // second, and the fall trails a single grain every other tick — the sand is visibly
+                // leaving the basket, which is the brake being spent. Pure clock math, no new state.
+                if (age < 12)
+                {
+                    float ry = ScreenY(state.DropAltitude[i], camAlt);
+                    float spread = 1f + age / 4f;
+                    int[] offX = { -4, 3, 0 }, offY = { -2, -3, 4 };
+                    for (int p = 0; p < 3; p++)
+                        canvas.Fill(ScreenX(state.DropX[i], camX) + offX[p] * spread,
+                            ry + offY[p] * spread, 2, 2, age < 6 ? Theme.SandTan : Theme.WickerDark);
+                }
+                else if (age % 2 == 0)
+                {
+                    canvas.Fill(bx + size.X / 2 - 1, by - 3, 1, 1, Theme.SandTan);
+                }
             }
         }
 
@@ -422,6 +441,12 @@ namespace Balloonatic.Screens
             int frame = state.Heating ? 1 + Clock(state) / 8 % 2 : 0;
             Vector2 size = Sprites.Size("balloon-0");
 
+            // I12 basket sway: the load leans one px into fast climbs and the other into fast drops,
+            // still when the air is still — velocity in, so it is the same pixel in every replay, and
+            // off entirely under Reduced Motion.
+            if (!AppSettings.ReducedMotion && !state.Complete)
+                x += MathF.Round(Math.Clamp(state.VelocityY / -120f, -1f, 1f));
+
             // I9 invulnerability: for the grace window after a hit the balloon blinks, from a pure
             // (Tick - HurtTick) phase so stepped frames stay byte-stable. Reduced Motion dims her
             // through the window instead of blinking it — same news, gentler for the eyes.
@@ -432,6 +457,58 @@ namespace Balloonatic.Screens
             Color? tint = hurtWindow && AppSettings.ReducedMotion ? new Color(150, 150, 150) : null;
 
             Sprites.Draw(canvas, "balloon", frame, x - size.X / 2, foot - size.Y, tint: tint);
+
+            // I12 burner puffs: while heat is on, three small puffs vent from the envelope crown on a
+            // rolling 30-tick cycle — pure from the decoration clock, palette clouds, and gone the
+            // moment the burner is. They read as hot air escaping, which is exactly what is happening.
+            if (state.Heating && !state.Complete && !AppSettings.ReducedMotion)
+            {
+                int clock = Clock(state);
+                float crown = foot - size.Y - 1f;
+                for (int p = 0; p < 3; p++)
+                {
+                    int age = (clock + p * 10) % 30;
+                    float jitter = ((p * 7919 + age * 31) % 7) - 3;
+                    float w = 1.5f + age * 0.09f;
+                    Color puff = age < 10 ? Theme.CloudWhite : age < 20 ? Theme.CloudLavender : Theme.CloudShade;
+                    canvas.Fill(x + jitter - w / 2f, crown - age * 0.55f, w, w, puff);
+                }
+            }
+        }
+
+        /// <summary>Sparkle offsets: eight honest integer directions, no sines needed for a party.</summary>
+        static readonly (int Dx, int Dy)[] SparkleDirs =
+            { (2, 1), (2, -1), (-2, 1), (-2, -1), (1, 2), (1, -2), (-1, 2), (-1, -2) };
+
+        /// <summary>
+        /// The delivery party (I12): for a few seconds after a landing goes well, star motes drift out
+        /// from around the envelope — gold, cream and cloud-white, blinking on a tick parity. Runs off
+        /// <c>Tick - CompletedAtTick</c>, so it animates while the world is live and freezes exactly
+        /// where a paused screenshot caught it. Reduced Motion draws the ring steady: same celebration,
+        /// no twinkle.
+        /// </summary>
+        static void DrawCelebration(DesignCanvas canvas, SimState state, float camX, float camAlt)
+        {
+            if (!state.Complete || !state.Delivered)
+                return;
+            int age = state.Tick - state.CompletedAtTick;
+            if (age < 0 || age > 240)
+                return;
+
+            bool calm = AppSettings.ReducedMotion;
+            float bx = ScreenX(state.X, camX);
+            float by = ScreenY(state.Altitude + 34f, camAlt);   // envelope crown height, where the joy is
+            for (int i = 0; i < SparkleDirs.Length; i++)
+            {
+                if (!calm && (age + i) % 6 >= 4)
+                    continue;                                   // each mote hides two ticks in six
+                int phase = calm ? 6 : (age + i * 9) % 18;
+                float r = 16f + phase * 2.4f;
+                int w = phase > 8 ? 2 : 1;
+                Color c = i % 3 == 0 ? Theme.StarGold : i % 3 == 1 ? Theme.TagCream : Theme.CloudWhite;
+                canvas.Fill(bx + SparkleDirs[i].Dx * r * 0.6f - w / 2f,
+                            by + SparkleDirs[i].Dy * r * 0.5f - w / 2f, w, w, c);
+            }
         }
 
         /// <summary>

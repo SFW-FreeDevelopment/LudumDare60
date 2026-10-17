@@ -174,6 +174,26 @@ test('a floating rock bites — a heart spent and the balloon flung off it @shot
   await shootPath(page, testInfo, '09-rock');
 });
 
+test('the flying machine shows its machinery — burner puffs and a sand-releasing bag @shot @screens', async ({ page }, testInfo) => {
+  // I12 juice: heat on mid-climb (puffs venting from the crown, the load leaning a px) and one
+  // sandbag just released with its five-frame dust cloud still spreading.
+  watchForErrors(page);
+  await bootGame(page);
+  await page.evaluate(async () => {
+    await window.__GAME.reset('1337');
+    await window.__GAME.screen('world');
+    await window.__GAME.set('heat', 1);
+    await window.__GAME.step(48);                     // climb underway: flame frames, puffs, sway
+    await window.__GAME.set('ballast', 1);
+    await window.__GAME.step(6);                      // the bag is six ticks from the basket
+  });
+  await page.waitForTimeout(300);
+  const st = JSON.parse(await page.evaluate(async () => await window.__GAME.state()));
+  expect(st.heating).toBe(true);
+  expect(st.drops).toBe(1);
+  await shootPath(page, testInfo, '14-juice');
+});
+
 test('a bird works its path beside the balloon, wings mid-flap @shot @screens', async ({ page }, testInfo) => {
   watchForErrors(page);
   await bootGame(page);

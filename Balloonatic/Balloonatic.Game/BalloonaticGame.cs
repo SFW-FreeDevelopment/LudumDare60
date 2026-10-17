@@ -443,9 +443,32 @@ namespace Balloonatic
         {
             canvas.BeginDesign();
             screen.Draw(canvas, Harness.State);
+            DrawScreenFade(canvas);
             canvas.Present();
             FrameCount++;
             base.Draw(gameTime);
+        }
+
+        string fadedScreen = "";
+        int fadeStartFrame;
+
+        /// <summary>
+        /// The ink wash between screens (I12): whenever a different screen is about to be presented,
+        /// the frame opens under a dark veil that lifts over ~100 ms. Like hover and focus it is UI
+        /// transition state — wall-clock, outside the sim — and under Reduced Motion the cut stays a
+        /// cut. Screenshots settle past the wash before they shoot, so baselines never race it.
+        /// </summary>
+        void DrawScreenFade(DesignCanvas canvas)
+        {
+            if (screen.Id != fadedScreen)
+            {
+                fadedScreen = screen.Id;
+                fadeStartFrame = FrameCount;
+            }
+            int age = FrameCount - fadeStartFrame;
+            if (age < 6 && !AppSettings.ReducedMotion)
+                canvas.Fill(0, 0, Sim.DesignWidth, Sim.DesignHeight,
+                    new Color(11, 17, 41, 140 * (6 - age) / 6));
         }
 
         protected override void OnExiting(System.EventArgs args)
