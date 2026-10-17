@@ -92,15 +92,20 @@ When behind, cut a feature before cutting polish — one small, sharp, good-look
 - Screenshot byte drift between full runs is normal; committing the new shots is fine.
 
 ## Commands
-Initiative 0 creates these; until then the toolchain is `dotnet` (SDK 10) + `npm` + Playwright.
+npm scripts are the front door for the .NET build; use them rather than rediscovering `dotnet` flags.
 
 | Command | What it does |
 | --- | --- |
-| `npm run dev` | Run the desktop head for fast eyeball iteration |
-| `npm run build` | Release-build core + desktop + WebGL publish to `export/web/` |
-| `npm run serve` | Serve `export/web/` on localhost for Playwright and for manual WebGL checks |
-| `npm test` | Playwright suite against the served WebGL build |
-| `npm run shot` | Screenshot pass into `docs/screenshots/` |
+| `npm run dev` | Desktop head (OpenGL) — the only way to judge *feel*; the browser proves behaviour |
+| `npm run build` | Release build of core + shared game + desktop + WebGL heads |
+| `npm run unit` | xunit on the pure sim and the harness protocol |
+| `npm run web` | Publish the WebGL entry build to `export/web/` |
+| `npm run serve` | Serve `export/web/` on `http://localhost:4173` (brotli/gzip aware, like a host) |
+| `npm test` | Playwright suite against the served WebGL build, 1280×720 + 420×760 |
+| `npm run shot` | Rewrite snapshot baselines and refresh `docs/screenshots/` review copies |
+| `npm run check` | build + unit + web + Playwright — the "never commit red" gate |
+
+Measured baselines, budgets and the `window.__GAME` protocol: `docs/BASELINE.md`.
 
 ## Repo hygiene
 - `main` stays working and shippable; no force-pushes after a build is shared.

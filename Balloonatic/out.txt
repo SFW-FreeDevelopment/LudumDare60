@@ -1,0 +1,12 @@
+GameFactory not found.
+Initialize input with 'GameFactory.RegisterGameFactory(new ConcreteGameFactory());'.
+Registering ConcreteGameFactoryStrategy through reflection.
+InputFactory not found.
+Initialize input with 'InputFactory.RegisterInputFactory(new ConcreteInputFactory());'.
+Registering ConcreteInputFactoryStrategy through reflection.
+TitleContainerFactory not found.
+Initialize title with 'TitleContainerFactory.RegisterTitleContainerFactory(new ConcreteTitleContainerFactory());'.
+Registering Concrete TitleContainerFactoryStrategy through reflection.
+GraphicsFactory not found.
+Initialize graphics with 'GraphicsFactory.RegisterGraphicsFactory(new ConcreteGraphicsFactory());'.
+Registering Concrete GraphicsFactoryStrategy through reflection.

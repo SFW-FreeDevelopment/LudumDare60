@@ -44,7 +44,7 @@ Milestones: **feel gate** (I5) by Sun ~20:00 · **content freeze** (I10) by Mon 
 ## Initiatives
 
 ### Foundation
-- [ ] **I0 — Scaffold + verification harness** (~90m)
+- [x] **I0 — Scaffold + verification harness** (~90m)
   `kni-multiplatform` solution: `Balloonatic.Core` (pure sim, no KNI types), `Balloonatic.Game`
   (shared draw layer), `Balloonatic.Desktop`, `Balloonatic.Web`; `dotnet test` project; npm scripts
   `dev/build/serve/test/shot`; Playwright config at 1280×720 + 420×760; `window.__GAME` bridge with

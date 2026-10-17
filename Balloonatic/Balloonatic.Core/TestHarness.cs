@@ -1,0 +1,183 @@
+using System;
+using System.Globalization;
+using System.Text;
+
+namespace Balloonatic.Core
+{
+    /// <summary>
+    /// The single contract between the game and anything watching from outside: Playwright through
+    /// <c>window.__GAME</c>, and the xunit suite directly. One string in, one string out, no
+    /// serialization types, so the exact same code path is exercised by both kinds of test.
+    ///
+    /// Protocol (all replies are strings; errors are <c>error:…</c>):
+    ///   ready | version | screen | seed | tick | hash | state
+    ///   reset [seedHex]      -> ok:&lt;hash&gt;   also clears input and pauses, so a scripted replay
+    ///                            cannot race the render loop; "resume" hands time back to the game
+    ///   set heat=0|1         -> ok:heat=…   (also: ballast=1 queues one sandbag drop)
+    ///   step [n]             -> &lt;hash&gt;     (advances n steps, 1..3600, ignoring the paused flag)
+    ///   pause | resume       -> ok:paused=0|1
+    ///
+    /// A step is only ever taken here: the game loop calls <see cref="AutoStep"/> and the bridge calls
+    /// <see cref="Handle"/> for "step". Nothing else can advance time, which is what makes replays and
+    /// screenshots reproducible.
+    /// </summary>
+    public sealed class TestHarness
+    {
+        public const ulong DefaultSeed = 0xC0FFEE1234UL;
+        public const int MaxStepsPerCall = 3600;
+
+        SimState _state;
+        SimInput _input;
+        bool _pendingBallast;
+
+        public TestHarness(ulong seed = DefaultSeed)
+        {
+            _state = CreateState(seed);
+        }
+
+        public SimState State => _state;
+        public bool Paused { get; private set; }
+
+        static SimState CreateState(ulong seed) => new SimState { Seed = seed == 0 ? DefaultSeed : seed };
+
+        /// <summary>Advance one step if the game loop owns time (i.e. tests are not driving it).</summary>
+        public void AutoStep()
+        {
+            if (Paused)
+                return;
+            StepOnce();
+        }
+
+        /// <summary>
+        /// Live player input from a head's device poll. Ignored while paused so a scripted Playwright
+        /// run and a stray keyboard key can never fight over the same step.
+        /// </summary>
+        public void SetLiveInput(bool heat, bool queueBallastDrop = false)
+        {
+            if (Paused)
+                return;
+            _input.Heat = heat;
+            if (queueBallastDrop)
+                _pendingBallast = true;
+        }
+
+        void StepOnce()
+        {
+            SimInput input = _input;
+            if (_pendingBallast)
+            {
+                input.DropBallast = true;
+                _pendingBallast = false;
+            }
+            SimRules.Step(_state, input);
+        }
+
+        public string Handle(string? call, string? arg)
+        {
+            string name = (call ?? string.Empty).Trim().ToLowerInvariant();
+            string a = (arg ?? string.Empty).Trim();
+
+            switch (name)
+            {
+                case "ready":
+                    return "1";
+                case "version":
+                    return Sim.ProtocolVersion;
+                case "screen":
+                    return _state.Screen;
+                case "seed":
+                    return _state.Seed.ToString("x16", CultureInfo.InvariantCulture);
+                case "tick":
+                    return _state.Tick.ToString(CultureInfo.InvariantCulture);
+                case "hash":
+                    return SimRules.HashHex(_state);
+                case "state":
+                    return StateJson();
+
+                case "reset":
+                {
+                    ulong seed = DefaultSeed;
+                    if (a.Length > 0 && !TryParseSeed(a, out seed))
+                        return "error:bad-arg:reset";
+                    _state = CreateState(seed);
+                    _input = SimInput.None;
+                    _pendingBallast = false;
+                    Paused = true;
+                    return "ok:" + SimRules.HashHex(_state);
+                }
+
+                case "set":
+                    return HandleSet(a);
+
+                case "step":
+                {
+                    int count = 1;
+                    if (a.Length > 0 && (!int.TryParse(a, NumberStyles.Integer, CultureInfo.InvariantCulture, out count) || count < 1))
+                        return "error:bad-arg:step";
+                    count = Math.Min(count, MaxStepsPerCall);
+                    for (int i = 0; i < count; i++)
+                        StepOnce();
+                    return SimRules.HashHex(_state);
+                }
+
+                case "pause":
+                    Paused = true;
+                    return "ok:paused=1";
+                case "resume":
+                    Paused = false;
+                    return "ok:paused=0";
+
+                default:
+                    return "error:unknown-call:" + name;
+            }
+        }
+
+        string HandleSet(string arg)
+        {
+            int eq = arg.IndexOf('=');
+            if (eq <= 0)
+                return "error:bad-arg:set";
+            string key = arg.Substring(0, eq).Trim().ToLowerInvariant();
+            string raw = arg.Substring(eq + 1).Trim().ToLowerInvariant();
+            bool on = raw == "1" || raw == "true" || raw == "on";
+            bool off = raw == "0" || raw == "false" || raw == "off";
+            if (!on && !off)
+                return "error:bad-arg:set";
+
+            switch (key)
+            {
+                case "heat":
+                    _input.Heat = on;
+                    return "ok:heat=" + (on ? 1 : 0);
+                case "ballast":
+                    if (on)
+                        _pendingBallast = true;
+                    return "ok:ballast=" + (on ? 1 : 0);
+                default:
+                    return "error:unknown-key:" + key;
+            }
+        }
+
+        static bool TryParseSeed(string text, out ulong seed) =>
+            ulong.TryParse(text.StartsWith("0x", StringComparison.OrdinalIgnoreCase) ? text.Substring(2) : text,
+                           NumberStyles.HexNumber, CultureInfo.InvariantCulture, out seed);
+
+        string StateJson()
+        {
+            StringBuilder sb = new StringBuilder(128);
+            sb.Append('{')
+              .Append("\"version\":\"").Append(Sim.ProtocolVersion).Append("\",")
+              .Append("\"screen\":\"").Append(_state.Screen).Append("\",")
+              .Append("\"tick\":").Append(_state.Tick.ToString(CultureInfo.InvariantCulture)).Append(',')
+              .Append("\"seed\":\"").Append(_state.Seed.ToString("x16", CultureInfo.InvariantCulture)).Append("\",")
+              .Append("\"paused\":").Append(Paused ? "true" : "false").Append(',')
+              .Append("\"heat\":").Append(_input.Heat ? "true" : "false").Append(',')
+              .Append("\"heating\":").Append(_state.Heating ? "true" : "false").Append(',')
+              .Append("\"heatTicks\":").Append(_state.HeatTicks.ToString(CultureInfo.InvariantCulture)).Append(',')
+              .Append("\"ballastDropped\":").Append(_state.BallastDropped.ToString(CultureInfo.InvariantCulture)).Append(',')
+              .Append("\"hash\":\"").Append(SimRules.HashHex(_state)).Append('"')
+              .Append('}');
+            return sb.ToString();
+        }
+    }
+}

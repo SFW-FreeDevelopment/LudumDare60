@@ -1,0 +1,19 @@
+{
+  "name": "balloonatic",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Charlotte's Balloonatic - Ludum Dare 60 entry (KNI, WebGL). JS/Playwright harness around the .NET build.",
+  "scripts": {
+    "dev": "dotnet run --project Balloonatic/Balloonatic.Desktop -c Release",
+    "build": "dotnet build Balloonatic/Balloonatic.sln -c Release",
+    "unit": "dotnet test Balloonatic/Balloonatic.sln -c Release --no-build",
+    "web": "dotnet publish Balloonatic/Balloonatic.Blazor.GL -c Release -o export/web",
+    "serve": "node tools/serve.mjs",
+    "test": "playwright test",
+    "shot": "playwright test --grep @shot --update-snapshots",
+    "check": "npm run build && npm run unit && npm run web && playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.64.1"
+  }
+}
