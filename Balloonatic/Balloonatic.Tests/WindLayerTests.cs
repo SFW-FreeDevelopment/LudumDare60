@@ -148,7 +148,7 @@ namespace Balloonatic.Tests
             h.Handle("level", "night-crossing").Should().Be("ok:level=night-crossing");
             h.Handle("level", "").Should().Be("night-crossing");
             F(h, "x").Should().Be(0f);                     // switched = relaunched
-            h.Handle("altitude", "").Should().Be("0.00");
+            F(h, "altitude").Should().Be(SimTuning.DeckTopAltitude);   // …back on the launch deck
 
             h.Handle("level", "nowhere-level").Should().Be("error:unknown-level:nowhere-level");
             h.Handle("level", "").Should().Be("night-crossing");   // a bad name changes nothing

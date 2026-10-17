@@ -50,7 +50,39 @@ namespace Balloonatic.Screens
             DrawIslands(canvas, level, state, camX, camAlt);
             DrawBalloon(canvas, state, camX, camAlt);
             DrawHud(canvas, level, state);
+            DrawLandingFeedback(canvas, level, state, camX, camAlt);
             canvas.Outline(new Rectangle(0, 0, Sim.DesignWidth, Sim.DesignHeight), Theme.Ink);
+        }
+
+        /// <summary>
+        /// The two moments the landing rule has to speak for itself: a bounce says why in one red tag,
+        /// and a delivery stops the world behind a panel with the three stars it earned (PLAN I5 — the
+        /// reason the player failed or what they won, always on screen).
+        /// </summary>
+        static void DrawLandingFeedback(DesignCanvas canvas, LevelDef level, SimState state, int camX, int camAlt)
+        {
+            if (state.Bounces > 0 && !state.Complete
+                && state.Tick - state.BounceTick < SimTuning.BounceReasonSteps)
+            {
+                int bx = ScreenX((int)state.X, camX);
+                int by = ScreenY(state.Altitude, camAlt) - 66;
+                PixelFont.DrawCentered(canvas, "TOO FAST!", bx, by, Theme.FlameRed);
+            }
+
+            if (!state.Complete || !state.Delivered)
+                return;
+
+            int w = 210;
+            int h = 96;
+            int x = (Sim.DesignWidth - w) / 2;
+            int y = 76;
+            Kit.Panel(canvas, new Rectangle(x, y, w, h), "DELIVERY");
+            PixelFont.DrawCentered(canvas, "CHARLOTTE IS SAFE", x + w / 2, y + 26, Theme.TagCream);
+            int seconds = state.Tick / Sim.StepHz;
+            string timeLine = "TIME " + seconds + "S   PAR " + level.ParSeconds + "S";
+            PixelFont.DrawCentered(canvas, timeLine, x + w / 2, y + 42, seconds <= level.ParSeconds ? Theme.GrassLight : Theme.SignCream);
+            Kit.Stars(canvas, x + w / 2 - 15, y + 56, state.Stars, 3, 2);
+            PixelFont.DrawCentered(canvas, "PRESS R TO FLY AGAIN", x + w / 2, y + 80, Theme.WoodLight);
         }
 
         /// <summary>
@@ -190,8 +222,8 @@ namespace Balloonatic.Screens
                 return;
 
             // A grass-capped rock with a wooden deck: the sheet's floating islands, stand-in until I8.
-            Kit.Island(canvas, new Rectangle(x - 40, groundY - 34, 80, 46));
-            canvas.Fill(x - 28, groundY - 38, 56, 4, launch ? Theme.WoodMid : Theme.WoodLight);
+            Kit.Island(canvas, new Rectangle(x - 60, groundY - 34, 120, 46));
+            canvas.Fill(x - (int)SimTuning.DeckHalfWidth, groundY - 38, (int)SimTuning.DeckHalfWidth * 2, 4, launch ? Theme.WoodMid : Theme.WoodLight);
 
             // A sign on the deck: what this island is for, in the paper-and-ink language of the sheet.
             int signY = groundY - 52;
@@ -202,13 +234,13 @@ namespace Balloonatic.Screens
 
             // The windsock flies off the windward post of the deck — the truth about this altitude, in world.
             WindBand band = level.BandAt(1f);
-            Kit.Windsock(canvas, x + (band.Direction >= 0 ? -26 : 26), groundY - 36, band.Direction, band.Strength);
+            Kit.Windsock(canvas, x + (band.Direction >= 0 ? -50 : 50), groundY - 36, band.Direction, band.Strength);
 
             if (!launch)
             {
-                // Delivery bunting on the GO deck: gold pips so the target reads as the prize at a glance.
-                for (int i = 0; i < 4; i++)
-                    canvas.Fill(x - 24 + i * 16, groundY - 42, 3, 3, Theme.StarGold);
+                // Delivery bunting across the deck: gold pips so the target reads as the prize at a glance.
+                for (int i = 0; i < 6; i++)
+                    canvas.Fill(x - 45 + i * 18, groundY - 42, 3, 3, Theme.StarGold);
             }
         }
 

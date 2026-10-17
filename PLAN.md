@@ -82,6 +82,8 @@ Milestones: **feel gate** (I5) by Sun ~20:00 · **content freeze** (I10) by Mon 
   *Done when:* an autopilot run completes a delivery in the **WebGL** head under Playwright, and
   **Steven has played it and says the balloon feels good.** Do not continue past here on red feel —
   tune heat curve, drag, and band strengths until it does.
+  *Status:* code complete and green (40 xunit + 34 Playwright, screenshots judged both viewports);
+  awaiting Steven's playtest — the box is his to tick.
 
 ### Presentation
 - [ ] **I6 — HUD** (~90m)

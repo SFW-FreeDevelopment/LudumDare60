@@ -92,6 +92,29 @@ test('world screen renders the scrolling world, and drawing it never writes stat
   expect(buffer.length).toBeGreaterThan(1000);
 });
 
+test('a delivered run shows its banner — the win screen at a glance @shot @screens', async ({ page }, testInfo) => {
+  watchForErrors(page);
+  await bootGame(page);
+
+  // The delivery pose: the autopilot flies the whole run inside the bridge (it steps directly, so
+  // being paused does not stop it), and the world screen then draws the finished state — banner,
+  // stars and all — from that state alone.
+  await page.evaluate(() => window.__GAME.reset('beef'));
+  await page.evaluate(() => window.__GAME.screen('world'));
+  await expect.poll(() => page.evaluate(() => window.__GAME.screen()), { timeout: 10_000 }).toBe('world');
+  expect(await page.evaluate(() => window.__GAME.deliver(120))).toBe('ok:delivered');
+
+  // Let a few real frames draw the finished world before capturing it.
+  await page.waitForTimeout(300);
+
+  const name = `03-delivery`;
+  await expect(page).toHaveScreenshot(`${name}.png`, { timeout: 60_000 });
+
+  fs.mkdirSync(SHOTS_DIR, { recursive: true });
+  const buffer = await page.screenshot({ path: path.join(SHOTS_DIR, `${name}-${testInfo.project.name}.png`) });
+  expect(buffer.length).toBeGreaterThan(1000);
+});
+
 test('heat visibly drives the balloon and the meter @shot @screens', async ({ page }, testInfo) => {
   watchForErrors(page);
   await bootGame(page);

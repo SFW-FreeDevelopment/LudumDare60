@@ -66,7 +66,10 @@ namespace Balloonatic.Core
         /// <summary>Design px of downwind travel the level expects; delivery targets sit inside it.</summary>
         public float CourseLength { get; }
 
-        public LevelDef(string id, string name, float worldHeight, WindBand[] bands, GustZone[] gusts, float courseLength)
+        /// <summary>A good delivery beats this many seconds; it is one of the three rating stars.</summary>
+        public int ParSeconds { get; }
+
+        public LevelDef(string id, string name, float worldHeight, WindBand[] bands, GustZone[] gusts, float courseLength, int parSeconds)
         {
             Id = id;
             Name = name;
@@ -74,7 +77,12 @@ namespace Balloonatic.Core
             Bands = bands;
             Gusts = gusts ?? Array.Empty<GustZone>();
             CourseLength = courseLength;
+            ParSeconds = parSeconds;
         }
+
+        /// <summary>Deck landing test: the basket centre over a deck of this level, launch or delivery.</summary>
+        public bool OverLaunchDeck(float x) => Math.Abs(x) <= SimTuning.DeckHalfWidth;
+        public bool OverDeliveryDeck(float x) => Math.Abs(x - CourseLength) <= SimTuning.DeckHalfWidth;
 
         /// <summary>Design px/s of band wind by strength. Three readable steps, no more.</summary>
         public static float WindSpeed(int strength) => strength switch
@@ -129,33 +137,36 @@ namespace Balloonatic.Core
                     new WindBand(260f, 400f, -1, 2),
                 },
                 Array.Empty<GustZone>(),
-                600f),
+                600f, 45),
 
-            // A zigzag: the direct-looking low air misses, and the course is a deliberate climb.
+            // A zigzag: the middle air sprints, the upper air rebukes you, and the low air — the air a
+            // landing is made from — carries gently home. The course is a deliberate climb and a patient drop.
             new LevelDef(
                 "winding-trail", "Winding Trail", 520f,
                 new[]
                 {
-                    new WindBand(0f, 110f, -1, 1),
+                    new WindBand(0f, 110f, +1, 1),
                     new WindBand(110f, 240f, +1, 2),
                     new WindBand(240f, 360f, -1, 2),
                     new WindBand(360f, 520f, +1, 3),
                 },
                 new[] { new GustZone(240f, 300f, -1, 35f) },
-                700f),
+                700f, 60),
 
-            // Night: long haul, two strong carrying bands separated by a contrary layer.
+            // Night: a long haul under a fast ceiling, above a calm floor. The middle air barely
+            // carries and the air at the ceiling is the only real pace — go up to cross, come down to
+            // land, and never try to land in the ceiling's hurry.
             new LevelDef(
                 "night-crossing", "Night Crossing", 600f,
                 new[]
                 {
                     new WindBand(0f, 140f, +1, 1),
-                    new WindBand(140f, 280f, -1, 2),
-                    new WindBand(280f, 440f, +1, 2),
-                    new WindBand(440f, 600f, +1, 3),
+                    new WindBand(140f, 300f, +1, 1),
+                    new WindBand(300f, 460f, -1, 1),
+                    new WindBand(460f, 600f, +1, 2),
                 },
-                new[] { new GustZone(440f, 520f, +1, 40f) },
-                900f),
+                new[] { new GustZone(460f, 540f, +1, 40f) },
+                900f, 80),
         };
 
         public static bool TryGet(string? id, out LevelDef level)

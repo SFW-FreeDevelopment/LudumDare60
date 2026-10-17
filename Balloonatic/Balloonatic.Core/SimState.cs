@@ -24,8 +24,9 @@ namespace Balloonatic.Core
         /// <summary>Vertical velocity, design px per second. Positive is up.</summary>
         public float VelocityY;
 
-        /// <summary>Height above the ground plane, design px. Never negative.</summary>
-        public float Altitude;
+        /// <summary>Height above the ground plane, design px. A fresh run starts resting on the launch
+        /// deck; the ground plane itself is the I5 crash floor below the decks.</summary>
+        public float Altitude = SimTuning.DeckTopAltitude;
 
         /// <summary>Sandbags still aboard. Dropping one is irreversible for the level.</summary>
         public int BallastHeld = SimTuning.BagCapacity;
@@ -38,6 +39,21 @@ namespace Balloonatic.Core
 
         /// <summary>Which authored level this run is on. Bands, gusts and the course length come from it.</summary>
         public string LevelId = LevelCatalog.DefaultId;
+
+        /// <summary>True once the basket has come down soft on the delivery deck. The level's whole point.</summary>
+        public bool Delivered;
+
+        /// <summary>Run is over — a soft landing (any outcome that ends the flight) freezes input.</summary>
+        public bool Complete;
+
+        /// <summary>Too-fast deck contacts this run. Zero bounces is one of the three rating stars.</summary>
+        public int Bounces;
+
+        /// <summary>Tick of the last bounce, so the "too fast" reason can hold on screen briefly.</summary>
+        public int BounceTick;
+
+        /// <summary>Rating, set at delivery: 1 for the delivery, +1 inside par, +1 without a bounce.</summary>
+        public int Stars;
 
         /// <summary>Heat as applied on the last step. Kept in state so rendering can show the flame
         /// without reading a device, and so the hash covers it.</summary>
@@ -62,6 +78,11 @@ namespace Balloonatic.Core
             X = X,
             VelocityX = VelocityX,
             LevelId = LevelId,
+            Delivered = Delivered,
+            Complete = Complete,
+            Bounces = Bounces,
+            BounceTick = BounceTick,
+            Stars = Stars,
             Heating = Heating,
             Screen = Screen,
         };
@@ -96,6 +117,12 @@ namespace Balloonatic.Core
             float dt = Sim.StepSeconds;
             state.Seed = Sim.NextSeed(state.Seed);
             state.Tick++;
+
+            // A finished run is a finished run: the world keeps its clock but ignores the burner, so a
+            // held key cannot reroll a delivered score and the freeze is part of the deterministic sim.
+            if (state.Complete)
+                return;
+
             state.Heating = input.Heat;
 
             if (input.Heat)
@@ -125,8 +152,43 @@ namespace Balloonatic.Core
             float weight = SimTuning.Gravity + state.BallastHeld * SimTuning.BallastPerBag;
             float drag = state.VelocityY * SimTuning.Drag;
 
+            float prevAltitude = state.Altitude;
             state.VelocityY += (lift - weight - drag) * dt;
             state.Altitude += state.VelocityY * dt;
+
+            // Deck contact: the basket plane crossed a deck surface downward with the basket over it.
+            // Soft enough, it sticks — and on the delivery deck, that is the whole level won. Too fast,
+            // the deck throws it back up with a counted bounce and a reason tag (docs/PLAN.md I5).
+            if (state.VelocityY < 0f
+                && prevAltitude >= SimTuning.DeckTopAltitude
+                && state.Altitude <= SimTuning.DeckTopAltitude)
+            {
+                bool overLaunch = level.OverLaunchDeck(state.X);
+                bool overDelivery = level.OverDeliveryDeck(state.X);
+                if (overLaunch || overDelivery)
+                {
+                    state.Altitude = SimTuning.DeckTopAltitude;
+                    if (-state.VelocityY <= SimTuning.SoftLandingVy)
+                    {
+                        state.VelocityY = 0f;
+                        if (overDelivery)
+                        {
+                            state.Delivered = true;
+                            state.Complete = true;
+                            // Three stars: the delivery itself, beating par, and doing it clean.
+                            state.Stars = 1
+                                + (state.Tick <= level.ParSeconds * Sim.StepHz ? 1 : 0)
+                                + (state.Bounces == 0 ? 1 : 0);
+                        }
+                    }
+                    else
+                    {
+                        state.VelocityY = -state.VelocityY * SimTuning.BounceRestitution;
+                        state.Bounces++;
+                        state.BounceTick = state.Tick;
+                    }
+                }
+            }
 
             if (state.Altitude <= SimTuning.GroundAltitude)
             {
@@ -160,6 +222,11 @@ namespace Balloonatic.Core
             h = Mix(h, (ulong)state.BallastHeld);
             h = Mix(h, Bits(state.X));
             h = Mix(h, Bits(state.VelocityX));
+            h = Mix(h, state.Delivered ? 1UL : 0UL);
+            h = Mix(h, state.Complete ? 1UL : 0UL);
+            h = Mix(h, (ulong)state.Bounces);
+            h = Mix(h, (ulong)state.BounceTick);
+            h = Mix(h, (ulong)state.Stars);
             h = Mix(h, state.Heating ? 1UL : 0UL);
             foreach (char c in state.Screen)
                 h = Mix(h, c);

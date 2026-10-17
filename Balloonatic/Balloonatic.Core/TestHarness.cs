@@ -13,9 +13,12 @@ namespace Balloonatic.Core
     ///   ready | version | screen | seed | tick | hash | state
     ///   reset [seedHex]      -> ok:&lt;hash&gt;   also clears input and pauses, so a scripted replay
     ///                            cannot race the render loop; "resume" hands time back to the game
+    ///   restart              -> ok:&lt;hash&gt;   player-style restart: same seed and screen, unpaused
     ///   set heat=0|1         -> ok:heat=…   (also: ballast=1 queues one sandbag drop)
     ///   step [n]             -> &lt;hash&gt;     (advances n steps, 1..3600, ignoring the paused flag)
     ///   pause | resume       -> ok:paused=0|1
+    ///   deliver [sec]        -> ok:delivered | error:not-delivered  (autopilot lands on the deck;
+    ///                            steps directly, so it works paused and is deterministic either way)
     ///
     /// A step is only ever taken here: the game loop calls <see cref="AutoStep"/> and the bridge calls
     /// <see cref="Handle"/> for "step". Nothing else can advance time, which is what makes replays and
@@ -29,10 +32,12 @@ namespace Balloonatic.Core
         SimState _state;
         SimInput _input;
         bool _pendingBallast;
+        ulong _runSeed = DefaultSeed;
 
         public TestHarness(ulong seed = DefaultSeed)
         {
             _state = CreateState(seed);
+            _runSeed = _state.Seed;
         }
 
         public SimState State => _state;
@@ -103,6 +108,14 @@ namespace Balloonatic.Core
                     return _state.BallastHeld.ToString(CultureInfo.InvariantCulture);
                 case "level":
                     return a.Length == 0 ? _state.LevelId : SetLevel(a);
+                case "delivered":
+                    return _state.Delivered ? "1" : "0";
+                case "complete":
+                    return _state.Complete ? "1" : "0";
+                case "stars":
+                    return _state.Stars.ToString(CultureInfo.InvariantCulture);
+                case "bounces":
+                    return _state.Bounces.ToString(CultureInfo.InvariantCulture);
                 case "hash":
                     return SimRules.HashHex(_state);
                 case "state":
@@ -114,6 +127,7 @@ namespace Balloonatic.Core
                     if (a.Length > 0 && !TryParseSeed(a, out seed))
                         return "error:bad-arg:reset";
                     _state = CreateState(seed);
+                    _runSeed = _state.Seed;
                     _input = SimInput.None;
                     _pendingBallast = false;
                     Paused = true;
@@ -141,9 +155,42 @@ namespace Balloonatic.Core
                     Paused = false;
                     return "ok:paused=0";
 
+                case "restart":
+                {
+                    RestartRun();
+                    return "ok:" + SimRules.HashHex(_state);
+                }
+
+                case "deliver":
+                {
+                    int seconds = 120;
+                    if (a.Length > 0 && (!int.TryParse(a, NumberStyles.Integer, CultureInfo.InvariantCulture, out seconds) || seconds < 1))
+                        return "error:bad-arg:deliver";
+                    seconds = Math.Min(seconds, 300);
+                    bool delivered = Autopilot.Deliver(_state, LevelCatalog.Get(_state.LevelId), seconds);
+                    return delivered ? "ok:delivered" : "error:not-delivered";
+                }
+
                 default:
                     return "error:unknown-call:" + name;
             }
+        }
+
+        /// <summary>
+        /// Restarts the run the way a player's R key does: same level, same seed — a replay of the same
+        /// sky — with the balloon back on the launch deck and the run flags cleared. Unlike "reset" it
+        /// does not pause and does not change screens, so live play resumes on the same frame it stopped.
+        /// The seed is kept on purpose: two runs of a level with one seed are directly comparable.
+        /// </summary>
+        public void RestartRun()
+        {
+            string screen = _state.Screen;
+            string levelId = _state.LevelId;
+            _state = CreateState(_runSeed);   // the run's own seed: a restart replays the same sky
+            _state.Screen = screen;
+            _state.LevelId = levelId;
+            _input = SimInput.None;
+            _pendingBallast = false;
         }
 
         /// <summary>
@@ -171,7 +218,7 @@ namespace Balloonatic.Core
             _state.LevelId = level.Id;
             _state.X = 0f;
             _state.VelocityX = 0f;
-            _state.Altitude = SimTuning.GroundAltitude;
+            _state.Altitude = SimTuning.DeckTopAltitude;
             _state.VelocityY = 0f;
             _state.Temperature = SimTuning.TempAmbient;
             _state.BallastHeld = SimTuning.BagCapacity;
@@ -226,6 +273,10 @@ namespace Balloonatic.Core
               .Append("\"x\":").Append(_state.X.ToString("0.00", CultureInfo.InvariantCulture)).Append(',')
               .Append("\"velocityX\":").Append(_state.VelocityX.ToString("0.00", CultureInfo.InvariantCulture)).Append(',')
               .Append("\"level\":\"").Append(_state.LevelId).Append("\",")
+              .Append("\"delivered\":").Append(_state.Delivered ? "true" : "false").Append(',')
+              .Append("\"complete\":").Append(_state.Complete ? "true" : "false").Append(',')
+              .Append("\"stars\":").Append(_state.Stars.ToString(CultureInfo.InvariantCulture)).Append(',')
+              .Append("\"bounces\":").Append(_state.Bounces.ToString(CultureInfo.InvariantCulture)).Append(',')
               .Append("\"hash\":\"").Append(SimRules.HashHex(_state)).Append('"')
               .Append('}');
             return sb.ToString();

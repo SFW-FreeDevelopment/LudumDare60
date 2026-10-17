@@ -112,14 +112,21 @@ namespace Balloonatic.Tests
         }
 
         [Fact]
-        public void A_cold_balloon_sits_on_the_ground()
+        public void A_cold_balloon_launches_from_the_deck_and_comes_to_rest_when_the_wind_releases_it()
         {
             TestHarness h = new TestHarness();
             h.Handle("reset", "1234");
-            h.Handle("step", "600");
 
-            h.Handle("altitude", "").Should().Be("0.00");
+            // Runs start on the deck, not on the ground: the deck is the floor of a balloon's world.
+            h.Handle("altitude", "").Should().Be(SimTuning.DeckTopAltitude.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture));
+
+            // And cold, the wind walks it off the deck: a launched-but-unburned balloon drifts down to
+            // the dirt some distance home — the launch deck is not a parking space, it is a departure.
+            h.Handle("step", "600");
+            h.Handle("altitude", "").Should().Be(SimTuning.GroundAltitude.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture));
             h.Handle("velocity", "").Should().Be("0.00");
+            float restX = float.Parse(h.Handle("x", ""), System.Globalization.CultureInfo.InvariantCulture);
+            restX.Should().BeGreaterThan(SimTuning.DeckHalfWidth);   // came to rest past the deck
         }
 
         [Fact]

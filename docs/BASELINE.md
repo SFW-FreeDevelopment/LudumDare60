@@ -13,8 +13,8 @@ exactly the way an entry host would.
 | Published payload on disk | 17.18 MB across 204 files (59 `.br` sidecars, 2.81 MB) | `export/web/` after `dotnet publish` |
 | `dotnet build` (5 projects, Release) | ~11 s | measured |
 | `dotnet publish` Blazor WebGL head | ~11 s (no `wasm-tools`, so no AOT) | measured |
-| Playwright suite | 24 tests, 2 viewports, ~25 s | `npx playwright test` |
-| xunit suite | 8 tests | `dotnet test` |
+| Playwright suite | 34 tests, 2 viewports, ~26 s | `npx playwright test` |
+| xunit suite | 40 tests | `dotnet test` |
 
 Budgets to watch (set in I12, warned about now): boot under ~3 s on a normal connection, payload under
 ~8 MB transferred, 60 fps in a Chromium tab. The 17 MB on disk is mostly uncompressed framework files
@@ -42,7 +42,7 @@ pinned in one place and cannot drift between browser and unit tests.
 | Call | Purpose |
 | --- | --- |
 | `ready`, `readyAtMs` | first drawn frame reached, and how long boot took |
-| `version()` | bridge protocol (`i3`) |
+| `version()` | bridge protocol (`i4`) |
 | `screen()` | which screen the game is actually drawing |
 | `screen(id)` | request a screen change; answered `ok:requested=<id>`, applied by the game's own frame loop, so callers poll `screen()` to confirm it |
 | `reset(seed)`, `seed()`, `tick()`, `hash()`, `state()` | scripted replays with a comparable hash |
@@ -51,6 +51,9 @@ pinned in one place and cannot drift between browser and unit tests.
 | `temperature()`, `altitude()`, `velocity()`, `ballast()` | the balloon model's readouts, fixed-format strings so browser and xunit can assert the same numbers |
 | `x()`, `velocityX()` | downwind distance and horizontal velocity â€” the wind's side of the model |
 | `level()`, `level(id)` | read or switch the authored level; switching re-launches the flight (`ok:level=<id>`, `error:unknown-level:<id>`) |
+| `restart()` | the player's R over the wire: same seed, same level, same screen, unpaused (`ok:<hash>`) |
+| `deliver([sec])` | the autopilot flies the run onto the delivery deck, stepping directly (`ok:delivered` / `error:not-delivered`) |
+| `delivered()`, `complete()`, `stars()`, `bounces()` | the landing rule's readouts; `state()` carries the same as `delivered`/`complete`/`stars`/`bounces` |
 | `frames()`, `metrics()` | renderer-side counters: frame count, viewport/backbuffer/scale |
 
 Rules this enforces: only the harness advances time; `pause()` stops the game loop dead; rendering
@@ -91,3 +94,39 @@ reads state and never writes it, so effects cannot perturb a replay.
   drawn: drawing reads state and never writes it.
 - **Live play boots on `world`**; a test's `reset` returns to the `scaffold` physics test bed, and any
   pose that needs a specific screen requests it and polls until the game confirms the switch.
+
+## Decisions recorded by I5
+
+- **Decks are the only soft ground.** A soft landing is a downward crossing of the deck plane at
+  <= 18 px/s inside the deck's x-span; faster contact bounces (restitution 0.4, counted, and the
+  world screen shows a red "TOO FAST!" tag for ~1.5 s). The open ground is always soft and never
+  ends a run; only the delivery deck wins it.
+- **The landing skill is the sandbag.** Loaded terminal descent (~25 px/s) is deliberately *faster*
+  than the soft-landing rule, and unloaded the envelope will not come down at all — so arriving soft
+  means spending exactly one bag mid-descent (~12 px/s). That is the B key's whole purpose, and why
+  the autopilot never arrives with both bags aboard or none.
+- **Decks are 112 px wide (`DeckHalfWidth` 56), sized against the landing read.** A settled approach
+  drifts up to ~40 px while the last 50 px of altitude bleed away; anything narrower punishes
+  arrivals that are flown correctly. Wide road, small prize.
+- **Runs start resting on the launch deck (`DeckTopAltitude` 38), not on the ground.** Cold, the wind
+  walks an unburned balloon off the deck within a second or two — the deck is a departure, not a
+  parking space (asserted in `BalloonPhysicsTests`).
+- **A finished run freezes the simulation, not the world**: `Complete` ignores heat and ballast, while
+  `Tick` and the seed keep advancing, so the hash still moves and the ambient world keeps living.
+- **`restart` keeps the run's seed, screen and level** — a restart replays literally the same opening
+  (proven: post-restart hash equals the fresh-reset hash), unlike `reset`, which is the paused,
+  seed-your-own test entry point.
+- **The delivery autopilot is receding-horizon planning, not a hand-drawn pattern.** This physics
+  gives descent rate to loadout and the horizontal to the wind, so no flyable glideslope exists —
+  three hand-authored approaches (geometric slope, touchdown-triggered, state machine) all orbited
+  the deck. The pilot that works rolls each candidate altitude (carrying air, lowest air, deck hover,
+  committed fall under the deck, return band) forward ~12 s on cloned state, scores the imagined
+  ending with the landing read, and flies the winner for a second before re-imagining. Player-legal
+  verbs only, fully deterministic, and every authored level ships with a proof it can be delivered
+  (all three land <= 24 s, clean, 3 stars).
+- **Levels are re-authored until the autopilot can land them.** `winding-trail`'s lowest band now
+  carries gently toward the deck, and `night-crossing` became a calm floor with a fast ceiling; the
+  solvability test (`Every_authored_level_can_actually_be_delivered`) is what licenses the wind data,
+  and the comment in `Autopilot.Deliver` explains the pattern the ghost pilot flies.
+- **Stars = 1 (delivered) + (under par) + (no bounces)**, with pars 45/60/80 s on the three levels;
+  the delivery banner shows time against par so the rating reads as arithmetic, not mystery.

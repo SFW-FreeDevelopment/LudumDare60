@@ -21,12 +21,18 @@ test('boots in a browser and the harness answers @smoke', async ({ page }, testI
     state: await window.__GAME.state(),
   }));
 
-  expect(protocol.version).toBe('i3');
+  expect(protocol.version).toBe('i4');
   expect(protocol.screen).toBe('world');    // live play opens on the world; reset returns to the test bed
   expect(protocol.seed).toMatch(/^[0-9a-f]{16}$/);
   expect(protocol.hash).toMatch(/^[0-9a-f]{16}$/);
   expect(protocol.state.tick).toBeGreaterThanOrEqual(0);
-  expect(protocol.state.version).toBe('i3');
+  expect(protocol.state.version).toBe('i4');
+
+  // I5's landing-rule fields ride in the state snapshot, so any watcher can judge a run's end.
+  expect(protocol.state.delivered).toBe(false);
+  expect(protocol.state.complete).toBe(false);
+  expect(protocol.state.stars).toBe(0);
+  expect(protocol.state.bounces).toBe(0);
 
   // Reported for the record; the budget itself is an I12 concern, this is the baseline it compares to.
   console.log(

@@ -10,6 +10,9 @@
 //   window.__GAME.screen()               // "scaffold" today, "title"/"level" later
 //   window.__GAME.state()                // JSON snapshot (parsed)
 //   window.__GAME.reset('1234')          // new seed, clears input, paused = true
+//   window.__GAME.restart()              // player-style restart: same seed, same screen, unpaused
+//   window.__GAME.deliver(120)           // autopilot lands on the delivery deck ("ok:delivered")
+//   window.__GAME.delivered() / complete() / stars() / bounces()
 //   window.__GAME.set('heat', 1)         // inject input: heat (hold) and ballast (one drop)
 //   window.__GAME.step(60)               // advance 60 fixed steps, returns the state hash
 //   window.__GAME.hash() / tick() / seed()
@@ -55,6 +58,12 @@
         frames: function () { return text('frames'); },
         metrics: function () { return text('metrics'); },
         reset: function (seed) { return text('reset', seed); },
+        restart: function () { return text('restart'); },
+        deliver: function (seconds) { return text('deliver', seconds); },
+        delivered: function () { return text('delivered'); },
+        complete: function () { return text('complete'); },
+        stars: function () { return text('stars'); },
+        bounces: function () { return text('bounces'); },
         set: function (key, value) { return text('set', key + '=' + (value === 0 || value === false ? 0 : 1)); },
         step: function (n) { return text('step', n); },
         pause: function () { return text('pause'); },
