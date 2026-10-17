@@ -55,8 +55,10 @@ When behind, cut a feature before cutting polish — one small, sharp, good-look
   one-off styling.
 - Everything pixel-snapped at the design resolution, integer-scaled and letterboxed to the viewport;
   the canvas resizes with its container so the LD page iframe looks intentional at any width.
-- The game must look like the theme: old-tech framing (CRT/terminal/handheld) is applied consistently
-  to menu, HUD, and game over — not just the gameplay screen.
+- The theme is carried by the subject, not a filter: **no CRT/scanline/phosphor post-processing**
+  anywhere (see `docs/CONCEPT.md` Amendment 2). "Old Tech" reads through the balloon's machinery —
+  burner flame, temperature gauge, rope and wicker, sandbags, windsocks — drawn in the same 16-bit
+  style, and it must read on the menu, the HUD and the game-over screen, not only during play.
 - Every input gets feedback (hover/press/focus), every state change gets a transition or a sound,
   and both must be cheap enough to hold 60 fps in a browser tab.
 - Keyboard-only playability is required; focus state must be as designed as hover state.
