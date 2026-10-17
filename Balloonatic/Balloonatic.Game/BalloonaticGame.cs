@@ -42,9 +42,14 @@ namespace Balloonatic
             screen = worldScreen;
             Harness.State.Screen = SimState.ScreenWorld;
 
-            // Fixed stepping is done here, not by the framework, so a browser tab that throttles
-            // rAF or a test that steps manually cannot change the simulation's result.
-            IsFixedTimeStep = false;
+            // The simulation still fixed-steps itself (the accumulator below), so a tab that throttles
+            // rAF or a test that steps manually cannot change its result. But the framework loop is
+            // fixed too: presenting on a strict 60 Hz clock instead of free-running against vsync.
+            // Free-running measured a steady 60 fps and still felt "out of sync" on the playtest —
+            // its phase drifted against the display, and worst-case frames overran the 16.7 ms budget.
+            IsFixedTimeStep = true;
+            TargetElapsedTime = System.TimeSpan.FromSeconds(1.0 / 60.0);
+            graphics.SynchronizeWithVerticalRetrace = true;
             InactiveSleepTime = System.TimeSpan.Zero;
         }
 
@@ -122,10 +127,19 @@ namespace Balloonatic
             base.UnloadContent();
         }
 
+        // Pacing diagnostics, gated on BALLOON_DIAG=1: draws-per-second, sim steps per second and the
+        // worst frame interval. "Feels laggy / out of sync" is a claim about timing, and timing gets
+        // measured, not argued with. Zero cost when the variable is unset.
+        readonly System.Diagnostics.Stopwatch diagClock = System.Diagnostics.Stopwatch.StartNew();
+        double diagWindowStart;
+        double diagWorstFrameMs;
+        int diagPrevTick;
+
         protected override void Update(GameTime gameTime)
         {
             KeyboardState keyboard = Keyboard.GetState();
             MouseState mouse = Mouse.GetState();
+            DiagPacing(gameTime);
 
             if (keyboard.IsKeyDown(Keys.Escape) || keyboard.IsKeyDown(Keys.Back))
             {
@@ -176,6 +190,33 @@ namespace Balloonatic
 
             base.Update(gameTime);
         }
+
+        static readonly bool DiagEnabled = System.Environment.GetEnvironmentVariable("BALLOON_DIAG") == "1";
+
+        void DiagPacing(GameTime gameTime)
+        {
+            if (!DiagEnabled)
+                return;
+
+            double now = diagClock.Elapsed.TotalSeconds;
+            double frameMs = gameTime.ElapsedGameTime.TotalMilliseconds;
+            if (frameMs > diagWorstFrameMs)
+                diagWorstFrameMs = frameMs;
+
+            if (now - diagWindowStart < 1.0)
+                return;
+
+            System.Console.WriteLine(
+                "[diag] draws/s=" + (FrameCount - LastDiagFrame) +
+                " simSteps/s=" + (Harness.State.Tick - diagPrevTick) +
+                " worstFrameMs=" + diagWorstFrameMs.ToString("0.0", System.Globalization.CultureInfo.InvariantCulture));
+            diagWindowStart = now;
+            diagWorstFrameMs = 0;
+            diagPrevTick = Harness.State.Tick;
+            LastDiagFrame = FrameCount;
+        }
+
+        int LastDiagFrame;
 
         /// <summary>
         /// Screen changes are applied by the game, not by the caller: the harness can ask for any string it

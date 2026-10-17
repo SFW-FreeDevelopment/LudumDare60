@@ -140,8 +140,8 @@ test('the wind bands own horizontal travel, and switching levels relaunches', as
     return { drift, vx, bad, switched, afterSwitch, levelNow };
   });
 
-  expect(flown.drift).toBeGreaterThan(100);                 // climbing into the + band moved us downwind
-  expect(flown.vx).toBeGreaterThan(25);                     // ...chasing that band's 38 px/s wind (post-sickness halving)
+  expect(flown.drift).toBeGreaterThan(40);                  // climbing into the + band moved us downwind
+  expect(flown.vx).toBeGreaterThan(18);                     // ...chasing that band's 28 px/s wind (playtest calm speeds)
   expect(flown.bad).toBe('error:unknown-level:nowhere-level');
   expect(flown.switched).toBe('ok:level=night-crossing');
   expect(flown.afterSwitch).toBe(0);                        // switched = relaunched, not teleported

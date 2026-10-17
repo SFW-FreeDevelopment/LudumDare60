@@ -69,10 +69,15 @@ namespace Balloonatic.Core
         /// <summary>A good delivery beats this many seconds; it is one of the three rating stars.</summary>
         public int ParSeconds { get; }
 
+        /// <summary>HUD-drawn form of the name, upper-cased once at construction: the draw loop must
+        /// not allocate, or the garbage collector introduces the frame spikes the playtest felt.</summary>
+        public string NameUpper { get; }
+
         public LevelDef(string id, string name, float worldHeight, WindBand[] bands, GustZone[] gusts, float courseLength, int parSeconds)
         {
             Id = id;
             Name = name;
+            NameUpper = name.ToUpperInvariant();
             WorldHeight = worldHeight;
             Bands = bands;
             Gusts = gusts ?? Array.Empty<GustZone>();
@@ -85,16 +90,17 @@ namespace Balloonatic.Core
         public bool OverDeliveryDeck(float x) => Math.Abs(x - CourseLength) <= SimTuning.DeckHalfWidth;
 
         /// <summary>
-        /// Design px/s of band wind by strength. Three readable steps, no more. Halved from
-        /// 40/75/110 after the I5 feel playtest: the whole world sweeps past the camera at these
-        /// speeds, and at the old numbers the sky flew at the player (motion sickness on record).
-        /// A balloon rides a breeze — the calm numbers are now the floor the playtest approved.
+        /// Design px/s of band wind by strength. Three readable steps, no more. Tuned down twice by
+        /// the I5 feel playtest (40/75/110 -> 20/38/55 -> these): the whole world sweeps past the
+        /// camera at these speeds, and the old numbers made the sky fly at the player (motion
+        /// sickness on record; round 2 said "a little too fast"). The ghost pilot still lands three
+        /// stars inside par on every level at these speeds — that test licenses them.
         /// </summary>
         public static float WindSpeed(int strength) => strength switch
         {
-            <= 1 => 20f,
-            2 => 38f,
-            _ => 55f,
+            <= 1 => 15f,
+            2 => 28f,
+            _ => 40f,
         };
 
         public WindBand BandAt(float altitude)
@@ -155,7 +161,7 @@ namespace Balloonatic.Core
                     new WindBand(240f, 360f, -1, 2),
                     new WindBand(360f, 520f, +1, 3),
                 },
-                new[] { new GustZone(240f, 300f, -1, 20f) },
+                new[] { new GustZone(240f, 300f, -1, 14f) },
                 700f, 60),
 
             // Night: a long haul under a fast ceiling, above a calm floor. The middle air barely
@@ -170,7 +176,7 @@ namespace Balloonatic.Core
                     new WindBand(300f, 460f, -1, 1),
                     new WindBand(460f, 600f, +1, 2),
                 },
-                new[] { new GustZone(460f, 540f, +1, 22f) },
+                new[] { new GustZone(460f, 540f, +1, 15f) },
                 900f, 80),
         };
 

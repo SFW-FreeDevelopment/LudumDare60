@@ -300,7 +300,7 @@ namespace Balloonatic.Screens
             canvas.Fill(goalX, y - 3, 3, 7, Theme.StarGold);
             int markX = left + (int)(Clamp(state.X, 0f, level.CourseLength) / level.CourseLength * (width - 4));
             canvas.Fill(markX, y, 3, 7, Theme.Cream);
-            Kit.Tag(canvas, left, y - 14, level.Name.ToUpperInvariant());
+            Kit.Tag(canvas, left, y - 14, level.NameUpper);
         }
 
         static int Index(LevelDef level, WindBand band)

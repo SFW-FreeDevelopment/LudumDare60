@@ -97,11 +97,11 @@ namespace Balloonatic.Tests
         [Fact]
         public void A_gust_zone_adds_wind_on_top_of_its_band()
         {
-            LevelDef level = LevelCatalog.Get("winding-trail");   // gust -20 inside 240..300
+            LevelDef level = LevelCatalog.Get("winding-trail");   // gust -14 inside 240..300
 
             // Data-level: the wind function must include the gust. The flight-level consequence is covered
             // by the solvability tests and by the autopilot holding a band that gusts.
-            level.WindAt(270f).Should().Be(level.BandAt(270f).Direction * LevelDef.WindSpeed(2) - 20f);
+            level.WindAt(270f).Should().Be(level.BandAt(270f).Direction * LevelDef.WindSpeed(2) - 14f);
             level.WindAt(330f).Should().Be(-LevelDef.WindSpeed(2));
 
             // And the sim obeys the data: a balloon held inside a gust drifts upwind faster than one held
@@ -116,9 +116,9 @@ namespace Balloonatic.Tests
             outside.Handle("level", "winding-trail");
             HoldAt(outside, level, 330f, 1020);
 
-            // 90% of the gust's 20 px/s must show up in the drift: the follow model converges
+            // 90% of the gust's 14 px/s must show up in the drift: the follow model converges
             // asymptotically from the cruise side, so demanding the last 10% asserts noise, not physics.
-            F(inGust, "velocityX").Should().BeLessThan(F(outside, "velocityX") - 18f);
+            F(inGust, "velocityX").Should().BeLessThan(F(outside, "velocityX") - 12f);
         }
 
         [Theory]
