@@ -13,8 +13,8 @@ exactly the way an entry host would.
 | Published payload on disk | 17.18 MB across 204 files (59 `.br` sidecars, 2.81 MB) | `export/web/` after `dotnet publish` |
 | `dotnet build` (5 projects, Release) | ~11 s | measured |
 | `dotnet publish` Blazor WebGL head | ~11 s (no `wasm-tools`, so no AOT) | measured |
-| Playwright suite | 34 tests, 2 viewports, ~26 s | `npx playwright test` |
-| xunit suite | 40 tests | `dotnet test` |
+| Playwright suite | 36 tests, 2 viewports, ~27 s | `npx playwright test` |
+| xunit suite | 43 tests | `dotnet test` |
 
 Budgets to watch (set in I12, warned about now): boot under ~3 s on a normal connection, payload under
 ~8 MB transferred, 60 fps in a Chromium tab. The 17 MB on disk is mostly uncompressed framework files
@@ -42,7 +42,7 @@ pinned in one place and cannot drift between browser and unit tests.
 | Call | Purpose |
 | --- | --- |
 | `ready`, `readyAtMs` | first drawn frame reached, and how long boot took |
-| `version()` | bridge protocol (`i4`) |
+| `version()` | bridge protocol (`i5`) |
 | `screen()` | which screen the game is actually drawing |
 | `screen(id)` | request a screen change; answered `ok:requested=<id>`, applied by the game's own frame loop, so callers poll `screen()` to confirm it |
 | `reset(seed)`, `seed()`, `tick()`, `hash()`, `state()` | scripted replays with a comparable hash |
@@ -51,9 +51,10 @@ pinned in one place and cannot drift between browser and unit tests.
 | `temperature()`, `altitude()`, `velocity()`, `ballast()` | the balloon model's readouts, fixed-format strings so browser and xunit can assert the same numbers |
 | `x()`, `velocityX()` | downwind distance and horizontal velocity â€” the wind's side of the model |
 | `level()`, `level(id)` | read or switch the authored level; switching re-launches the flight (`ok:level=<id>`, `error:unknown-level:<id>`) |
-| `restart()` | the player's R over the wire: same seed, same level, same screen, unpaused (`ok:<hash>`) |
+| `restart()` | the player's R mid-flight over the wire: same seed, same level, same screen, unpaused (`ok:<hash>`) |
+| `advance()` | the player's R after a delivery: next authored level (wraps after the last), fresh run on a derived seed, unpaused (`ok:<hash>`) |
 | `deliver([sec])` | the autopilot flies the run onto the delivery deck, stepping directly (`ok:delivered` / `error:not-delivered`) |
-| `delivered()`, `complete()`, `stars()`, `bounces()` | the landing rule's readouts; `state()` carries the same as `delivered`/`complete`/`stars`/`bounces` |
+| `delivered()`, `complete()`, `stars()`, `bounces()` | the landing rule's readouts; `state()` carries the same as `delivered`/`complete`/`stars`/`bounces`/`completedAtTick` |
 | `frames()`, `metrics()` | renderer-side counters: frame count, viewport/backbuffer/scale |
 
 Rules this enforces: only the harness advances time; `pause()` stops the game loop dead; rendering
@@ -130,3 +131,21 @@ reads state and never writes it, so effects cannot perturb a replay.
   and the comment in `Autopilot.Deliver` explains the pattern the ghost pilot flies.
 - **Stars = 1 (delivered) + (under par) + (no bounces)**, with pars 45/60/80 s on the three levels;
   the delivery banner shows time against par so the rating reads as arithmetic, not mystery.
+
+## Decisions recorded by the I5 feel playtest
+
+Steven flew the desktop head and reported three things; each became a rule, not a patch:
+
+- **The results clock freezes at the landing** (`SimState.CompletedAtTick`, in `state()` as
+  `completedAtTick`). The sim's own Tick keeps its honest world time, but a banner whose TIME is
+  still climbing reads as a bug — and every drifting decoration (clouds, chevrons, star twinkle,
+  flame) reads the frozen clock too, so the finished world visibly stands still.
+- **R's meaning follows the run**: delivered → next course (`advance`, the course list wraps so the
+  last level loops to the first, on a seed derived purely arithmetically from the run's own — never
+  object hashcodes, which differ per process); anything else → replay this level's sky unchanged.
+  The banner states which one R will do.
+- **Background layers move slower than the world, not with it** (playtest: "making me sick").
+  The camera already sweeps at wind speed; mid clouds sat at 0.75 parallax and drifted at 40 % of
+  band speed on top of that. They are far layers now (0.55/0.35 parallax, 10–16 % drift, chevron
+  travel halved). Distance reads as slowness. If motion sickness survives this, the next lever is
+  the band speeds themselves (40/75/110 px/s) — deliberately untouched until a playtest says so.

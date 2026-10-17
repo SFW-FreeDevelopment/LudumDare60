@@ -50,20 +50,50 @@ test('a finished run ignores the burner but keeps its clock', async ({ page }) =
     await window.__GAME.deliver(120);
     const temperature = parseFloat(await window.__GAME.temperature());
     const tick = Number(await window.__GAME.tick());
+    const resultsClock = (await window.__GAME.state()).completedAtTick;
     await window.__GAME.set('heat', 1);
     await window.__GAME.step(600);
     return {
       temperature,
       tick,
+      resultsClock,
       temperatureAfter: parseFloat(await window.__GAME.temperature()),
       tickAfter: Number(await window.__GAME.tick()),
+      resultsClockAfter: (await window.__GAME.state()).completedAtTick,
       delivered: await window.__GAME.delivered(),
     };
   });
 
   expect(frozen.temperatureAfter).toBe(frozen.temperature);     // the run is over; the burner is scenery
   expect(frozen.tickAfter - frozen.tick).toBe(600);             // the world's clock keeps its honest time
+  expect(frozen.resultsClock).toBeGreaterThan(0);               // the banner's TIME is a real stamp...
+  expect(frozen.resultsClockAfter).toBe(frozen.resultsClock);   // ...and it stopped at the landing, not kept climbing
   expect(frozen.delivered).toBe('1');
+});
+
+test('a delivery hands the player the next course, and the last one loops home', async ({ page }) => {
+  watchForErrors(page);
+  await bootGame(page);
+
+  const tour = await page.evaluate(async () => {
+    await window.__GAME.reset('beef');
+    await window.__GAME.deliver(120);
+    await window.__GAME.advance();
+    const second = await window.__GAME.state();
+    await window.__GAME.advance();
+    const third = await window.__GAME.state();
+    await window.__GAME.advance();
+    const looped = await window.__GAME.state();
+    return { second, third, looped };
+  });
+
+  expect(tour.second.level).toBe('winding-trail');              // R after a delivery flies the next course
+  expect(tour.second.delivered).toBe(false);                    // fresh run: nothing won yet...
+  expect(tour.second.complete).toBe(false);                     // ...and the flight is live again
+  expect(tour.second.ballastHeld).toBe(2);                      // the brake is back in hand
+  expect(tour.second.seed).not.toBe('000000000000beef');        // a different sky, not a replay of level one
+  expect(tour.third.level).toBe('night-crossing');
+  expect(tour.looped.level).toBe('nursery-skies');              // the last course sends you home to fly again
 });
 
 test('a restart replays the same sky from the launch deck', async ({ page }) => {

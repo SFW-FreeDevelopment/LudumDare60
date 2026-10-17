@@ -21,9 +21,12 @@ namespace Balloonatic.Screens
         const int WorldMargin = 120;
 
         // Parallax factors per layer: 1.0 is locked to the world, lower values sit further away.
-        const float StarsParallax = 0.25f;
-        const float FarCloudParallax = 0.5f;
-        const float MidCloudParallax = 0.75f;
+        // Deliberately far below the camera speed: the world itself already sweeps past at wind speed,
+        // and background layers that ride along at near-world speed make the sky feel like it is flying
+        // at the player (playtest: motion sickness at 2x scale). Distance should read as slowness.
+        const float StarsParallax = 0.2f;
+        const float FarCloudParallax = 0.35f;
+        const float MidCloudParallax = 0.55f;
 
         // Stepped sky ramp by altitude: the higher the balloon, the older and darker the air gets.
         static readonly (float Altitude, Color Color)[] SkyRamp =
@@ -78,11 +81,20 @@ namespace Balloonatic.Screens
             int y = 76;
             Kit.Panel(canvas, new Rectangle(x, y, w, h), "DELIVERY");
             PixelFont.DrawCentered(canvas, "CHARLOTTE IS SAFE", x + w / 2, y + 26, Theme.TagCream);
-            int seconds = state.Tick / Sim.StepHz;
+
+            // Frozen clock: the delivered time, not a live count — a score that keeps climbing is not a score.
+            int seconds = state.CompletedAtTick / Sim.StepHz;
             string timeLine = "TIME " + seconds + "S   PAR " + level.ParSeconds + "S";
             PixelFont.DrawCentered(canvas, timeLine, x + w / 2, y + 42, seconds <= level.ParSeconds ? Theme.GrassLight : Theme.SignCream);
             Kit.Stars(canvas, x + w / 2 - 15, y + 56, state.Stars, 3, 2);
-            PixelFont.DrawCentered(canvas, "PRESS R TO FLY AGAIN", x + w / 2, y + 80, Theme.WoodLight);
+
+            // Tell the player exactly what R will do, because R does different things after a delivery
+            // than it does mid-crash: the next course, or one more flight when there are no more courses.
+            bool lastCourse = LevelCatalog.Levels[LevelCatalog.Levels.Length - 1].Id == state.LevelId;
+            PixelFont.DrawCentered(
+                canvas,
+                lastCourse ? "PRESS R TO FLY AGAIN" : "PRESS R FOR NEXT LEVEL",
+                x + w / 2, y + 80, Theme.WoodLight);
         }
 
         /// <summary>
@@ -140,7 +152,7 @@ namespace Balloonatic.Screens
                 int y = ScreenY(alt, (int)(camAlt * StarsParallax));
                 if (x < -2 || x > Sim.DesignWidth + 2 || y < 0 || y > Sim.DesignHeight)
                     continue;
-                int twinkle = (state.Tick / 20 + i) % 7 == 0 ? 0 : 1;
+                int twinkle = (Clock(state) / 20 + i) % 7 == 0 ? 0 : 1;
                 canvas.Fill(Wrap(x, Sim.DesignWidth), y, twinkle, twinkle, i % 3 == 0 ? Theme.Cream : Theme.CloudLavender);
             }
         }
@@ -160,7 +172,9 @@ namespace Balloonatic.Screens
 
                 // Clouds are objects in the sky: they drift with the band they live in, which is the
                 // player's ambient wind read — and the drift is state-derived (tick), so frames are stable.
-                float drift = state.Tick * band.Direction * LevelDef.WindSpeed(band.Strength) * (far ? 0.25f : 0.4f);
+                // A slow suggestion of drift, not the band's full speed: big pale shapes crossing fast
+                // are exactly what the eye cannot ignore and the stomach cannot forgive.
+                float drift = Clock(state) * band.Direction * LevelDef.WindSpeed(band.Strength) * (far ? 0.10f : 0.16f);
 
                 int x = Wrap(wx + (int)drift - (int)(camX * parallax), span) - span / 4;
                 int y = ScreenY(altitude - (int)(camAlt * (1f - parallax)), camAlt);
@@ -185,7 +199,7 @@ namespace Balloonatic.Screens
                 if (y < 6 || y > Sim.DesignHeight - 6)
                     continue;
 
-                float travel = state.Tick * LevelDef.WindSpeed(band.Strength) * 0.1f * band.Direction;
+                float travel = Clock(state) * LevelDef.WindSpeed(band.Strength) * 0.05f * band.Direction;
                 for (int wx = -640; wx <= (int)level.CourseLength + 640; wx += 160)
                 {
                     int x = ScreenX(wx, camX) + (int)Wrap(travel, 160f * band.Direction) % 160 * band.Direction;
@@ -249,8 +263,15 @@ namespace Balloonatic.Screens
             // The craft sits at its true world position; when the camera leads it, the offset reads as speed.
             int x = ScreenX((int)state.X, camX);
             int top = ScreenY(state.Altitude, camAlt) - 40;   // basket bottom rides the altitude line
-            Kit.Balloon(canvas, x, top, state.Heating, state.Tick);
+            Kit.Balloon(canvas, x, top, state.Heating, Clock(state));
         }
+
+        /// <summary>
+        /// The clock the decorations run on: live while flying, stopped the instant the run completes.
+        /// The sim keeps ticking after a delivery (its own determinism), but a results screen behind
+        /// which clouds still sail and the flame still flickers tells the player the run is not over.
+        /// </summary>
+        static int Clock(SimState state) => state.Complete ? state.CompletedAtTick : state.Tick;
 
         static void DrawHud(DesignCanvas canvas, LevelDef level, SimState state)
         {

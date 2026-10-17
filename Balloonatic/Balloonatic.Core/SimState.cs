@@ -55,6 +55,13 @@ namespace Balloonatic.Core
         /// <summary>Rating, set at delivery: 1 for the delivery, +1 inside par, +1 without a bounce.</summary>
         public int Stars;
 
+        /// <summary>
+        /// Tick the run completed. Derived display state (not hashed): while Complete, every drifting
+        /// decoration reads this instead of Tick, so the finished world stands still and the delivered
+        /// time stops counting — a panel whose numbers keep moving reads as a bug, not as a world clock.
+        /// </summary>
+        public int CompletedAtTick;
+
         /// <summary>Heat as applied on the last step. Kept in state so rendering can show the flame
         /// without reading a device, and so the hash covers it.</summary>
         public bool Heating;
@@ -83,6 +90,7 @@ namespace Balloonatic.Core
             Bounces = Bounces,
             BounceTick = BounceTick,
             Stars = Stars,
+            CompletedAtTick = CompletedAtTick,
             Heating = Heating,
             Screen = Screen,
         };
@@ -175,6 +183,7 @@ namespace Balloonatic.Core
                         {
                             state.Delivered = true;
                             state.Complete = true;
+                            state.CompletedAtTick = state.Tick;
                             // Three stars: the delivery itself, beating par, and doing it clean.
                             state.Stars = 1
                                 + (state.Tick <= level.ParSeconds * Sim.StepHz ? 1 : 0)

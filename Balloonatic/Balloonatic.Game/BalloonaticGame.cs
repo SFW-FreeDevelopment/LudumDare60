@@ -135,11 +135,18 @@ namespace Balloonatic
 
             if (!Harness.Paused)
             {
-                // R restarts the run on the same seed: after a delivery, or any time the flight went
-                // wrong. Edge-triggered like the ballast key so holding it cannot re-trigger every frame.
+                // R is the "again" key, and its meaning follows the run: a delivered flight advances to
+                // the next course (the last one loops back to the first), anything else replays this
+                // level's own sky on the same seed. Edge-triggered like the ballast key so holding it
+                // cannot re-trigger every frame.
                 bool restartPressed = keyboard.IsKeyDown(Keys.R);
                 if (restartPressed && !restartWasPressed)
-                    Harness.RestartRun();
+                {
+                    if (Harness.State.Complete)
+                        Harness.AdvanceRun();
+                    else
+                        Harness.RestartRun();
+                }
                 restartWasPressed = restartPressed;
 
                 // Heat is one verb: hold Space or hold the left mouse button. Sandbags drop on the

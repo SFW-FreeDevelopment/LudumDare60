@@ -185,5 +185,56 @@ namespace Balloonatic.Tests
             int.Parse(h.Handle("stars", "")).Should().BeGreaterThanOrEqualTo(1);
             h.Handle("state", "").Should().Contain("\"stars\":").And.Contain("\"delivered\":true");
         }
+
+        [Fact]
+        public void Completion_freezes_the_results_clock_while_the_world_keeps_ticking()
+        {
+            TestHarness h = new TestHarness();
+            h.Handle("reset", "beef");
+            h.Handle("deliver", "120").Should().Be("ok:delivered");
+
+            int frozen = h.State.CompletedAtTick;
+            frozen.Should().BeGreaterThan(0);                 // the delivery stamped the results clock...
+
+            h.Handle("step", "600");
+            F(h, "tick").Should().BeGreaterThan(frozen);      // ...the world's clock honestly keeps going...
+            h.State.CompletedAtTick.Should().Be(frozen);      // ...and the delivered time is a finished number
+            h.Handle("state", "").Should().Contain("\"completedAtTick\":" + frozen);
+        }
+
+        [Fact]
+        public void Advance_walks_the_courses_in_order_and_loops_back()
+        {
+            TestHarness h = new TestHarness();
+            h.Handle("reset", "beef");
+            h.Handle("advance", "").Should().StartWith("ok:");
+
+            h.State.LevelId.Should().Be("winding-trail");         // R after a delivery flies the next course
+            h.State.Delivered.Should().BeFalse();                 // as a fresh run: nothing won yet...
+            h.State.BallastHeld.Should().Be(SimTuning.BagCapacity); // ...and the brake is back in hand
+            F(h, "altitude").Should().Be(SimTuning.DeckTopAltitude); // on the launch deck again
+            h.Handle("seed", "").Should().NotBe("000000000000beef"); // a different sky, not a replay
+
+            h.Handle("advance", "");
+            h.State.LevelId.Should().Be("night-crossing");
+            h.Handle("advance", "");
+            h.State.LevelId.Should().Be("nursery-skies");         // the last course sends you home to fly again
+        }
+
+        [Fact]
+        public void The_same_playthrough_seed_grows_the_same_sky_on_every_head()
+        {
+            // The advance chain must be pure arithmetic: desktop and WASM grow identical skies from
+            // identical seeds (object hashcodes would break exactly this across processes).
+            TestHarness a = new TestHarness(0xABCD);
+            TestHarness b = new TestHarness(0xABCD);
+            for (int lap = 0; lap < 4; lap++)
+            {
+                a.Handle("advance", "");
+                b.Handle("advance", "");
+                a.Handle("level", "").Should().Be(b.Handle("level", ""));
+                a.Handle("seed", "").Should().Be(b.Handle("seed", ""));
+            }
+        }
     }
 }

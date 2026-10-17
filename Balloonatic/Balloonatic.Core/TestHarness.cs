@@ -14,6 +14,8 @@ namespace Balloonatic.Core
     ///   reset [seedHex]      -> ok:&lt;hash&gt;   also clears input and pauses, so a scripted replay
     ///                            cannot race the render loop; "resume" hands time back to the game
     ///   restart              -> ok:&lt;hash&gt;   player-style restart: same seed and screen, unpaused
+    ///   advance              -> ok:&lt;hash&gt;   next authored level (wraps after the last), fresh run
+    ///                            on a derived seed, unpaused — the R key after a delivery
     ///   set heat=0|1         -> ok:heat=…   (also: ballast=1 queues one sandbag drop)
     ///   step [n]             -> &lt;hash&gt;     (advances n steps, 1..3600, ignoring the paused flag)
     ///   pause | resume       -> ok:paused=0|1
@@ -161,6 +163,12 @@ namespace Balloonatic.Core
                     return "ok:" + SimRules.HashHex(_state);
                 }
 
+                case "advance":
+                {
+                    AdvanceRun();
+                    return "ok:" + SimRules.HashHex(_state);
+                }
+
                 case "deliver":
                 {
                     int seconds = 120;
@@ -189,6 +197,34 @@ namespace Balloonatic.Core
             _state = CreateState(_runSeed);   // the run's own seed: a restart replays the same sky
             _state.Screen = screen;
             _state.LevelId = levelId;
+            _input = SimInput.None;
+            _pendingBallast = false;
+        }
+
+        /// <summary>
+        /// Moves to the next authored level — the R key after a delivery. The course list wraps, so the
+        /// last level sends the player back to the first for another flight. A fresh run: launch deck,
+        /// full ballast, cleared run flags, on a seed derived from the run's own (a playthrough from the
+        /// same first seed replays identically, but level two is not a replay of level one's sky).
+        /// Like RestartRun it neither pauses nor changes screens.
+        /// </summary>
+        public void AdvanceRun()
+        {
+            int index = 0;
+            for (int i = 0; i < LevelCatalog.Levels.Length; i++)
+                if (LevelCatalog.Levels[i].Id == _state.LevelId)
+                    index = i;
+
+            int nextIndex = (index + 1) % LevelCatalog.Levels.Length;
+            LevelDef next = LevelCatalog.Levels[nextIndex];
+            // Pure integer mix — never object hashcodes, which differ per process and would make the
+            // same playthrough seed grow a different sky on desktop than in the browser.
+            _runSeed = Sim.NextSeed(_runSeed ^ ((ulong)(nextIndex + 1) * 0x9E3779B97F4A7C15UL));
+
+            string screen = _state.Screen;
+            _state = CreateState(_runSeed);
+            _state.Screen = screen;
+            _state.LevelId = next.Id;
             _input = SimInput.None;
             _pendingBallast = false;
         }
@@ -276,6 +312,7 @@ namespace Balloonatic.Core
               .Append("\"delivered\":").Append(_state.Delivered ? "true" : "false").Append(',')
               .Append("\"complete\":").Append(_state.Complete ? "true" : "false").Append(',')
               .Append("\"stars\":").Append(_state.Stars.ToString(CultureInfo.InvariantCulture)).Append(',')
+              .Append("\"completedAtTick\":").Append(_state.CompletedAtTick.ToString(CultureInfo.InvariantCulture)).Append(',')
               .Append("\"bounces\":").Append(_state.Bounces.ToString(CultureInfo.InvariantCulture)).Append(',')
               .Append("\"hash\":\"").Append(SimRules.HashHex(_state)).Append('"')
               .Append('}');

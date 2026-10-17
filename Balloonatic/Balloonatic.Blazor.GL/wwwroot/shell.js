@@ -11,6 +11,7 @@
 //   window.__GAME.state()                // JSON snapshot (parsed)
 //   window.__GAME.reset('1234')          // new seed, clears input, paused = true
 //   window.__GAME.restart()              // player-style restart: same seed, same screen, unpaused
+//   window.__GAME.advance()              // next course (wraps after the last), fresh run, unpaused
 //   window.__GAME.deliver(120)           // autopilot lands on the delivery deck ("ok:delivered")
 //   window.__GAME.delivered() / complete() / stars() / bounces()
 //   window.__GAME.set('heat', 1)         // inject input: heat (hold) and ballast (one drop)
@@ -59,6 +60,7 @@
         metrics: function () { return text('metrics'); },
         reset: function (seed) { return text('reset', seed); },
         restart: function () { return text('restart'); },
+        advance: function () { return text('advance'); },
         deliver: function (seconds) { return text('deliver', seconds); },
         delivered: function () { return text('delivered'); },
         complete: function () { return text('complete'); },
