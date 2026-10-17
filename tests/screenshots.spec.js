@@ -15,7 +15,7 @@ async function poseForScreenshot(page) {
   await page.evaluate(async () => {
     await window.__GAME.reset('1234');
     await window.__GAME.set('heat', 1);
-    await window.__GAME.step(45);
+    await window.__GAME.step(240);
     await window.__GAME.set('heat', 0);
   });
 }

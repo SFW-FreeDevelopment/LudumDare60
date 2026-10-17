@@ -16,7 +16,7 @@
         public const int DesignHeight = 360;
 
         /// <summary>Bridge protocol version; the Playwright suite and docs quote this value.</summary>
-        public const string ProtocolVersion = "i1";
+        public const string ProtocolVersion = "i2";
 
         internal static ulong NextSeed(ulong seed)
         {

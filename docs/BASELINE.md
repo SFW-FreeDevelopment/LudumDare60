@@ -13,7 +13,7 @@ exactly the way an entry host would.
 | Published payload on disk | 17.18 MB across 204 files (59 `.br` sidecars, 2.81 MB) | `export/web/` after `dotnet publish` |
 | `dotnet build` (5 projects, Release) | ~11 s | measured |
 | `dotnet publish` Blazor WebGL head | ~11 s (no `wasm-tools`, so no AOT) | measured |
-| Playwright suite | 18 tests, 2 viewports, ~15 s | `npx playwright test` |
+| Playwright suite | 20 tests, 2 viewports, ~16 s | `npx playwright test` |
 | xunit suite | 8 tests | `dotnet test` |
 
 Budgets to watch (set in I12, warned about now): boot under ~3 s on a normal connection, payload under
@@ -48,6 +48,7 @@ pinned in one place and cannot drift between browser and unit tests.
 | `reset(seed)`, `seed()`, `tick()`, `hash()`, `state()` | scripted replays with a comparable hash |
 | `set('heat', 1)`, `set('ballast', 1)` | inject input — **there is no left/right**, and the protocol rejects one |
 | `step(n)`, `pause()`, `resume()` | move the clock by hand, so screenshots do not depend on frame rate |
+| `temperature()`, `altitude()`, `velocity()`, `ballast()` | the balloon model's readouts, fixed-format strings so browser and xunit can assert the same numbers |
 | `frames()`, `metrics()` | renderer-side counters: frame count, viewport/backbuffer/scale |
 
 Rules this enforces: only the harness advances time; `pause()` stops the game loop dead; rendering

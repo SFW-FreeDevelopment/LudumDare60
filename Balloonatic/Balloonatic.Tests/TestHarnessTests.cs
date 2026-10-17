@@ -56,7 +56,9 @@ namespace Balloonatic.Tests
             cold.Handle("step", "10");
 
             hot.Handle("hash", "").Should().NotBe(cold.Handle("hash", ""));
-            hot.Handle("state", "").Should().Contain("\"heatTicks\":10");
+            float.Parse(hot.Handle("temperature", ""), System.Globalization.CultureInfo.InvariantCulture)
+                .Should().BeGreaterThan(
+                    float.Parse(cold.Handle("temperature", ""), System.Globalization.CultureInfo.InvariantCulture));
         }
 
         [Fact]
@@ -83,7 +85,7 @@ namespace Balloonatic.Tests
             h.Handle("set", "ballast=1");
             h.Handle("step", "1");
             h.Handle("step", "1");
-            h.Handle("state", "").Should().Contain("\"ballastDropped\":1");
+            h.Handle("state", "").Should().Contain("\"ballastHeld\":" + (SimTuning.BagCapacity - 1));
         }
 
         [Fact]

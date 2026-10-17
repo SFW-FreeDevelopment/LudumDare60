@@ -1,4 +1,4 @@
-{
+﻿{
   "name": "balloonatic",
   "version": "0.1.0",
   "private": true,
@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "dotnet run --project Balloonatic/Balloonatic.Desktop -c Release",
     "build": "dotnet build Balloonatic/Balloonatic.sln -c Release",
-    "unit": "dotnet test Balloonatic/Balloonatic.sln -c Release --no-build",
+    "unit": "dotnet test Balloonatic/Balloonatic.sln -c Release",
     "web": "dotnet publish Balloonatic/Balloonatic.Blazor.GL -c Release -o export/web",
     "serve": "node tools/serve.mjs",
     "test": "playwright test",

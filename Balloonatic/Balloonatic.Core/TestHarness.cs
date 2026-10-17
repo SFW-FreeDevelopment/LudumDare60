@@ -89,6 +89,14 @@ namespace Balloonatic.Core
                     return _state.Seed.ToString("x16", CultureInfo.InvariantCulture);
                 case "tick":
                     return _state.Tick.ToString(CultureInfo.InvariantCulture);
+                case "temperature":
+                    return _state.Temperature.ToString("0.0000", CultureInfo.InvariantCulture);
+                case "altitude":
+                    return _state.Altitude.ToString("0.00", CultureInfo.InvariantCulture);
+                case "velocity":
+                    return _state.VelocityY.ToString("0.00", CultureInfo.InvariantCulture);
+                case "ballast":
+                    return _state.BallastHeld.ToString(CultureInfo.InvariantCulture);
                 case "hash":
                     return SimRules.HashHex(_state);
                 case "state":
@@ -145,7 +153,8 @@ namespace Balloonatic.Core
             return "ok:requested=" + id;
         }
 
-        string HandleSet(string arg)        {
+        string HandleSet(string arg)
+        {
             int eq = arg.IndexOf('=');
             if (eq <= 0)
                 return "error:bad-arg:set";
@@ -185,8 +194,10 @@ namespace Balloonatic.Core
               .Append("\"paused\":").Append(Paused ? "true" : "false").Append(',')
               .Append("\"heat\":").Append(_input.Heat ? "true" : "false").Append(',')
               .Append("\"heating\":").Append(_state.Heating ? "true" : "false").Append(',')
-              .Append("\"heatTicks\":").Append(_state.HeatTicks.ToString(CultureInfo.InvariantCulture)).Append(',')
-              .Append("\"ballastDropped\":").Append(_state.BallastDropped.ToString(CultureInfo.InvariantCulture)).Append(',')
+              .Append("\"temperature\":").Append(_state.Temperature.ToString("0.0000", CultureInfo.InvariantCulture)).Append(',')
+              .Append("\"altitude\":").Append(_state.Altitude.ToString("0.00", CultureInfo.InvariantCulture)).Append(',')
+              .Append("\"velocityY\":").Append(_state.VelocityY.ToString("0.00", CultureInfo.InvariantCulture)).Append(',')
+              .Append("\"ballastHeld\":").Append(_state.BallastHeld.ToString(CultureInfo.InvariantCulture)).Append(',')
               .Append("\"hash\":\"").Append(SimRules.HashHex(_state)).Append('"')
               .Append('}');
             return sb.ToString();

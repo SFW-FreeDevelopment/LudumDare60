@@ -60,9 +60,9 @@ Milestones: **feel gate** (I5) by Sun ~20:00 · **content freeze** (I10) by Mon 
   reviewed for legibility, no hardcoded hex outside `Theme.cs`.
 
 ### Core (the game is only as good as this)
-- [ ] **I2 — Balloon sim** (~90m)
+- [x] **I2 — Balloon sim** (~90m)
   Pure fixed-step (60 Hz) sim: temperature → lift, ambient cooling, gravity, vertical drag, ballast
-  weight, seeded RNG, state hash. **No horizontal input at all.**
+  weight, seeded RNG, state hash. **No horizontal input at all.** All tunables in `SimTuning.cs`.
   *Done when:* xunit proves heating rises, cooling descends, ballast raises the ceiling, momentum
   overshoots after heat stops, and identical hashes for identical inputs.
 - [ ] **I3 — Wind layers + level data** (~60m)

@@ -1,0 +1,179 @@
+using Balloonatic.Core;
+using FluentAssertions;
+using Xunit;
+
+namespace Balloonatic.Tests
+{
+    /// <summary>
+    /// The feel contract for the balloon, stated as behaviour: heat climbs, cold descends, ballast raises
+    /// the ceiling, and momentum carries past the moment the burner closes. These are the properties the
+    /// I5 feel gate will be judged against, so they must fail loudly if a tuning change breaks them.
+    /// Everything here runs on the pure core at fixed step — no KNI, no browser.
+    /// </summary>
+    public class BalloonPhysicsTests
+    {
+        [Fact]
+        public void Holding_heat_lifts_the_balloon_off_the_ground()
+        {
+            TestHarness h = new TestHarness();
+            h.Handle("reset", "1234");
+            h.Handle("set", "ballast=1");   // one bag away: a lighter craft breaks ground sooner
+            h.Handle("set", "heat=1");
+            h.Handle("step", "240");        // 4 s of burner
+
+            float temperature = float.Parse(h.Handle("temperature", ""), System.Globalization.CultureInfo.InvariantCulture);
+            float altitude = float.Parse(h.Handle("altitude", ""), System.Globalization.CultureInfo.InvariantCulture);
+
+            temperature.Should().BeGreaterThan(0.8f);
+            altitude.Should().BeGreaterThan(1f);
+        }
+
+        [Fact]
+        public void Releasing_heat_brings_the_balloon_back_down()
+        {
+            TestHarness h = new TestHarness();
+            h.Handle("reset", "1234");
+            h.Handle("set", "heat=1");
+            h.Handle("step", "600");        // 10 s: pegged temperature, climbing at terminal
+            float peak = float.Parse(h.Handle("altitude", ""), System.Globalization.CultureInfo.InvariantCulture);
+
+            h.Handle("set", "heat=0");
+            h.Handle("step", "1200");       // 20 s of cooling
+            float after = float.Parse(h.Handle("altitude", ""), System.Globalization.CultureInfo.InvariantCulture);
+            float temperature = float.Parse(h.Handle("temperature", ""), System.Globalization.CultureInfo.InvariantCulture);
+
+            after.Should().BeLessThan(peak);
+            temperature.Should().BeApproximately(SimTuning.TempAmbient, 0.01f);
+        }
+
+        [Fact]
+        public void Momentum_carries_up_after_the_burner_closes()
+        {
+            TestHarness h = new TestHarness();
+            h.Handle("reset", "1234");
+            h.Handle("set", "heat=1");
+            h.Handle("step", "360");        // near terminal rise
+            float before = float.Parse(h.Handle("altitude", ""), System.Globalization.CultureInfo.InvariantCulture);
+
+            h.Handle("set", "heat=0");
+            h.Handle("step", "30");
+            float justAfter = float.Parse(h.Handle("altitude", ""), System.Globalization.CultureInfo.InvariantCulture);
+            float velocity = float.Parse(h.Handle("velocity", ""), System.Globalization.CultureInfo.InvariantCulture);
+
+            // The envelope is still hot and the air column still moving: it keeps rising for a moment.
+            justAfter.Should().BeGreaterThan(before);
+            velocity.Should().BeGreaterThan(0f);
+        }
+
+        [Fact]
+        public void Terminal_rise_stops_accelerating()
+        {
+            static float Velocity(TestHarness h) =>
+                float.Parse(h.Handle("velocity", ""), System.Globalization.CultureInfo.InvariantCulture);
+
+            TestHarness h = new TestHarness();
+            h.Handle("reset", "1234");
+            h.Handle("set", "heat=1");
+            h.Handle("step", "600");        // 10 s: temperature pegged long ago, so only drag is left
+            float earlier = Velocity(h);
+            h.Handle("step", "120");
+            float later = Velocity(h);
+
+            // Drag bounds the climb: another two seconds barely changes the velocity, and the cruise rate
+            // is the one the tuning predicts from lift, weight and drag — a computed ceiling, not a magic
+            // number. Dropping ballast moves it, which is the whole point of the sandbags.
+            float expected = (SimTuning.TempMax * SimTuning.LiftGain - SimTuning.Gravity
+                              - SimTuning.BagCapacity * SimTuning.BallastPerBag) / SimTuning.Drag;
+            (later - earlier).Should().BeApproximately(0f, 0.5f);
+            later.Should().BeApproximately(expected, 1.5f);
+        }
+
+        [Fact]
+        public void Dropping_ballast_raises_the_ceiling()
+        {
+            float RiseWithBags(int dropNow)
+            {
+                TestHarness h = new TestHarness();
+                h.Handle("reset", "1234");
+                for (int i = 0; i < dropNow; i++)
+                {
+                    h.Handle("set", "ballast=1");
+                    h.Handle("step", "1");
+                }
+                h.Handle("set", "heat=1");
+                h.Handle("step", "600");    // 10 s of the same burner effort
+                return float.Parse(h.Handle("altitude", ""), System.Globalization.CultureInfo.InvariantCulture);
+            }
+
+            float withTwoBags = RiseWithBags(0);
+            float withNoBags = RiseWithBags(2);
+
+            withNoBags.Should().BeGreaterThan(withTwoBags);
+        }
+
+        [Fact]
+        public void A_cold_balloon_sits_on_the_ground()
+        {
+            TestHarness h = new TestHarness();
+            h.Handle("reset", "1234");
+            h.Handle("step", "600");
+
+            h.Handle("altitude", "").Should().Be("0.00");
+            h.Handle("velocity", "").Should().Be("0.00");
+        }
+
+        [Fact]
+        public void Ballast_never_goes_negative()
+        {
+            TestHarness h = new TestHarness();
+            h.Handle("reset", "1234");
+            for (int i = 0; i < SimTuning.BagCapacity + 3; i++)
+            {
+                h.Handle("set", "ballast=1");
+                h.Handle("step", "1");
+            }
+
+            h.Handle("ballast", "").Should().Be("0");
+        }
+
+        [Fact]
+        public void Temperature_stays_in_bounds_under_any_pattern()
+        {
+            TestHarness h = new TestHarness();
+            h.Handle("reset", "1234");
+
+            for (int i = 0; i < 200; i++)
+            {
+                h.Handle("set", "heat=" + ((i * 37) % 5 < 3 ? 1 : 0));   // deterministic busy pattern
+                h.Handle("step", "30");
+                float temperature = float.Parse(h.Handle("temperature", ""), System.Globalization.CultureInfo.InvariantCulture);
+                float altitude = float.Parse(h.Handle("altitude", ""), System.Globalization.CultureInfo.InvariantCulture);
+
+                temperature.Should().BeInRange(SimTuning.TempAmbient, SimTuning.TempMax);
+                altitude.Should().BeGreaterThanOrEqualTo(0f);
+            }
+        }
+
+        [Fact]
+        public void Every_state_field_moves_the_hash()
+        {
+            string Run(int steps, int drops)
+            {
+                TestHarness h = new TestHarness();
+                h.Handle("reset", "1234");
+                for (int i = 0; i < drops; i++)
+                {
+                    h.Handle("set", "ballast=1");
+                    h.Handle("step", "1");
+                }
+                h.Handle("set", "heat=1");
+                h.Handle("step", steps.ToString());
+                return h.Handle("hash", "");
+            }
+
+            Run(120, 0).Should().NotBe(Run(121, 0));   // tick/temperature/altitude all move
+            Run(120, 0).Should().NotBe(Run(120, 1));   // mass changes the future
+            Run(120, 1).Should().Be(Run(120, 1));      // and it is reproducible
+        }
+    }
+}

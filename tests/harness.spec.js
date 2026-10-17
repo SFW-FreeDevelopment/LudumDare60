@@ -21,12 +21,12 @@ test('boots in a browser and the harness answers @smoke', async ({ page }, testI
     state: await window.__GAME.state(),
   }));
 
-  expect(protocol.version).toBe('i1');
+  expect(protocol.version).toBe('i2');
   expect(protocol.screen).toBe('scaffold');
   expect(protocol.seed).toMatch(/^[0-9a-f]{16}$/);
   expect(protocol.hash).toMatch(/^[0-9a-f]{16}$/);
   expect(protocol.state.tick).toBeGreaterThanOrEqual(0);
-  expect(protocol.state.version).toBe('i1');
+  expect(protocol.state.version).toBe('i2');
 
   // Reported for the record; the budget itself is an I12 concern, this is the baseline it compares to.
   console.log(
@@ -76,6 +76,41 @@ test('identical scripts hash identically, different scripts do not @smoke', asyn
   expect(heatA).toBe(heatB);
   expect(heatA).not.toBe(coast);
   expect(heatA).not.toBe(otherSeed);
+});
+
+test('the balloon flies the same model in the browser: heat climbs, coast descends', async ({ page }) => {
+  watchForErrors(page);
+  await bootGame(page);
+
+  // Mirrors BalloonPhysicsTests on the pure core, but through the WebGL bridge: the property that matters
+  // is that the browser's WASM floats produce the same flight, not just a similar-looking one.
+  const flown = await page.evaluate(async () => {
+    await window.__GAME.reset('1234');
+    await window.__GAME.set('heat', 1);
+    await window.__GAME.step(600);
+    const hot = {
+      temp: parseFloat(await window.__GAME.temperature()),
+      alt: parseFloat(await window.__GAME.altitude()),
+    };
+    await window.__GAME.set('heat', 0);
+    await window.__GAME.step(30);
+    const overshootVelocity = parseFloat(await window.__GAME.velocity());
+    await window.__GAME.step(1200);
+    const cooled = {
+      alt: parseFloat(await window.__GAME.altitude()),
+      temp: parseFloat(await window.__GAME.temperature()),
+    };
+    await window.__GAME.set('ballast', 1);
+    await window.__GAME.step(1);
+    return { hot, overshootVelocity, cooled, ballast: await window.__GAME.ballast() };
+  });
+
+  expect(flown.hot.temp).toBeGreaterThan(0.99);
+  expect(flown.hot.alt).toBeGreaterThan(300);
+  expect(flown.overshootVelocity).toBeGreaterThan(0);          // momentum carries past the closed burner
+  expect(flown.cooled.alt).toBeLessThan(flown.hot.alt);        // and cold air brings it back down
+  expect(flown.cooled.temp).toBeCloseTo(0.3, 1);               // toward what the air itself is
+  expect(flown.ballast).toBe('1');                             // one sandbag, gone for the level
 });
 
 test('the protocol rejects horizontal control and bad arguments', async ({ page }) => {
