@@ -25,10 +25,12 @@ namespace Balloonatic
         readonly IScreen scaffoldScreen = new ScaffoldScreen();
         readonly IScreen styleScreen = new StyleScreen();
         readonly IScreen worldScreen = new WorldScreen();
+        readonly IScreen menuScreen = new MenuScreen();
         IScreen screen;
         double accumulatorSeconds;
         bool ballastWasPressed;
         bool restartWasPressed;
+        bool flyWasPressed;
 
         protected BalloonaticGame()
         {
@@ -37,10 +39,12 @@ namespace Balloonatic
             Harness = new TestHarness();
             Instance = this;
 
-            // Live play opens on the world; a test's `reset` returns to the scaffold test bed. The
-            // screen field and the state must agree from the very first frame, so both are set here.
-            screen = worldScreen;
-            Harness.State.Screen = SimState.ScreenWorld;
+            // Live play opens on the start screen — the sim clock stays held until the player
+            // asks to fly, so nothing can drift while the title is up. A test's `reset` returns
+            // to the scaffold test bed. The screen field and the state must agree from the very
+            // first frame, so both are set here.
+            screen = menuScreen;
+            Harness.State.Screen = SimState.ScreenMenu;
 
             // The simulation still fixed-steps itself (the accumulator below), so a tab that throttles
             // rAF or a test that steps manually cannot change its result. But the framework loop is
@@ -73,6 +77,7 @@ namespace Balloonatic
             SimState.ScreenStyle => styleScreen,
             SimState.ScreenScaffold => scaffoldScreen,
             SimState.ScreenWorld => worldScreen,
+            SimState.ScreenMenu => menuScreen,
             _ => scaffoldScreen,
         };
 
@@ -150,6 +155,16 @@ namespace Balloonatic
 
             if (!Harness.Paused)
             {
+                // The start screen has exactly one verb: Enter or a click starts the flight. While it
+                // is up the simulation clock is held, so the balloon cannot wander or crash-land
+                // before the player is ready — the title frame is as still as a test frame.
+                bool flyPressed = keyboard.IsKeyDown(Keys.Enter) || mouse.LeftButton == ButtonState.Pressed;
+                if (Harness.State.Screen == SimState.ScreenMenu && flyPressed && !flyWasPressed)
+                    Harness.State.RequestedScreen = SimState.ScreenWorld;
+                flyWasPressed = flyPressed;
+
+                if (Harness.State.Screen != SimState.ScreenMenu)
+                {
                 // R is the "again" key, and its meaning follows the run: a delivered flight advances to
                 // the next course (the last one loops back to the first), anything else replays this
                 // level's own sky on the same seed. Edge-triggered like the ballast key so holding it
@@ -180,6 +195,7 @@ namespace Balloonatic
                 {
                     Harness.AutoStep();
                     accumulatorSeconds -= step;
+                }
                 }
             }
             else

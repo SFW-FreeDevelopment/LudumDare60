@@ -6,6 +6,20 @@ const { bootGame, watchForErrors, runScript, act, megabytes } = require('./suppo
  * The WebGL head is the entry. These tests are the "never commit red" gate from AGENTS.md: they
  * assert behaviour through window.__GAME, never by reading pixels.
  */
+test('the start screen hands the game over on a click @smoke', async ({ page }) => {
+  const errors = watchForErrors(page);
+  await bootGame(page);
+  expect(await page.evaluate(() => window.__GAME.screen())).toBe('menu');
+
+  // The deliverable is played with a mouse in an iframe, so the hand-off verb is tested through
+  // an actual pointer press on the canvas, not through the harness side door. A human hold lasts
+  // far longer than one 60 Hz frame; a zero-duration synthetic click can fall between updates.
+  const canvas = page.locator('canvas');
+  await canvas.click({ delay: 120 });
+  await expect.poll(() => page.evaluate(() => window.__GAME.screen()), { timeout: 10_000 }).toBe('world');
+  expect(errors, `console/JS errors during hand-off: ${errors.join(' | ')}`).toEqual([]);
+});
+
 test('boots in a browser and the harness answers @smoke', async ({ page }, testInfo) => {
   const errors = watchForErrors(page);
   const boot = await bootGame(page);
@@ -22,7 +36,7 @@ test('boots in a browser and the harness answers @smoke', async ({ page }, testI
   }));
 
   expect(protocol.version).toBe('i5');
-  expect(protocol.screen).toBe('world');    // live play opens on the world; reset returns to the test bed
+  expect(protocol.screen).toBe('menu');     // live play opens on the start screen; its clock is held
   expect(protocol.seed).toMatch(/^[0-9a-f]{16}$/);
   expect(protocol.hash).toMatch(/^[0-9a-f]{16}$/);
   expect(protocol.state.tick).toBeGreaterThanOrEqual(0);
@@ -54,6 +68,11 @@ test('boots in a browser and the harness answers @smoke', async ({ page }, testI
 test('the simulation advances only from the clock it owns @smoke', async ({ page }) => {
   watchForErrors(page);
   await bootGame(page);
+
+  // The start screen holds the clock (that is its job), so this test is about the flight clock:
+  // ask for the world first, then prove the game steps it itself and stops when told.
+  await page.evaluate(() => window.__GAME.screen('world'));
+  await expect.poll(() => page.evaluate(() => window.__GAME.screen()), { timeout: 10_000 }).toBe('world');
 
   const first = await page.evaluate(() => window.__GAME.tick());
   await page.waitForTimeout(500);

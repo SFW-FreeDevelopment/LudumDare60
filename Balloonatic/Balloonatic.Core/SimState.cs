@@ -12,6 +12,7 @@ namespace Balloonatic.Core
     public sealed class SimState
     {
         public const string ScreenScaffold = "scaffold";
+        public const string ScreenMenu = "menu";
         public const string ScreenStyle = "style";
         public const string ScreenWorld = "world";
 

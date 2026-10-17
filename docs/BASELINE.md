@@ -13,7 +13,7 @@ exactly the way an entry host would.
 | Published payload on disk | 17.18 MB across 204 files (59 `.br` sidecars, 2.81 MB) | `export/web/` after `dotnet publish` |
 | `dotnet build` (5 projects, Release) | ~11 s | measured |
 | `dotnet publish` Blazor WebGL head | ~11 s (no `wasm-tools`, so no AOT) | measured |
-| Playwright suite | 36 tests, 2 viewports, ~27 s | `npx playwright test` |
+| Playwright suite | 40 tests, 2 viewports, ~34 s | `npx playwright test` |
 | xunit suite | 47 tests | `dotnet test` |
 
 Budgets to watch (set in I12, warned about now): boot under ~3 s on a normal connection, payload under
@@ -94,8 +94,12 @@ reads state and never writes it, so effects cannot perturb a replay.
   there is no render-side smoothing state, and a stepped frame is byte-stable. The world screenshot
   test additionally asserts the state hash is unmoved after real frames of the world screen have
   drawn: drawing reads state and never writes it.
-- **Live play boots on `world`**; a test's `reset` returns to the `scaffold` physics test bed, and any
-  pose that needs a specific screen requests it and polls until the game confirms the switch.
+- **Live play boots on `menu` and the simulation clock is held there** (start screen, first slice
+  of I7): nothing can wander or crash-land while the title is up, so the boot frame is byte-stable
+  with no reset or seed at all. Enter **or** a pointer press hands off to `world`; the hand-off
+  test drives a real 120 ms canvas click, because a zero-duration synthetic click can fall between
+  two 60 Hz updates and never be seen. A test's `reset` keeps the current screen, and any pose that
+  needs a specific screen requests it and polls until the game confirms the switch.
 
 ## Decisions recorded by I5
 

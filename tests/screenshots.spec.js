@@ -19,10 +19,27 @@ async function poseForScreenshot(page) {
     await window.__GAME.step(240);
     await window.__GAME.set('heat', 0);
   });
-  // Live play boots on the world screen, so a scaffold pose has to ask for the scaffold — and wait for
+  // Live play boots on the start screen, so a scaffold pose has to ask for the scaffold — and wait for
   // the game to confirm it is drawing it before anything is captured.
   await expect.poll(() => page.evaluate(() => window.__GAME.screen()), { timeout: 10_000 }).toBe('scaffold');
 }
+
+test('the start screen shows the controls @shot @screens', async ({ page }, testInfo) => {
+  const errors = watchForErrors(page);
+  await bootGame(page);
+
+  // The boot frame is the menu and the menu holds the clock, so this is a byte-stable capture
+  // with no reset, seed or step at all — exactly what the player sees first.
+  await expect.poll(() => page.evaluate(() => window.__GAME.screen()), { timeout: 10_000 }).toBe('menu');
+
+  const name = `04-menu`;
+  await expect(page).toHaveScreenshot(`${name}.png`, { timeout: 60_000 });
+
+  fs.mkdirSync(SHOTS_DIR, { recursive: true });
+  const buffer = await page.screenshot({ path: path.join(SHOTS_DIR, `${name}-${testInfo.project.name}.png`) });
+  expect(buffer.length).toBeGreaterThan(1000);
+  expect(errors, `console/JS errors while rendering: ${errors.join(' | ')}`).toEqual([]);
+});
 
 test('scaffold frame matches its snapshot @shot @screens', async ({ page }, testInfo) => {
   const errors = watchForErrors(page);
