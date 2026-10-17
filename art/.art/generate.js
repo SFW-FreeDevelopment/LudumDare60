@@ -59,134 +59,171 @@ function ascii(rows, ox, oy, map) {
 }
 
 // ================================================================ balloon — the hero
-// design 34x39 -> internal 68x78. The onion profile is half-widths in design px per design row,
-// sampled at internal resolution so the silhouette is a smooth curve instead of the old kit's
-// 11-row staircase. Gore count follows the concept sheet (nine, centre red).
-const PROFILE = [2, 4, 6, 8, 10, 11, 12, 13, 14, 15, 15, 16, 16, 16, 15, 14, 12, 10, 7, 5];
-const GORES = ["gp", "C", "gP", "C", "gR", "C", "gP", "C", "gp"];
-// fabric ramps: palette-only light -> shade -> deep as the sphere turns away from the sun
-const GORE_RAMP = {
-  gp: ["gp", "gP", "gR"],
-  C: ["C", "paperWarm", "paperWarm"],
-  gP: ["gP", "gR", "gL"],
-  gR: ["gR", "gL", "gL"],
-};
-const GORE_LIGHT = { gp: "C", C: "C", gP: "gp", gR: "C" }; // crown rows read one step lighter
-const CX = 34; // envelope centre column, internal
+// design 60x75 -> internal 120x150, the sheet's proportions: the balloon is the biggest thing in
+// frame after the islands, a round onion in a PINK/CREAM CHECKERBOARD (the sheet's pattern — not
+// stripes), a deep-pink crown, a red skirt band, and Charlotte + the bunny riding an oversize
+// heart basket. Half-widths are design px per design row, sampled at internal resolution.
+const PROFILE = [2, 8, 14, 20, 24, 27, 29, 30, 30, 30, 30, 29, 27, 25, 22, 19, 15, 11, 7, 3];
+const ENVELOPE_H = 88;                       // internal rows 0..87
+const CROWN_H = 14;                          // deep pink cap
+const SKIRT_TOP = 74;                        // red gather band where the fabric meets the ring
+const CX = 60;                               // envelope centre column, internal
 
+// checkerboard gore: eight panels of 2x2-cell checks, alternating cream and pink, gore seams in
+// deep pink; sphere shading darkens the whole pattern toward the right, the crown reads flat deep
+// pink, and the skirt band closes the mouth in red. Ramps only move within the palette.
 function envelope() {
   const px = [];
+  // profile rows are design half-widths; resample them smoothly across the full internal height
   const halfAt = (y) => {
-    const r = y / 2;
+    const r = (y / ENVELOPE_H) * (PROFILE.length - 1);
     const i = Math.min(PROFILE.length - 1, Math.floor(r));
     const j = Math.min(PROFILE.length - 1, i + 1);
     const t = r - i;
     return 2 * (PROFILE[i] * (1 - t) + PROFILE[j] * t);
   };
-  for (let y = 0; y < 40; y++) {
+  for (let y = 0; y < ENVELOPE_H; y++) {
     const half = halfAt(y);
     const left = Math.round(CX - half);
     const right = Math.round(CX + half);
     const w = right - left;
     if (w < 2) continue;
-    const crown = y < 6;
-    const gathered = y >= 34; // below here the fabric gathers to the load ring — it sits in shade
+    const skirt = y >= SKIRT_TOP;
     for (let x = left; x < right; x++) {
       const u = (x - left) / (w - 1);
-      if (x - left < 2 || right - x <= 2) { px.push([x, y, PAL.K]); continue; } // outline
-      const gi = Math.min(8, Math.floor(u * 9));
-      const gore = GORES[gi];
-      let key;
-      if (gathered) key = GORE_RAMP[gore][1];
-      else if (crown) key = GORE_LIGHT[gore];
-      else if (u > 0.955) key = GORE_RAMP[gore][2];
-      else if (u > 0.86) key = GORE_RAMP[gore][1];
-      else key = gore;
+      if (x - left < 2 || right - x <= 2) { px.push([x, y, PAL.K]); continue; }
+      if (skirt) {
+        px.push([x, y, u > 0.78 ? PAL.gL : (y - SKIRT_TOP) % 4 < 2 ? PAL.gR : PAL.gP]);
+        continue;
+      }
+      if (y < CROWN_H) { px.push([x, y, u > 0.82 ? PAL.gL : PAL.gP]); continue; } // deep pink cap
+      // three check cells per gore, alternating every 5 rows — the sheet's square pattern
+      const seam = (u * 8) % 1;
+      const cell = (Math.floor(seam * 3) + Math.floor((y - CROWN_H) / 5)) % 2;
+      let key = cell === 0 ? "C" : "gp";
+      if (seam < 0.06 || seam > 0.94) key = "gP";                 // gore seam line
+      if (u > 0.9) key = key === "C" ? "paperWarm" : "gL";        // deep rim: warm, then magenta
+      else if (u > 0.78) key = key === "C" ? "C" : "gP";           // checks stay crisp, pinks deepen
+      else if (u < 0.12 && y < 30 && ((x + y) & 1) === 0) key = "cw"; // dithered sun glare
       px.push([x, y, PAL[key]]);
     }
   }
   return px;
 }
 
-// The dark throat the flame licks into, painted over the gathered neck (draw order: envelope ->
-// throat -> flame -> rigging). The burner hangs below it; the flame must read INSIDE the mouth.
-function throat() {
+// Small drawing helpers for the character block — circles and outlined boxes read at internal
+// resolution the way the sheet's round shapes do; everything still lands on whole pixels.
+function disc(cx, cy, r, fill, outline) {
   const px = [];
-  for (let y = 34; y <= 39; y++) {
-    for (let x = CX - 5; x <= CX + 4; x++) px.push([x, y, y === 34 ? PAL.K : PAL.D]);
+  for (let y = Math.floor(cy - r - 2); y <= cy + r + 2; y++) {
+    for (let x = Math.floor(cx - r - 2); x <= cx + r + 2; x++) {
+      const d = Math.sqrt((x + 0.5 - cx) ** 2 + (y + 0.5 - cy) ** 2);
+      if (d <= r) px.push([x, y, fill]);
+      else if (d <= r + 1.15) px.push([x, y, outline]);
+    }
   }
   return px;
 }
+function obox(x0, y0, w, h, fill, outline) {
+  const px = [];
+  for (let y = y0 - 1; y <= y0 + h; y++) { px.push([x0 - 1, y, outline], [x0 + w, y, outline]); }
+  for (let x = x0 - 1; x <= x0 + w; x++) { px.push([x, y0 - 1, outline], [x, y0 + h, outline]); }
+  for (let y = y0; y < y0 + h; y++) for (let x = x0; x < x0 + w; x++) px.push([x, y, fill]);
+  return px;
+}
 
-// 3-frame flicker filling the throat, f1 core rising tallest in frame 2 (burner on).
+// The dark throat the flame licks into (draw order: envelope -> throat -> flame -> rigging).
+function throat() {
+  const px = [];
+  for (let y = 78; y <= 87; y++)
+    for (let x = CX - 9; x <= CX + 8; x++) px.push([x, y, y === 78 ? PAL.K : PAL.D]);
+  return px;
+}
+
+// 3-frame flicker filling the throat — f1 core, tallest in frames 2-3 (burner on).
 const FLAME_FRAMES = [
-  ["............", ".....11.....", "....1111....", "...122221...", "..12211221..", "..22111122..", "..32211223..", "...322223..."],
-  ["............", "......11....", "......11....", ".....1111...", "....112211..", "...12211221.", "...22111122.", "....322223.."],
-  ["............", "......11....", ".....1111...", "....111111..", "...11211211.", "...21111112.", "...23111132.", "....233332.."],
-].map(rows => ascii(rows, CX - 6, 32, { "1": "f1", "2": "f2", "3": "f3" }));
+  ["................", "........11......", ".......1111.....", "......112211....", ".....11222211...", "....1122112211..", "....1221111221..", "....2211111122..", ".....322111223..", "......3222223..."],
+  ["................", ".........111....", ".........111....", "........1111....", ".......112211...", "......11222211..", ".....1122112211.", ".....1221111221.", "......321111123.", ".......3222223.."],
+  ["..........11....", ".........1111...", "........111111..", ".......11111111.", "......1121111211", "......1211111121", ".....12113311121", ".....21133331112", "......233333332.", ".......2333332.."],
+].map(rows => ascii(rows, CX - 8, 76, { "1": "f1", "2": "f2", "3": "f3" }));
 
-// Burner, ropes, Charlotte with her bunny, wicker basket — painted after the flame so the rig
-// sits in front of the throat. Centre CX=34; basket spans x 21..47.
+// Burner, ropes, Charlotte + bunny, wicker heart-basket — painted after the flame so the rig
+// sits in front of the throat. Basket x 28..91, rim y 116.
 function rigging() {
   const px = [];
-  // brass load ring closing the neck, with a dark beat for relief
-  for (let x = CX - 10; x <= CX + 9; x++) px.push([x, 39, PAL.brass], [x, 40, (x & 1) ? PAL.w2 : PAL.w1]);
-  // burner: two brass posts and a bar, hanging from the ring
-  for (let y = 41; y <= 44; y++) { px.push([CX - 5, y, PAL.brass], [CX + 4, y, PAL.brass]); }
-  for (let x = CX - 6; x <= CX + 5; x++) px.push([x, 45, PAL.K]);
-  for (let x = CX - 5; x <= CX + 4; x++) px.push([x, 45, ((x & 1) ? PAL.brass : PAL.w2)]);
-  for (let x = CX - 5; x <= CX + 4; x++) px.push([x, 46, PAL.K]);
-  // ropes: near-vertical from ring ends down to the basket rim, 2 px wide, rope colour with an
-  // ink beat every 4 px so they read as twisted fibre, not slats
-  for (let i = 0; i <= 22; i++) {
-    const y = 41 + i;
-    const lx = 25 - Math.round(i / 12);        // 25 -> 23, onto the rim's left corner
-    const rx = 44 - Math.round((22 - i) / 12); // 42 -> 44, onto the rim's right corner
-    const beat = i % 6 === 3;                   // a sparse twist beat — rope, not ladder rail
-    px.push([lx, y, beat ? PAL.w2 : PAL.w0], [lx + 1, y, beat ? PAL.w1 : PAL.w0]);
-    px.push([rx, y, beat ? PAL.w1 : PAL.w0], [rx + 1, y, beat ? PAL.w2 : PAL.w0]);
+  // brass load ring + cable
+  for (let x = CX - 26; x <= CX + 25; x++) {
+    px.push([x, 88, PAL.brass], [x, 89, (x & 1) ? PAL.w2 : PAL.w1]);
   }
-  // Charlotte: hair cap, face, eyes, cheeks, dress body sinking into the basket
-  ascii([
-    "..hhhhhh..",
-    ".hhhhhhhh.",
-    ".hssssssh.",
-    ".ssKssKss.",
-    ".ssssssss.",
-    ".sKssssKs.",
-    "..ssssss..",
-  ], 26, 53, { h: "hair", s: "skin" }).forEach(p => px.push(p));
-  px.push([27, 57, PAL.cheek], [33, 57, PAL.cheek]); // cheeks
-  ascii([
-    ".dddddddd.",
-    ".dddddddd.",
-    ".dddddddd.",
-  ], 26, 60, { d: "dress" }).forEach(p => px.push(p));
-  // the bunny: cream, ears joined to the head, riding her right
-  ascii([
-    ".c....c.",
-    ".c....c.",
-    ".cccccc.",
-    ".ccKccc.",
-    ".cccccc.",
-    ".c.cc.c.",
-  ], 38, 54, { c: "cream" }).forEach(p => px.push(p));
-  // wicker basket: ink-outlined rim, brick-pattern weave (rows offset by 2 px), shaded right face
-  const L = 21, W = 27, T = 63, B = 76;
-  for (let y = T; y < B; y++) { px.push([L, y, PAL.K], [L + W - 1, y, PAL.K]); }
-  for (let x = L; x < L + W; x++) { px.push([x, T, PAL.K], [x, B - 1, PAL.K]); }
-  for (let x = L + 1; x < L + W - 1; x++) { px.push([x, T + 1, (x & 1) ? PAL.w0 : PAL.w1]); } // lit rim
-  for (let y = T + 2; y < B - 1; y++) {
-    const offset = (y % 4 < 2) ? 0 : 2;                       // brick shift between rows
+  // burner cage: posts from the ring to a brass bar under the mouth
+  for (let y = 90; y <= 97; y++) { px.push([CX - 11, y, PAL.w2], [CX - 10, y, PAL.brass], [CX + 9, y, PAL.w2], [CX + 10, y, PAL.brass]); }
+  px.push(...obox(CX - 12, 98, 24, 3, PAL.brass, PAL.K));
+  for (let x = CX - 10; x <= CX + 9; x += 4) px.push([x, 99, PAL.w2]); // gas jets
+  // ropes: two per side from ring to basket corners, lit core + shadow column, sparse twist beat
+  const rope = (x0, y0, x1, y1) => {
+    const steps = y1 - y0;
+    for (let i = 0; i <= steps; i++) {
+      const x = Math.round(x0 + (x1 - x0) * (i / steps));
+      const beat = i % 7 === 4;
+      px.push([x, y0 + i, beat ? PAL.w2 : PAL.w0], [x + 1, y0 + i, beat ? PAL.w1 : PAL.w1]);
+    }
+  };
+  rope(CX - 26, 90, 28, 124);
+  rope(CX - 12, 90, 40, 124);
+  rope(CX + 11, 90, 79, 124);
+  rope(CX + 25, 90, 90, 124);
+  // ---- Charlotte: the sheet's chibi — big glossy eyes, brown hair with buns + pink beads,
+  // blush, open smile, pink dress. Painted in front of the rim she sits behind.
+  const hx = 34, hy = 102;                            // head box origin; head 24x22
+  px.push(...disc(hx + 4, hy + 3, 4.5, PAL.hair, PAL.K), ...disc(hx + 19, hy + 3, 4.5, PAL.hair, PAL.K)); // buns
+  px.push([hx + 3, hy + 1, PAL.gp], [hx + 4, hy + 1, PAL.gp], [hx + 19, hy + 1, PAL.gp], [hx + 20, hy + 1, PAL.gp]); // beads
+  px.push(...obox(hx + 5, hy + 2, 14, 16, PAL.skin, PAL.K));                                          // face
+  for (let x = hx + 5; x < hx + 19; x++) for (let y = hy + 2; y < hy + 6; y++) px.push([x, y, PAL.hair]); // hair cap
+  for (let x = hx + 6; x < hx + 18; x += 3) px.push([x, hy + 6, PAL.hair]);                            // bangs zigzag
+  for (let y = hy + 4; y < hy + 20; y++) {                                                             // side hair
+    px.push([hx + 4, y, PAL.hair], [hx + 3, y, PAL.K], [hx + 19, y, PAL.hair], [hx + 20, y, PAL.K]);
+  }
+  // big glossy eyes: 3x4 ink with a cream shine pixel, the sheet's signature
+  ascii(["KKK", "KCK", "KKK", ".KK."], hx + 7, hy + 9, { K: "K", C: "C" }).forEach(p => px.push(p));
+  ascii(["KKK", "KCK", "KKK", ".KK."], hx + 14, hy + 9, { K: "K", C: "C" }).forEach(p => px.push(p));
+  px.push([hx + 5, hy + 14, PAL.cheek], [hx + 6, hy + 14, PAL.cheek], [hx + 18, hy + 14, PAL.cheek], [hx + 17, hy + 14, PAL.cheek]);
+  px.push([hx + 11, hy + 15, PAL.K], [hx + 12, hy + 15, PAL.K], [hx + 11, hy + 16, PAL.gP], [hx + 12, hy + 16, PAL.gP]); // smile
+  px.push(...obox(hx + 8, hy + 19, 8, 6, PAL.dress, PAL.K));                                           // dress body
+  // ---- the bunny, riding her right: cream, tall ears with pink insides, ink eye
+  const bx = 70, by = 108;
+  px.push(...obox(bx - 4, by - 6, 3, 9, PAL.cream, PAL.K), ...obox(bx + 1, by - 6, 3, 9, PAL.cream, PAL.K)); // ears
+  px.push([bx - 3, by - 4, PAL.gp], [bx - 3, by - 3, PAL.gp], [bx + 2, by - 4, PAL.gp], [bx + 2, by - 3, PAL.gp]); // inner ears
+  px.push(...disc(bx, by + 6, 6, PAL.cream, PAL.K));                                                   // head
+  px.push([bx - 2, by + 5, PAL.K], [bx - 2, by + 6, PAL.K]);                                           // eye
+  px.push([bx - 4, by + 8, PAL.gp]);                                                                   // nose
+  // ---- basket: oversize wicker with the sheet's heart emblem
+  const L = 28, W = 64, T = 124, B = 148;
+  px.push(...obox(L, T, W, B - T, PAL.wd, PAL.K));
+  for (let x = L + 1; x < L + W - 1; x++) px.push([x, T + 1, (x & 1) ? PAL.w0 : PAL.w1]);               // lit rim
+  for (let y = T + 3; y < B - 4; y++) {
+    const offset = (y % 4 < 2) ? 0 : 2;                                                                // brick weave
     for (let x = L + 1; x < L + W - 1; x++) {
-      const cell = (((x - L + offset) >> 1) % 2) === 0;
+      const cell = (((x - L + offset) >> 3) % 2) === 0;
       let hex = cell ? PAL.wk : PAL.wd;
-      if ((x - offset) % 6 === 0) hex = PAL.bark;             // vertical stakes under the weave
-      if (x >= L + W - 4) hex = PAL.wd;                        // shaded right face
+      if (((x - offset) % 14) === 0) hex = PAL.bark;                                                   // stakes
+      if (x >= L + W - 6) hex = PAL.w2;                                                                // shaded face
+      if (y >= B - 8 && (x + y) % 2 === 0) hex = PAL.w2;                                               // foot dither
       px.push([x, y, hex]);
     }
   }
-  px.push([L + 3, T + 1, PAL.paper], [L + 4, T + 1, PAL.paper]); // a paper tag on the rim
+  // the heart on the basket, straight off the sheet's hero basket
+  ascii([
+    "..KKK..KKK..",
+    ".KhhhKKhhhK.",
+    "KhhhhhhhhhhK",
+    "KcchhhhhhhhK",
+    "KcchhhhhhhhK",
+    ".KhhhhhhhhK.",
+    "..KhhhhhhK..",
+    "...KhhhhK...",
+    "....KhhK....",
+    ".....KK.....",
+  ], CX - 6, 129, { h: "gP", c: "C" }).forEach(p => px.push(p));
   return px;
 }
 
@@ -342,32 +379,77 @@ function island(delivery) {
     if ((x - (W / 2 - 112)) % 16 === 0) for (let y = deckTop + 1; y <= deckTop + deckH; y++) px.push([x, y, PAL.w2]);
     px.push([x, deckTop + 1, (x & 1) ? PAL.w0 : PAL[deckWood]]);
   }
-  // grass cap + rock body: per-row half-widths, smooth taper to a point
+  // ---- the island body, in the concept sheet's language: an overhanging grass lip with flowers
+  // and hanging vines, warm brown strata above a violet dithered underside, tree clusters on the
+  // flanks, and a waterfall down the delivery island. Half-widths keep the old smooth taper.
   const halfAt = (y) => {
     const t = (y - capTop) / (pointY - capTop);       // 0 at cap, 1 at point
     const w = 224 * (1 - t * t * t);                  // cap slightly wider than the deck, long taper
     return Math.max(0, w / 2);
   };
+  const LIP = capTop + 8;                             // lip depth, then bare rock
   for (let y = capTop; y < pointY; y++) {
-    const half = halfAt(y);
+    const overhang = y < LIP ? 6 : 0;                 // the lip juts out past the rock, like the sheet
+    const half = halfAt(Math.max(y, y < LIP ? capTop + 4 : LIP)) + overhang;
     const left = Math.round(W / 2 - half), right = Math.round(W / 2 + half);
-    const grass = y < capTop + 6;                     // cap depth: leaf, then moss, then rock
     for (let x = left; x < right; x++) {
       const edge = x - left < 2 || right - x <= 2;
       if (edge) { px.push([x, y, PAL.K]); continue; }
       let hex;
-      if (grass) hex = y < capTop + 2 ? PAL.grass : y < capTop + 4 ? PAL.leaf : PAL.moss;
-      else {
+      if (y < LIP) {                                  // grass lip: lit top, leaf body, moss fringe
+        hex = y < capTop + 4 ? PAL.grass : y < LIP - 1 ? PAL.leaf : PAL.moss;
+        if (y === LIP - 1 && (x & 1) === 0) hex = PAL.leaf;  // dithered fringe into the rock
+      } else {
         const u = (x - left) / Math.max(1, right - left - 1);
-        hex = u > 0.72 ? PAL.rockD : PAL.rock;        // sun from the left, shade right
-        if ((x * 31 + y * 17) % 97 === 0) hex = PAL.rockD; // sparse cracks
+        const yUnder = 70 - Math.round(u * 12);       // the shadow line rides higher up the right face
+        if (y >= yUnder) {                            // violet underside, gathering to ink at the tip
+          const deep = (y - yUnder) / 34;
+          hex = ((x + y) & 1) ? PAL.rockD : PAL.rock;
+          if (deep > 0.45 && (((x >> 1) + y) & 1) === 0) hex = PAL.K;
+          if (u > 0.8) hex = ((x + y) & 1) ? PAL.K : PAL.rockD;
+        } else {                                      // warm strata, sun from the left
+          const band = Math.floor(y / 9) % 2;
+          hex = band ? PAL.w2 : PAL.bark;
+          if (u < 0.3 || (u < 0.36 && ((x + y) & 1) === 0)) hex = band ? PAL.bark : PAL.w1;
+          if (u > 0.84) hex = (y & 1) ? PAL.K : PAL.w2;
+          if ((x * 31 + y * 17) % 89 === 0) hex = PAL.K; // sparse cracks
+        }
       }
       px.push([x, y, hex]);
     }
-    // a couple of grass tufts lean off the cap edge
-    if (y === capTop && half > 40) {
-      px.push([left + 3, y - 2, PAL.grass], [left + 4, y - 1, PAL.grass]);
-      px.push([right - 4, y - 3, PAL.grass], [right - 5, y - 2, PAL.grass], [right - 6, y - 1, PAL.grass]);
+  }
+  // flowers along the first grass band visible below the deck lip, cycling pink/gold/cream
+  for (let x = 36; x < W - 36; x += 16) {
+    const bloom = [PAL.gp, PAL.gold, PAL.C][((x / 16) | 0) % 3];
+    px.push([x, capTop + 2, bloom], [x + 1, capTop + 2, bloom], [x, capTop + 3, PAL.leaf]);
+  }
+  // hanging vines off the lip edge — 1 px strands, leaf tip, lengths that vary along the rim
+  [[40, 14], [76, 22], [164, 17], [200, 10]].forEach(([vx, len]) => {
+    for (let i = 0; i < len; i++) px.push([vx, LIP + i, i === len - 1 ? PAL.leaf : (i & 1) ? PAL.moss : PAL.leaf]);
+    px.push([vx + 1, LIP + len - 2, PAL.moss]);
+  });
+  // tree clusters on the flanks below the deck line (the deck itself must stay clear to land on)
+  const tree = (cx, cy, r) => {
+    px.push(...obox(cx - 2, cy + r - 4, 5, r, PAL.bark, PAL.K));                    // trunk
+    px.push(...disc(cx, cy, r + 1.15, PAL.K, PAL.K), ...disc(cx, cy, r, PAL.leaf, PAL.K));
+    px.push(...disc(cx - Math.round(r * 0.3), cy - Math.round(r * 0.35), r * 0.55, PAL.grass, PAL.grass));
+    px.push(...disc(cx + Math.round(r * 0.28), cy + Math.round(r * 0.34), r * 0.5, PAL.moss, PAL.moss));
+  };
+  if (delivery) { tree(34, 44, 12); tree(56, 54, 8); }
+  else { tree(204, 44, 12); tree(184, 55, 8); }
+  // waterfall down the delivery island's right flank, following the rock face inward as it
+  // narrows, with a dithered splash foot where it leaves the island
+  if (delivery) {
+    let foot = 0;
+    for (let y = LIP; y < 92; y++) {
+      const right = Math.round(W / 2 + halfAt(y));
+      for (let x = right - 14; x <= right - 3; x++) px.push([x, y, (x & 1) ? PAL.cl : PAL.cw]);
+      px.push([right - 15, y, PAL.K]);
+      foot = right;
+    }
+    for (let x = foot - 18; x <= foot; x++) {
+      const s = 1 - Math.abs(x - (foot - 9)) / 10;
+      for (let y = 92; y < 100; y++) if (((x + y) & 1) === 0 && s > (y - 92) / 8) px.push([x, y, PAL.C]);
     }
   }
   return px;
@@ -376,7 +458,7 @@ function island(delivery) {
 // ================================================================ sheet packing
 // frames stack vertically inside the name's column; slices.json (the loader's table) mirrors this.
 const SPRITES = {
-  "balloon":      { w: 68, h: 78, frames: [0, 1, 2].map(f => balloonFrame(f)) },
+  "balloon":      { w: 120, h: 150, frames: [0, 1, 2].map(f => balloonFrame(f)) },
   "bag-falling":  { w: 12, h: 14, frames: [sandbag()] },
   "cloud-small":  { w: 140, h: 48, frames: [cloud(140)] },
   "cloud-mid":    { w: 200, h: 66, frames: [cloud(200)] },

@@ -160,15 +160,23 @@ Steven flew the desktop head and reported three things; each became a rule, not 
 
 - **Sprites are generated, not painted by hand in an editor session.** `art/.art/generate.js` holds
   every pixel rule (profiles, gore tables, ramps, ASCII blocks) and produces the sheet through
-  `render.js` → Aseprite MCP (`art/src/balloonatic.aseprite`, palette + slices live there) →
-  `art/export/sheet.png` + `slices.json`. `node art/.art/audit.js` decodes the export and fails on
-  any off-palette pixel or out-of-bounds slice — the same palette rule `Theme.cs` enforces, now
-  enforced on the PNG itself.
+  `pack.js` → `render.js` → Aseprite MCP (`art/src/balloonatic.aseprite`, palette + slices live
+  there) → `art/export/sheet.png` + `slices.json`. `node art/.art/audit.js` decodes the export and
+  fails on any off-palette pixel or out-of-bounds slice — the same palette rule `Theme.cs`
+  enforces, now enforced on the PNG itself.
+- **Sheet fidelity follows the concept sheet** (rework pass after review): the hero is the sheet's
+   60×75-design onion envelope in a pink/cream checkerboard with a deep-pink crown, red skirt band
+   and heart basket holding a big-eyed chibi Charlotte and the bunny; islands are warm-brown strata
+   over a violet dithered underside, with an overhanging grass lip, flowers, hanging vines, tree
+   clusters and a waterfall down the delivery island. The old 34×39 stripe was a different artist.
+ - **`art/export/` was silently gitignored** — the root `export/` rule meant for the Blazor output
+   also matched it, so the sheet the game embeds lived only in this working tree. Now `/export/` is
+   root-anchored and `art/export/` is committed; a clone can build the real sprites.
 - **Sheet pixels are internal-resolution** (2 per design px), matching the 2x canvas: sprites ride
   the half-pixel camera without subpixel sampling, so motion is smooth and edges stay hard.
 - **Animation is baked frames + clock index.** Flame/burner frames are separate slices
   (`balloon-0..2`) chosen by `Clock(state)` and `Heating`; the sheet holds no timeline, so a
   deterministically stepped state always draws the identical pixels.
-- **Payload**: the sheet is 8.5 KB embedded in `Balloonatic.Game.dll` (compressed delta inside the
+- **Payload**: the sheet is ~23 KB embedded in `Balloonatic.Game.dll` (compressed delta inside the
   noise of the 2.83 MB transfer baseline); both heads load it from one embedded stream — no disk
   reads, no platform branch.
