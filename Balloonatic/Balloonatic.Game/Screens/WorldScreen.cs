@@ -12,11 +12,28 @@ namespace Balloonatic.Screens
     /// and a stepped frame is byte-stable for screenshots without any render-side state to reset. Drawing
     /// this screen reads state and never writes it; the world screenshot test proves that with a hash.
     /// </summary>
-    sealed class WorldScreen : IScreen
+    sealed class WorldScreen : IUiScreen
     {
         // Half a second of look-ahead: enough that +75 px/s of band wind pulls the view ~37 px ahead of
-        // the craft, so speed is legible as framing, not only as a gauge.
+        // the craft, so speed is legible as framing, not only as a gauge. Reduced Motion gives this up
+        // entirely — the look-ahead is the one thing the camera does on its own initiative.
         const float LookAheadSeconds = 0.5f;
+
+        // Corner pause tab: the mouse-only player's way out of the sky, and the only button that lives
+        // on the flight screen (everything else the flight says, the HUD already says).
+        static readonly Rectangle PauseTab = new Rectangle(Sim.DesignWidth - 16, 8, 12, 14);
+
+        readonly UiHost _host;
+        bool _pauseHover;
+
+        public WorldScreen(UiHost host) => _host = host;
+
+        public void Tick(UiFrame f)
+        {
+            _pauseHover = f.PointIsIn(PauseTab.X, PauseTab.Y, PauseTab.Width, PauseTab.Height);
+            if (f.Back || (f.Click && _pauseHover))
+                _host.GoTo(SimState.ScreenPause);
+        }
 
         // World margins either side of the course, so launch and delivery islands sit inside the frame.
         const int WorldMargin = 120;
@@ -55,8 +72,19 @@ namespace Balloonatic.Screens
             DrawFallingBags(canvas, state, camX, camAlt);
             DrawBalloon(canvas, state, camX, camAlt);
             DrawHud(canvas, level, state);
+            DrawPauseTab(canvas);
             DrawLandingFeedback(canvas, level, state, camX, camAlt);
             canvas.Outline(new Rectangle(0, 0, Sim.DesignWidth, Sim.DesignHeight), Theme.Ink);
+        }
+
+        /// <summary>The pause tab, drawn like every other raised thing: ink, wood, lit when pointed at.</summary>
+        void DrawPauseTab(DesignCanvas canvas)
+        {
+            canvas.CutRectangle(PauseTab.X, PauseTab.Y, PauseTab.Width, PauseTab.Height, 2, Theme.Ink);
+            canvas.CutRectangle(PauseTab.X + 1, PauseTab.Y + 1, PauseTab.Width - 2, PauseTab.Height - 2, 1,
+                _pauseHover ? Theme.WoodLight : Theme.WoodMid);
+            canvas.Fill(PauseTab.X + 3, PauseTab.Y + 3, 2, 8, Theme.TagCream);
+            canvas.Fill(PauseTab.X + 7, PauseTab.Y + 3, 2, 8, Theme.TagCream);
         }
 
         /// <summary>
@@ -106,14 +134,17 @@ namespace Balloonatic.Screens
         /// </summary>
         static (float camX, float camAlt) Camera(SimState state, LevelDef level)
         {
+            // Reduced Motion (I7 setting): the look-ahead goes away, so the camera only ever sits where
+            // the balloon is — no lead, no sway, the calmest framing the game can show.
+            float look = AppSettings.ReducedMotion ? 0f : LookAheadSeconds;
             float worldLeft = -WorldMargin;
             float worldRight = level.CourseLength + WorldMargin;
-            float targetX = state.X + state.VelocityX * LookAheadSeconds;
+            float targetX = state.X + state.VelocityX * look;
 
             // Framing: the balloon rides the upper third (a 40 px lift) so the ground stays in frame
             // through launch, cruise, and landing up to ~220 px of altitude, and the view stops climbing
             // at the world roof. Pure state again — no render memory, byte-stable screenshots.
-            float camAlt = Clamp(state.Altitude + state.VelocityY * LookAheadSeconds * 0.5f - 40f, 0f, level.WorldHeight);
+            float camAlt = Clamp(state.Altitude + state.VelocityY * look * 0.5f - 40f, 0f, level.WorldHeight);
 
             // Framing bias toward the goal: until the delivery is behind the balloon, the camera leans
             // downwind, so the course ahead stays in frame and the islands are visible from launch.
@@ -396,7 +427,8 @@ namespace Balloonatic.Screens
 
             // The cap flame is still at rest and flickers while the burner fires; it rides on the
             // decoration clock, so a results screen behind a frozen run keeps a frozen flame.
-            int flameFrame = state.Heating && clock % 12 >= 6 ? 1 : 0;
+            // Reduced Motion holds it to the still frame — flicker is motion too.
+            int flameFrame = state.Heating && !AppSettings.ReducedMotion && clock % 12 >= 6 ? 1 : 0;
             Sprites.Draw(canvas, "flame-hud", flameFrame, gauge.X + 1, gauge.Y - 12);
             Kit.Tag(canvas, Sim.DesignWidth - 33, 222, "HEAT");
 

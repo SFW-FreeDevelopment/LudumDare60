@@ -13,8 +13,8 @@ exactly the way an entry host would.
 | Published payload on disk | 17.18 MB across 204 files (59 `.br` sidecars, 2.81 MB) | `export/web/` after `dotnet publish` |
 | `dotnet build` (5 projects, Release) | ~11 s | measured |
 | `dotnet publish` Blazor WebGL head | ~11 s (no `wasm-tools`, so no AOT) | measured |
-| Playwright suite | 42 tests, 2 viewports, ~35 s | `npx playwright test` |
-| xunit suite | 47 tests | `dotnet test` |
+| Playwright suite | 56 tests, 2 viewports, ~50 s | `npx playwright test` |
+| xunit suite | 50 tests | `dotnet test` |
 
 Budgets to watch (set in I12, warned about now): boot under ~3 s on a normal connection, payload under
 ~8 MB transferred, 60 fps in a Chromium tab. The 17 MB on disk is mostly uncompressed framework files
@@ -42,7 +42,7 @@ pinned in one place and cannot drift between browser and unit tests.
 | Call | Purpose |
 | --- | --- |
 | `ready`, `readyAtMs` | first drawn frame reached, and how long boot took |
-| `version()` | bridge protocol (`i5`) |
+| `version()` | bridge protocol (`i7`) |
 | `screen()` | which screen the game is actually drawing |
 | `screen(id)` | request a screen change; answered `ok:requested=<id>`, applied by the game's own frame loop, so callers poll `screen()` to confirm it |
 | `reset(seed)`, `seed()`, `tick()`, `hash()`, `state()` | scripted replays with a comparable hash |
@@ -57,6 +57,8 @@ pinned in one place and cannot drift between browser and unit tests.
 | `delivered()`, `complete()`, `stars()`, `bounces()` | the landing rule's readouts; `state()` carries the same as `delivered`/`complete`/`stars`/`bounces`/`completedAtTick` |
 | `drops()` | sandbags released this run (`SimState.DropsSeen`), also in `state()` as `drops` — the falling-bag art draws from the release records, and the hash covers them |
 | `frames()`, `metrics()` | renderer-side counters: frame count, viewport/backbuffer/scale |
+| `settings()`, `settings('k=v')` | read/apply the menu options (`music`, `sfx`, `assist`, `motion`) — also mirrored in `state()` as `settings` and `windAssist` |
+| `key(code=1\|0)`, `keyclear()` | internal: the WebGL head's keyboard feed (`WebKeys`), fired by `index.html`'s DOM listeners |
 
 Rules this enforces: only the harness advances time; `pause()` stops the game loop dead; rendering
 reads state and never writes it, so effects cannot perturb a replay.
@@ -197,3 +199,25 @@ Steven flew the desktop head and reported three things; each became a rule, not 
 - **HUD sprites are sheet-authored**: `portrait` (44×48), `heart-hud`/`heart-hud-off` (26×22),
    `star-hud` (26×22), `gift` (26×26), `flame-hud` (2×28×28), `bag-falling` reused for ballast —
    the frame and violet backing are painted into the portrait sprite, so the HUD draws one thing.
+- **I7 flow: time runs on exactly one screen.** The sim clock steps only while the world shows; the
+   title, courses, settings, credits and pause all hold it (the balloon hangs where it was under the
+   pause veil — `PauseScreen` composites the world draw plus a translucent ink wash). Screens talk
+   to the game only through `UiFrame` (pointer in design coordinates + one-frame input edges) and
+   `UiHost` verbs (`GoTo`, `FlyLevel`, `RestartFlight`, `Quit`, `LiveSettingsChanged`); focus and
+   hover are screen-side rendering state, so stepped frames stay byte-stable.
+- **KNI's Blazor keyboard dies after the first canvas click** (measured, headless and otherwise:
+   the window listeners keep firing and the game loop keeps running, but key state stops updating
+   through the sync interop the window module uses — while every mouse event survives). Since real
+   players click before they type, the WebGL head answers the keyboard from `WebKeys`: `index.html`
+   forwards raw keyCodes through the bridge's async path, and `PlatformBalloonaticGame` sets
+   `UseWebKeyboard` so every key read in the game routes through one gate. A press that arrives and
+   leaves between two 60 Hz polls (what `page.keyboard.press` does) also latches fresh, so the game
+   sees exactly one frame of it instead of nothing — sub-frame taps cannot be lost to polling.
+   The tab's blur event clears the table; keys cannot stick through an alt-tab.
+- **Wind Assist lives in sim state on purpose** (`SimState.WindAssist`, hashed): band winds still
+   steer, gusts are ignored — gentler air, same game. Reduced Motion is renderer-only (the camera
+   gives up its velocity look-ahead, the gauge flame holds its still frame). Volumes are mirrored in
+   `state().settings` before any sound ships — the numbers are the contract I11 honours.
+- **xunit runs sequential now** (`[assembly: CollectionBehavior(DisableTestParallelization)]`):
+   `AppSettings` is session state like a real options menu, and a settings toggle in one class was
+   racing harness boots in another. The suite takes under a second either way.

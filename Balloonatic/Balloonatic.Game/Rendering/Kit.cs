@@ -250,6 +250,22 @@ namespace Balloonatic.Rendering
 
         // ---------------------------------------------------------------- balloon and world stand-ins
 
+        /// <summary>
+        /// The calm ground-level sky the menu family (title, courses, settings, credits) stands on:
+        /// the two lowest world bands, a strip of turf, two clouds — the same frame the title was
+        /// reviewed in, so every menu screen is the same place at the same hour.
+        /// </summary>
+        public static void MenuBackdrop(DesignCanvas canvas)
+        {
+            canvas.Fill(0, 0, canvas.Width, 210, Theme.SkyMid);
+            canvas.Fill(0, 210, canvas.Width, 120, Theme.SkyLow);
+            canvas.Fill(0, 330, canvas.Width, 30, Theme.MossGreen);
+            canvas.Fill(0, 330, canvas.Width, 2, Theme.GrassLight);
+            canvas.Fill(0, 348, canvas.Width, 12, Theme.WoodDark);
+            Sprites.Draw(canvas, "cloud-mid", 36f, 60f);
+            Sprites.Draw(canvas, "cloud-small", 506f, 96f);
+        }
+
         static readonly int[] EnvelopeWidths = { 12, 20, 26, 30, 32, 32, 32, 30, 26, 20, 14 };
 
         /// <summary>

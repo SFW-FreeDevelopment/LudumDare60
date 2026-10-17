@@ -63,4 +63,22 @@ async function act(page, call) {
   }, call);
 }
 
-module.exports = { bootGame, watchForErrors, runScript, act, megabytes, SHOTS_DIR };
+/**
+ * Clicks one design pixel of the canvas. Menu hit-testing is written in design coordinates and
+ * Playwright clicks in page coordinates; the letterbox math lives in DesignCanvas, so this just
+ * replays the scale the renderer itself reported. The hold is a real human-scale press: a
+ * zero-duration synthetic click can fall between two 60 Hz updates and never be seen.
+ */
+async function clickDesign(page, designX, designY, { delay = 120 } = {}) {
+  const geo = await page.evaluate(async () => {
+    const canvas = document.getElementById('theCanvas');
+    const values = Object.fromEntries((await window.__GAME.metrics()).split(';').map((p) => p.split('=')));
+    const rect = canvas.getBoundingClientRect();
+    return { w: canvas.width, h: canvas.height, scale: parseFloat(values.scale), left: rect.left, top: rect.top };
+  });
+  const ox = (geo.w - 640 * geo.scale) / 2;
+  const oy = (geo.h - 360 * geo.scale) / 2;
+  await page.mouse.click(geo.left + ox + designX * geo.scale, geo.top + oy + designY * geo.scale, { delay });
+}
+
+module.exports = { bootGame, watchForErrors, runScript, act, clickDesign, megabytes, SHOTS_DIR };

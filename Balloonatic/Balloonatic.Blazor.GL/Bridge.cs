@@ -15,6 +15,21 @@ namespace Balloonatic
             BalloonaticGame? game = BalloonaticGame.Instance;
             string name = (call ?? string.Empty).Trim().ToLowerInvariant();
 
+            // Key reports arrive through the same door as everything else, and they are only a
+            // table of key codes (WebKeys), so they are accepted even before the game exists.
+            if (name == "key")
+            {
+                string[] parts = (arg ?? string.Empty).Split('=');
+                if (parts.Length == 2 && int.TryParse(parts[0], out int code))
+                    WebKeys.Set(code, parts[1] == "1");
+                return "ok";
+            }
+            if (name == "keyclear")
+            {
+                WebKeys.Clear();
+                return "ok";
+            }
+
             if (game == null)
                 return name == "ready" ? "0" : "error:not-ready";
 

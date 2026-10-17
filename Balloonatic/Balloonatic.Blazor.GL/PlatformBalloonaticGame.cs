@@ -22,7 +22,11 @@ namespace Balloonatic
 
         public PlatformBalloonaticGame() : base()
         {
-            // TODO: Add platform specific initialization logic here
+            // The browser head answers the keyboard from the bridge-fed table (WebKeys): KNI's
+            // native Blazor key pipeline stops seeing keys after the first canvas click, and
+            // players click before they type. The click pipeline itself is fine, so the mouse
+            // stays native.
+            UseWebKeyboard = true;
 
 #if WebXR
             // WebXR requires at least WebGL2.

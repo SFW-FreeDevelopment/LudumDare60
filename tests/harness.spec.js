@@ -12,10 +12,9 @@ test('the start screen hands the game over on a click @smoke', async ({ page }) 
   expect(await page.evaluate(() => window.__GAME.screen())).toBe('menu');
 
   // The deliverable is played with a mouse in an iframe, so the hand-off verb is tested through
-  // an actual pointer press on the canvas, not through the harness side door. A human hold lasts
-  // far longer than one 60 Hz frame; a zero-duration synthetic click can fall between updates.
-  const canvas = page.locator('canvas');
-  await canvas.click({ delay: 120 });
+  // an actual pointer press on the FLY slat — the button the player sees, at the design
+  // coordinates it is drawn at, not through the harness side door.
+  await require('./support').clickDesign(page, 320, 128);
   await expect.poll(() => page.evaluate(() => window.__GAME.screen()), { timeout: 10_000 }).toBe('world');
   expect(errors, `console/JS errors during hand-off: ${errors.join(' | ')}`).toEqual([]);
 });
@@ -35,12 +34,12 @@ test('boots in a browser and the harness answers @smoke', async ({ page }, testI
     state: await window.__GAME.state(),
   }));
 
-  expect(protocol.version).toBe('i5');
+  expect(protocol.version).toBe('i7');
   expect(protocol.screen).toBe('menu');     // live play opens on the start screen; its clock is held
   expect(protocol.seed).toMatch(/^[0-9a-f]{16}$/);
   expect(protocol.hash).toMatch(/^[0-9a-f]{16}$/);
   expect(protocol.state.tick).toBeGreaterThanOrEqual(0);
-  expect(protocol.state.version).toBe('i5');
+  expect(protocol.state.version).toBe('i7');
 
   // I5's landing-rule fields ride in the state snapshot, so any watcher can judge a run's end.
   expect(protocol.state.delivered).toBe(false);

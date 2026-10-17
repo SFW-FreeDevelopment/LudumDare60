@@ -15,6 +15,10 @@ namespace Balloonatic.Core
         public const string ScreenMenu = "menu";
         public const string ScreenStyle = "style";
         public const string ScreenWorld = "world";
+        public const string ScreenLevels = "levels";
+        public const string ScreenSettings = "settings";
+        public const string ScreenCredits = "credits";
+        public const string ScreenPause = "pause";
 
         public ulong Seed;
         public int Tick;
@@ -79,6 +83,14 @@ namespace Balloonatic.Core
         /// without reading a device, and so the hash covers it.</summary>
         public bool Heating;
 
+        /// <summary>
+        /// Wind Assist (I7 setting): the sky forgives gusts. Band winds still steer — the game stays
+        /// the game — but the sudden gusts that can slap the balloon sideways are gone. Deliberately
+        /// outside the hash like <see cref="RequestedScreen"/>: a mode the player sets, not a fact a
+        /// seeded replay can discover. Two runs with the same assist setting stay comparable.
+        /// </summary>
+        public bool WindAssist;
+
         public string Screen = ScreenScaffold;
 
         /// <summary>
@@ -108,6 +120,7 @@ namespace Balloonatic.Core
                 Stars = Stars,
                 CompletedAtTick = CompletedAtTick,
                 Heating = Heating,
+                WindAssist = WindAssist,
                 Screen = Screen,
             };
             for (int i = 0; i < DropTick.Length; i++)
@@ -244,7 +257,13 @@ namespace Balloonatic.Core
             // Horizontal: the air decides, with inertia. The balloon's velocity chases the wind of the
             // band it is currently inside; entering a new band is a settle over ~1 s, never a snap. This
             // is why altitude is the only steering — the player chooses which air to be in, not where to go.
+            // Wind Assist keeps the bands and drops the gusts: gentler air, same navigation.
             float wind = level.WindAt(state.Altitude);
+            if (state.WindAssist)
+            {
+                WindBand calm = level.BandAt(state.Altitude);
+                wind = calm.Direction * LevelDef.WindSpeed(calm.Strength);
+            }
             state.VelocityX += (wind - state.VelocityX) * SimTuning.WindFollowRate * dt;
             state.X += state.VelocityX * dt;
         }
@@ -277,6 +296,7 @@ namespace Balloonatic.Core
             h = Mix(h, (ulong)state.BounceTick);
             h = Mix(h, (ulong)state.Stars);
             h = Mix(h, state.Heating ? 1UL : 0UL);
+            h = Mix(h, state.WindAssist ? 1UL : 0UL);
             foreach (char c in state.Screen)
                 h = Mix(h, c);
             foreach (char c in state.LevelId)

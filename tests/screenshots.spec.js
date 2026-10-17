@@ -132,6 +132,60 @@ test('a delivered run shows its banner — the win screen at a glance @shot @scr
   expect(buffer.length).toBeGreaterThan(1000);
 });
 
+async function poseUiScreen(page, id) {
+  await page.evaluate((screen) => window.__GAME.screen(screen), id);
+  await expect.poll(() => page.evaluate(() => window.__GAME.screen()), { timeout: 10_000 }).toBe(id);
+}
+
+/** Captures one UI screen by id under both names the review copies use. */
+async function shootUi(page, testInfo, name, id) {
+  const errors = watchForErrors(page);
+  await bootGame(page);
+  await poseUiScreen(page, id);
+
+  await expect(page).toHaveScreenshot(`${name}.png`, { timeout: 60_000 });
+  fs.mkdirSync(SHOTS_DIR, { recursive: true });
+  const buffer = await page.screenshot({ path: path.join(SHOTS_DIR, `${name}-${testInfo.project.name}.png`) });
+  expect(buffer.length).toBeGreaterThan(1000);
+  expect(errors, `console/JS errors on ${id}: ${errors.join(' | ')}`).toEqual([]);
+}
+
+test('the level select screen matches its snapshot @shot @screens', async ({ page }, testInfo) => {
+  await shootUi(page, testInfo, '05-levels', 'levels');
+});
+
+test('the settings screen matches its snapshot @shot @screens', async ({ page }, testInfo) => {
+  await shootUi(page, testInfo, '06-settings', 'settings');
+});
+
+test('the credits screen matches its snapshot @shot @screens', async ({ page }, testInfo) => {
+  await shootUi(page, testInfo, '07-credits', 'credits');
+});
+
+test('the pause screen matches its snapshot @shot @screens', async ({ page }, testInfo) => {
+  const errors = watchForErrors(page);
+  await bootGame(page);
+
+  // The pause pose: a real flight, held. The balloon must be somewhere mid-course under the veil so
+  // the screen proves the world keeps its pose while paused — not just a panel over launch.
+  await page.evaluate(() => window.__GAME.reset('1234'));
+  await page.evaluate(() => window.__GAME.screen('world'));
+  await expect.poll(() => page.evaluate(() => window.__GAME.screen()), { timeout: 10_000 }).toBe('world');
+  await page.evaluate(async () => {
+    await window.__GAME.set('heat', 1);
+    await window.__GAME.step(240);                 // airborne over the carrying band...
+    await window.__GAME.set('heat', 0);
+  });
+  await poseUiScreen(page, 'pause');
+
+  const name = '08-pause';
+  await expect(page).toHaveScreenshot(`${name}.png`, { timeout: 60_000 });
+  fs.mkdirSync(SHOTS_DIR, { recursive: true });
+  const buffer = await page.screenshot({ path: path.join(SHOTS_DIR, `${name}-${testInfo.project.name}.png`) });
+  expect(buffer.length).toBeGreaterThan(1000);
+  expect(errors, `console/JS errors while paused: ${errors.join(' | ')}`).toEqual([]);
+});
+
 test('heat visibly drives the balloon and the meter @shot @screens', async ({ page }, testInfo) => {
   watchForErrors(page);
   await bootGame(page);

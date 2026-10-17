@@ -19,6 +19,8 @@
 //   window.__GAME.hash() / tick() / seed()
 //   window.__GAME.pause() / resume()     // hand the clock to/from the test
 //   window.__GAME.frames()               // renderer frame counter (for frame-rate budgets)
+//   window.__GAME.settings()             // the mirrored settings string, e.g. "music=8;sfx=8;assist=0;motion=0"
+//   window.__GAME.settings('assist=1')   // apply one key=value pair, read back the whole line
 (function () {
     const assembly = 'Balloonatic';
     const startedAt = performance.now();
@@ -70,6 +72,12 @@
         step: function (n) { return text('step', n); },
         pause: function () { return text('pause'); },
         resume: function () { return text('resume'); },
+        settings: function (pair) { return text('settings', pair); },
+        // Keyboard reports: fire-and-forget. The browser head reads its keyboard from these
+        // (KNI's native key pipeline dies after the first canvas click), so every real press and
+        // release is forwarded; nothing waits on the answer.
+        key: function (keyCode, isDown) { raw('key', keyCode + '=' + (isDown ? 1 : 0)); },
+        keyclear: function () { raw('keyclear'); },
         state: async function () {
             const json = await text('state');
             try {

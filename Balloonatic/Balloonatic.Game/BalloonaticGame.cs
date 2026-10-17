@@ -17,20 +17,36 @@ namespace Balloonatic
     /// reads only <see cref="TestHarness.State"/>, so effects on or off cannot move the simulation and
     /// a stepped state always draws the same frame.
     /// </summary>
-    public class BalloonaticGame : Game
+    public class BalloonaticGame : Game, UiHost
     {
         readonly GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch = null!;
         DesignCanvas canvas = null!;
         readonly IScreen scaffoldScreen = new ScaffoldScreen();
         readonly IScreen styleScreen = new StyleScreen();
-        readonly IScreen worldScreen = new WorldScreen();
-        readonly IScreen menuScreen = new MenuScreen();
+        readonly IScreen worldScreen;
+        readonly IScreen menuScreen;
+        readonly IScreen levelsScreen;
+        readonly IScreen settingsScreen;
+        readonly IScreen creditsScreen;
+        readonly IScreen pauseScreen;
         IScreen screen;
         double accumulatorSeconds;
         bool ballastWasPressed;
         bool restartWasPressed;
-        bool flyWasPressed;
+
+        /// <summary>
+        /// Set once by the WebGL head: KNI's Blazor key pipeline dies after the first canvas click
+        /// (see <see cref="WebKeys"/>), so that head answers keyboard questions from the bridge-fed
+        /// table instead of the native state. The desktop head leaves this false and keeps its real
+        /// keyboard; every key read in this file goes through <see cref="KeyIsDown"/>.
+        /// </summary>
+        public static bool UseWebKeyboard;
+
+        // One-frame input edges: the UI thinks in presses, not holds (see UiFrame), so every device
+        // snapshot is differenced against the last one and then remembered.
+        bool enterWasPressed, escapeWasPressed, upWasPressed, downWasPressed, leftWasPressed, rightWasPressed;
+        bool mouseWasPressed;
 
         protected BalloonaticGame()
         {
@@ -38,6 +54,15 @@ namespace Balloonatic
             Content.RootDirectory = "Content";
             Harness = new TestHarness();
             Instance = this;
+
+            // Screens take the game as their UiHost: they can ask for verbs (fly, restart, quit),
+            // never for the simulation itself.
+            worldScreen = new WorldScreen(this);
+            menuScreen = new MenuScreen(this);
+            levelsScreen = new LevelSelectScreen(this);
+            settingsScreen = new SettingsScreen(this);
+            creditsScreen = new CreditsScreen(this);
+            pauseScreen = new PauseScreen((WorldScreen)worldScreen, this);
 
             // Live play opens on the start screen — the sim clock stays held until the player
             // asks to fly, so nothing can drift while the title is up. A test's `reset` returns
@@ -78,6 +103,10 @@ namespace Balloonatic
             SimState.ScreenScaffold => scaffoldScreen,
             SimState.ScreenWorld => worldScreen,
             SimState.ScreenMenu => menuScreen,
+            SimState.ScreenLevels => levelsScreen,
+            SimState.ScreenSettings => settingsScreen,
+            SimState.ScreenCredits => creditsScreen,
+            SimState.ScreenPause => pauseScreen,
             _ => scaffoldScreen,
         };
 
@@ -147,29 +176,32 @@ namespace Balloonatic
             MouseState mouse = Mouse.GetState();
             DiagPacing(gameTime);
 
-            if (keyboard.IsKeyDown(Keys.Escape) || keyboard.IsKeyDown(Keys.Back))
+            UiFrame frame = BuildUiFrame(keyboard, mouse);
+
+            // Back is the dev head's kill switch on every screen. Escape belongs to whoever is
+            // showing: pause the flight, step back out of a menu, quit from the title. On the test
+            // beds it still quits, because those beds are why the key existed.
+            if (KeyIsDown(keyboard, Keys.Back))
             {
                 try { Exit(); }
                 catch (System.PlatformNotSupportedException) { /* the browser head cannot close itself */ }
             }
-
-            if (!Harness.Paused)
+            if (frame.Back && (screen == scaffoldScreen || screen == styleScreen))
             {
-                // The start screen has exactly one verb: Enter or a click starts the flight. While it
-                // is up the simulation clock is held, so the balloon cannot wander or crash-land
-                // before the player is ready — the title frame is as still as a test frame.
-                bool flyPressed = keyboard.IsKeyDown(Keys.Enter) || mouse.LeftButton == ButtonState.Pressed;
-                if (Harness.State.Screen == SimState.ScreenMenu && flyPressed && !flyWasPressed)
-                    Harness.State.RequestedScreen = SimState.ScreenWorld;
-                flyWasPressed = flyPressed;
+                try { Exit(); }
+                catch (System.PlatformNotSupportedException) { }
+            }
 
-                if (Harness.State.Screen != SimState.ScreenMenu)
-                {
+            if (screen is IUiScreen uiScreen)
+                uiScreen.Tick(frame);
+
+            if (!Harness.Paused && Harness.State.Screen == SimState.ScreenWorld)
+            {
                 // R is the "again" key, and its meaning follows the run: a delivered flight advances to
                 // the next course (the last one loops back to the first), anything else replays this
                 // level's own sky on the same seed. Edge-triggered like the ballast key so holding it
                 // cannot re-trigger every frame.
-                bool restartPressed = keyboard.IsKeyDown(Keys.R);
+                bool restartPressed = KeyIsDown(keyboard, Keys.R);
                 if (restartPressed && !restartWasPressed)
                 {
                     if (Harness.State.Complete)
@@ -181,8 +213,8 @@ namespace Balloonatic
 
                 // Heat is one verb: hold Space or hold the left mouse button. Sandbags drop on the
                 // edge of B / right mouse, one bag per press. No left/right control exists by design.
-                bool heat = keyboard.IsKeyDown(Keys.Space) || mouse.LeftButton == ButtonState.Pressed;
-                bool ballastPressed = keyboard.IsKeyDown(Keys.B) || mouse.RightButton == ButtonState.Pressed;
+                bool heat = KeyIsDown(keyboard, Keys.Space) || mouse.LeftButton == ButtonState.Pressed;
+                bool ballastPressed = KeyIsDown(keyboard, Keys.B) || mouse.RightButton == ButtonState.Pressed;
                 Harness.SetLiveInput(heat, ballastPressed && !ballastWasPressed);
                 ballastWasPressed = ballastPressed;
 
@@ -196,17 +228,102 @@ namespace Balloonatic
                     Harness.AutoStep();
                     accumulatorSeconds -= step;
                 }
-                }
             }
             else
             {
+                // The title and every menu — including pause — hold the clock, and nothing banks
+                // catch-up while they hold it. Time runs on exactly one screen: the world.
                 accumulatorSeconds = 0;
             }
 
             ApplyScreenRequest();
 
+            // Every key has been read for this frame: release the fresh-press latches so a sub-frame
+            // tap is exactly one frame of held, never a stuck key.
+            if (UseWebKeyboard)
+                WebKeys.PruneFresh();
+
             base.Update(gameTime);
         }
+
+        /// <summary>
+        /// One frame of UI intent: pointer in design coordinates, and only edges — a key is a press
+        /// on the frame it goes down, never on the frames it is merely held. Screens cannot miss a
+        /// tap between two updates, and cannot double-fire one.
+        /// </summary>
+        UiFrame BuildUiFrame(KeyboardState keyboard, MouseState mouse)
+        {
+            bool enter = KeyIsDown(keyboard, Keys.Enter);
+            bool escape = KeyIsDown(keyboard, Keys.Escape);
+            bool up = KeyIsDown(keyboard, Keys.Up) || KeyIsDown(keyboard, Keys.W);
+            bool down = KeyIsDown(keyboard, Keys.Down) || KeyIsDown(keyboard, Keys.S);
+            bool left = KeyIsDown(keyboard, Keys.Left) || KeyIsDown(keyboard, Keys.A);
+            bool right = KeyIsDown(keyboard, Keys.Right) || KeyIsDown(keyboard, Keys.D);
+            bool mouseDown = mouse.LeftButton == ButtonState.Pressed;
+
+            // Before the first Present the frame is unknown; a pointer outside every rectangle is the
+            // honest answer, so no menu can hover on an invisible letterbox.
+            Vector2 design = canvas != null ? canvas.ToDesign(mouse.X, mouse.Y) : new Vector2(-1f, -1f);
+
+            UiFrame frame = new UiFrame
+            {
+                PointerX = (int)design.X,
+                PointerY = (int)design.Y,
+                PointerInside = design.X >= 0f && design.X < Sim.DesignWidth && design.Y >= 0f && design.Y < Sim.DesignHeight,
+                Click = mouseDown && !mouseWasPressed,
+                Enter = enter && !enterWasPressed,
+                Back = escape && !escapeWasPressed,
+                Up = up && !upWasPressed,
+                Down = down && !downWasPressed,
+                Left = left && !leftWasPressed,
+                Right = right && !rightWasPressed,
+            };
+
+            enterWasPressed = enter;
+            escapeWasPressed = escape;
+            upWasPressed = up;
+            downWasPressed = down;
+            leftWasPressed = left;
+            rightWasPressed = right;
+            mouseWasPressed = mouseDown;
+            return frame;
+        }
+
+        /// <summary>
+        /// The one keyboard read: native state on the desktop head; on the WebGL head the bridge-fed
+        /// <see cref="WebKeys"/>, where a press that landed between two polls still counts as held
+        /// for the Update that prunes it (the fresh-press latch).
+        /// </summary>
+        static bool KeyIsDown(KeyboardState native, Keys key) =>
+            UseWebKeyboard ? WebKeys.IsDown(key) || WebKeys.FreshDown(key) : native.IsKeyDown(key);
+
+        // ---- UiHost: everything a screen may ask for, and the one sync a settings change owes ----
+
+        void UiHost.GoTo(string target) => Harness.State.RequestedScreen = target;
+
+        void UiHost.FlyLevel(string levelId)
+        {
+            Harness.SelectLevel(levelId);
+            Harness.State.RequestedScreen = SimState.ScreenWorld;
+        }
+
+        void UiHost.RestartFlight()
+        {
+            Harness.RestartRun();
+            Harness.State.RequestedScreen = SimState.ScreenWorld;
+        }
+
+        void UiHost.Quit()
+        {
+            try { Exit(); }
+            catch (System.PlatformNotSupportedException) { /* the browser head cannot close itself */ }
+        }
+
+        /// <summary>
+        /// Wind Assist is felt by the flight in the air, not just the next one: the running state takes
+        /// the setting the moment it changes. The volumes reach nothing until I11 ships the sounds.
+        /// </summary>
+        void UiHost.LiveSettingsChanged() => Harness.State.WindAssist = AppSettings.WindAssist;
 
         static readonly bool DiagEnabled = System.Environment.GetEnvironmentVariable("BALLOON_DIAG") == "1";
 

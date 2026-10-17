@@ -100,6 +100,21 @@
             // when running inside an iframe. e.g: itch.io embedding.
             if ([32, 37, 38, 39, 40].indexOf(event.keyCode) > -1)
                 event.preventDefault();
+            // The game's keyboard of record (see WebKeys): the game reads keys from the bridge,
+            // not from KNI's Blazor key state, which stops updating after the first canvas click.
+            if (window.__GAME && !event.repeat)
+                window.__GAME.key(event.keyCode, true);
+        });
+        window.addEventListener("keyup", function(event)
+        {
+            if (window.__GAME)
+                window.__GAME.key(event.keyCode, false);
+        });
+        window.addEventListener("blur", function()
+        {
+            // Keys held while the tab loses focus never fire keyup: clear the table so nothing sticks.
+            if (window.__GAME)
+                window.__GAME.keyclear();
         });
         window.addEventListener("wheel", function(event)
         {

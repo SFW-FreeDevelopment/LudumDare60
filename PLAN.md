@@ -92,7 +92,7 @@ Milestones: **feel gate** (I5) by Sun ~20:00 · **content freeze** (I10) by Mon 
   Charlotte portrait, hearts, stars, delivery counter, vertical heat meter with flame, ballast pips,
   wind arrow + band marker — all kit-drawn, all mirrored in `__GAME` so tests can assert them.
   *Done when:* screenshots reviewed at 1280×720 and 420×760 with nothing clipped or unreadable.
-- [ ] **I7 — Menus, flow, settings** (~90m)
+- [x] **I7 — Menus, flow, settings** (~90m)
   Title (**For Charlotte ♥**), level select, settings (music/SFX volume, Wind Assist, reduced motion),
   credits, pause; keyboard-and-mouse with designed focus states, mouse-only playable too.
   *Done when:* Playwright drives title → level → pause → settings → credits with screenshots at both

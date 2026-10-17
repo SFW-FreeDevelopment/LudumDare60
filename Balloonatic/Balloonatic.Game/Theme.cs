@@ -80,6 +80,9 @@ namespace Balloonatic
         public static readonly Color Dim = new Color(0x24, 0x1A, 0x1E);
         public static readonly Color LetterBox = new Color(0x07, 0x10, 0x22);     // outside the design frame
 
+        /// <summary>The pause veil: dusk drawn over the held flight — one colour with an alpha, nothing more.</summary>
+        public static readonly Color PauseVeil = new Color(11, 17, 41, 150);
+
         /// <summary>
         /// Shade steps for anything with thickness (panels, buttons, baskets): index 0 is the lit top/left
         /// edge, 3 the shadowed bottom/right. Everything raised uses this ramp so the whole UI is modelled

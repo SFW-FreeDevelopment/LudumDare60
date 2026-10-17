@@ -45,7 +45,11 @@ namespace Balloonatic.Core
         public SimState State => _state;
         public bool Paused { get; private set; }
 
-        static SimState CreateState(ulong seed) => new SimState { Seed = seed == 0 ? DefaultSeed : seed };
+        static SimState CreateState(ulong seed) => new SimState
+        {
+            Seed = seed == 0 ? DefaultSeed : seed,
+            WindAssist = AppSettings.WindAssist,   // a new run inherits the assist switch
+        };
 
         /// <summary>Advance one step if the game loop owns time (i.e. tests are not driving it).</summary>
         public void AutoStep()
@@ -111,7 +115,7 @@ namespace Balloonatic.Core
                 case "drops":
                     return _state.DropsSeen.ToString(CultureInfo.InvariantCulture);
                 case "level":
-                    return a.Length == 0 ? _state.LevelId : SetLevel(a);
+                    return a.Length == 0 ? _state.LevelId : SelectLevel(a);
                 case "delivered":
                     return _state.Delivered ? "1" : "0";
                 case "complete":
@@ -124,6 +128,9 @@ namespace Balloonatic.Core
                     return SimRules.HashHex(_state);
                 case "state":
                     return StateJson();
+
+                case "settings":
+                    return a.Length == 0 ? AppSettings.Describe() : ApplySetting(a);
 
                 case "reset":
                 {
@@ -247,8 +254,10 @@ namespace Balloonatic.Core
         /// <summary>
         /// Switches the authored level and re-launches the balloon: position, temperature and ballast
         /// reset, seed and tick stay so a scripted replay remains comparable across the switch.
+        /// Public because the level-select screen's row press is the same verb as the test's
+        /// <c>__GAME.level()</c> — one code path for choosing a course.
         /// </summary>
-        string SetLevel(string id)
+        public string SelectLevel(string id)
         {
             if (!LevelCatalog.TryGet(id, out LevelDef level))
                 return "error:unknown-level:" + id;
@@ -261,6 +270,25 @@ namespace Balloonatic.Core
             _state.Temperature = SimTuning.TempAmbient;
             _state.BallastHeld = SimTuning.BagCapacity;
             return "ok:level=" + level.Id;
+        }
+
+        /// <summary>
+        /// <c>settings</c> reads the mirrored settings string; <c>settings=key=value</c> applies one.
+        /// Assist is the setting the running state can feel, so it syncs immediately — a paused player
+        /// who turns it on lands a calmer sky on the very next frame.
+        /// </summary>
+        string ApplySetting(string arg)
+        {
+            int eq = arg.IndexOf('=');
+            if (eq <= 0)
+                return "error:bad-arg:settings";
+            string key = arg.Substring(0, eq).Trim().ToLowerInvariant();
+            string value = arg.Substring(eq + 1).Trim().ToLowerInvariant();
+            string? error = AppSettings.TrySet(key, value);
+            if (error != null)
+                return error;
+            _state.WindAssist = AppSettings.WindAssist;
+            return "ok:" + AppSettings.Describe();
         }
 
         string HandleSet(string arg)
@@ -317,6 +345,8 @@ namespace Balloonatic.Core
               .Append("\"stars\":").Append(_state.Stars.ToString(CultureInfo.InvariantCulture)).Append(',')
               .Append("\"completedAtTick\":").Append(_state.CompletedAtTick.ToString(CultureInfo.InvariantCulture)).Append(',')
               .Append("\"bounces\":").Append(_state.Bounces.ToString(CultureInfo.InvariantCulture)).Append(',')
+              .Append("\"windAssist\":").Append(_state.WindAssist ? "true" : "false").Append(',')
+              .Append("\"settings\":\"").Append(AppSettings.Describe()).Append("\",")
               .Append("\"hash\":\"").Append(SimRules.HashHex(_state)).Append('"')
               .Append('}');
             return sb.ToString();

@@ -5,54 +5,101 @@ using Microsoft.Xna.Framework;
 namespace Balloonatic.Screens
 {
     /// <summary>
-    /// The start screen (I7, first slice): who is flying, what the keys do, and one obvious way in.
-    /// The sim does not run here — BalloonaticGame holds the clock while this screen is up — so the
-    /// frame is byte-stable and a screenshot test can assert the controls list is actually legible.
+    /// The title screen: who is flying, the sheet's own ribbon under her name, four wooden slats for
+    /// where to go, and the controls laid out like a launch checklist. The sim does not run here —
+    /// BalloonaticGame holds the clock on every screen but the world — so the title frame is as still
+    /// as a test frame, and the focus ring sits where the keyboard left it.
     /// </summary>
-    sealed class MenuScreen : IScreen
+    sealed class MenuScreen : IUiScreen
     {
+        // The button stack, in the order Up/Down walks it. FLY is first and starts focused: the
+        // hand-off from title to sky is one Enter press, exactly as it was before menus existed.
+        static readonly string[] Items = { "FLY", "CHOOSE COURSE", "SETTINGS", "CREDITS" };
+
+        const int StackX = 220;
+        const int StackY = 120;
+        const int StackW = 200;
+        const int StackH = 16;
+        const int StackGap = 22;
+
+        readonly UiHost _host;
+        int _focus;
+        int _hover = -1;
+
+        public MenuScreen(UiHost host) => _host = host;
+
         public string Id => SimState.ScreenMenu;
+
+        public void Tick(UiFrame f)
+        {
+            _hover = HitTest(f);
+            if (f.Up) _focus = (_focus + Items.Length - 1) % Items.Length;
+            if (f.Down) _focus = (_focus + 1) % Items.Length;
+            if (f.Enter || (f.Click && _hover >= 0))
+                Activate(f.Enter ? _focus : _hover);
+            if (f.Back)
+                _host.Quit();
+        }
+
+        void Activate(int index)
+        {
+            switch (index)
+            {
+                case 0: _host.GoTo(SimState.ScreenWorld); break;
+                case 1: _host.GoTo(SimState.ScreenLevels); break;
+                case 2: _host.GoTo(SimState.ScreenSettings); break;
+                case 3: _host.GoTo(SimState.ScreenCredits); break;
+            }
+        }
+
+        int HitTest(UiFrame f)
+        {
+            for (int i = 0; i < Items.Length; i++)
+                if (f.PointIsIn(StackX, StackY + i * StackGap, StackW, StackH))
+                    return i;
+            return -1;
+        }
 
         public void Draw(DesignCanvas canvas, SimState state)
         {
-            // Ground-level sky: the two lowest bands of the world ramp, no camera, no parallax —
-            // the menu is the calm frame before the moving one.
-            canvas.Fill(0, 0, Sim.DesignWidth, 210, Theme.SkyMid);
-            canvas.Fill(0, 210, Sim.DesignWidth, 120, Theme.SkyLow);
-            canvas.Fill(0, 330, Sim.DesignWidth, 30, Theme.MossGreen);
-            canvas.Fill(0, 330, Sim.DesignWidth, 2, Theme.GrassLight);
-            canvas.Fill(0, 348, Sim.DesignWidth, 12, Theme.WoodDark);
+            // The one backdrop the whole menu family shares (Kit.MenuBackdrop): the title is the same
+            // calm place the courses are chosen from.
+            Kit.MenuBackdrop(canvas);
 
-            // The world props standing where the player will meet them: an island, two clouds,
-            // and Charlotte airborne over her own launch deck.
-            Sprites.Draw(canvas, "cloud-mid", 40f, 66f);
-            Sprites.Draw(canvas, "cloud-small", 500f, 104f);
-            Sprites.Draw(canvas, "island-launch", 40f, 330f - 54f);
-            Sprites.Draw(canvas, "island-delivery", 500f, 330f - 54f);
-            Sprites.Draw(canvas, "balloon-0", 300f, 60f);
+            // The world props standing where the player will meet them, pushed to the sides so the
+            // button stack rides open sky the way a clear approach runway does.
+            Sprites.Draw(canvas, "island-launch", 28f, 330f - 54f);
+            Sprites.Draw(canvas, "island-delivery", 508f, 330f - 54f);
+            Sprites.Draw(canvas, "balloon-0", 156f, 52f);
 
-            // Title. The Aseprite logo sprite is I6's brass-and-stitch pass; until it exists the
-            // name rides the panel the same way every other readout does.
+            // Title, then the sheet's own ribbon under the name: FLOAT. EXPLORE. DELIVER DREAMS.
             int w = 268;
             int x = (Sim.DesignWidth - w) / 2;
-            Kit.Panel(canvas, new Rectangle(x, 34, w, 52), "OLD TECH SKIES");
-            PixelFont.DrawCentered(canvas, "CHARLOTTE'S BALLOONATIC", x + w / 2, 52, Theme.TagCream);
-            PixelFont.DrawCentered(canvas, "A HOT-AIR DELIVERY OVER THE HILLS", x + w / 2, 68, Theme.SignCream);
+            Kit.Panel(canvas, new Rectangle(x, 28, w, 52), "OLD TECH SKIES");
+            PixelFont.DrawCentered(canvas, "CHARLOTTE'S BALLOONATIC", x + w / 2, 46, Theme.TagCream);
+            PixelFont.DrawCentered(canvas, "A HOT-AIR DELIVERY OVER THE HILLS", x + w / 2, 62, Theme.SignCream);
+            Kit.Tag(canvas, (Sim.DesignWidth - (PixelFont.Width("FLOAT. EXPLORE. DELIVER DREAMS.") + 6)) / 2,
+                    88, "FLOAT. EXPLORE. DELIVER DREAMS.");
+
+            // The four slats. Focus is a ring, hover is the lit slat, and both are drawn by the one
+            // kit button the whole entry uses — keyboard and mouse arrive at the same picture.
+            for (int i = 0; i < Items.Length; i++)
+            {
+                var bounds = new Rectangle(StackX, StackY + i * StackGap, StackW, StackH);
+                Kit.UiState ui = i == _hover ? Kit.UiState.Hover : Kit.UiState.Rest;
+                Kit.Button(canvas, bounds, Items[i], ui, focused: i == _focus);
+            }
 
             // Controls: the four verbs of the game, keys on the left, plain words on the right.
             int cw = 316;
             int cx = (Sim.DesignWidth - cw) / 2;
-            Kit.Panel(canvas, new Rectangle(cx, 132, cw, 76), "CONTROLS");
-            int row = 150;
+            Kit.Panel(canvas, new Rectangle(cx, 214, cw, 76), "CONTROLS");
+            int row = 232;
             DrawControlRow(canvas, cx + 20, row, "HEAT", "HOLD SPACE OR LEFT MOUSE");
             DrawControlRow(canvas, cx + 20, row + 12, "BALLAST", "PRESS B OR RIGHT MOUSE");
             DrawControlRow(canvas, cx + 20, row + 24, "STEER", "ALTITUDE SELECTS THE WIND");
             DrawControlRow(canvas, cx + 20, row + 36, "LAND", "EASE ONTO A DECK, SLOW AND STRAIGHT");
-            PixelFont.DrawCentered(canvas, "R FLY AGAIN   /   ESC QUIT", x + 134, 196, Theme.SignCream);
-
-            // The way in, stated once, no blink (blinking breaks byte-stable screenshots and adds
-            // nothing a still tag cannot say).
-            Kit.Tag(canvas, Sim.DesignWidth / 2 - 51, 240, "PRESS ENTER OR CLICK TO FLY");
+            PixelFont.DrawCentered(canvas, "ARROWS SELECT   ENTER CONFIRMS   ESC ESCAPES", x + w / 2, 278, Theme.SignCream);
             canvas.Outline(new Rectangle(0, 0, Sim.DesignWidth, Sim.DesignHeight), Theme.Ink);
         }
 

@@ -33,6 +33,7 @@ namespace Balloonatic.Rendering
         readonly Texture2D _pixel;
         RenderTarget2D? _target;
         float _scale = 1f;
+        int _offsetX, _offsetY;
 
         public DesignCanvas(Game game, GraphicsDevice device, SpriteBatch spriteBatch)
         {
@@ -48,6 +49,13 @@ namespace Balloonatic.Rendering
 
         /// <summary>The scale last used to present. Tests assert the letterbox math through it.</summary>
         public float Scale => _scale;
+
+        /// <summary>
+        /// Pointer pixels (surface origin) to design coordinates — the inverse of the last Present, so
+        /// menus hit-test the exact rectangles they drew at any letterbox offset on any head.
+        /// </summary>
+        public Vector2 ToDesign(int surfaceX, int surfaceY) =>
+            new Vector2((surfaceX - _offsetX) / _scale, (surfaceY - _offsetY) / _scale);
 
         public Vector2 Center => new Vector2(Width / 2f, Height / 2f);
 
@@ -177,6 +185,8 @@ namespace Balloonatic.Rendering
             int drawW = (int)Math.Round(Width * scale);
             int drawH = (int)Math.Round(Height * scale);
             var destination = new Rectangle((surfaceWidth - drawW) / 2, (surfaceHeight - drawH) / 2, drawW, drawH);
+            _offsetX = destination.X;
+            _offsetY = destination.Y;
 
             _device.SetRenderTarget(null);
             _device.Clear(Theme.LetterBox);
