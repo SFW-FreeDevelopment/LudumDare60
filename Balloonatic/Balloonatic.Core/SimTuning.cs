@@ -76,6 +76,38 @@ namespace Balloonatic.Core
         /// <summary>Steps a "too fast" reason tag stays up after a bounce (1.5 s of reason).</summary>
         public const int BounceReasonSteps = 90;
 
+        // ---- I9 hazards: hearts, and what getting hit does ----
+
+        /// <summary>Hearts at launch. Losing the last one ends the run where it stands.</summary>
+        public const int HeartsStart = 3;
+
+        /// <summary>Steps of grace after a hit (2 s): one collision is one heart, never a chip chain.
+        /// A fresh launch sits inside this window too — the first two seconds of a course cannot hurt.</summary>
+        public const int InvulnTicks = 120;
+
+        /// <summary>Horizontal and vertical impulse (design px/s) thrown away from the hazard that hit.</summary>
+        public const float KnockbackX = 48f;
+        public const float KnockbackY = 30f;
+
+        /// <summary>Steps the camera shake holds after a hit. Short and one pixel: the shake is a
+        /// bruise, not an earthquake — fast background motion is on the motion-sickness record.</summary>
+        public const int ShakeTicks = 30;
+
+        /// <summary>The envelope-and-basket collision box, as measured off the sheet sprite: the body
+        /// lives from ~4 px below the altitude line to ~72 px above it, 60 design px wide.</summary>
+        public const float BalloonBodyOffset = 34f;   // body centre, above the basket line
+        public const float BalloonHalfWidth = 26f;
+        public const float BalloonHalfHeight = 38f;
+
+        /// <summary>Half-extents of the sheet rock and bird sprites (slice px / 2 = design px).</summary>
+        public const float RockHalfWidth = 10f;
+        public const float RockHalfHeight = 8f;
+        public const float BirdHalfWidth = 6f;
+        public const float BirdHalfHeight = 4f;
+
+        /// <summary>Steps each half of a storm gust's cycle lasts: back, back, forth, forth.</summary>
+        public const int StormGustTicks = 18;
+
         // Terminal rise at pegged heat with no ballast: (LiftGain - Gravity) / Drag ≈ 85 px/s, so one
         // 120 px wind band is crossed in well under two seconds while a coast down takes several. Those
         // two numbers — snappy up, patient down — are the feel gate's first subject in I5.

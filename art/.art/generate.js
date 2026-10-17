@@ -604,6 +604,98 @@ const FLAME_HUD = [
 
 // ================================================================ sheet packing
 // frames stack vertically inside the name's column; slices.json (the loader's table) mirrors this.
+// ==================================
+// I9 hazard sprites: a floating sky rock, a gull in two flaps, and a storm bank. The rock and
+// the bird author as 1x design ASCII (x2'd like the HUD); the storm reuses the cloud lobes at
+// internal resolution so weather reads as one family with the fair-weather clouds.
+// ==================================
+
+// Floating rock, 20x14 design: grass cap over a tapered, bruised stone body. The taper is
+// straight-sided (round tapers through ASCII stairs), the shading is ramp *selection*.
+function skyRock() {
+  return ascii([
+    "....KKKKKKKKKKKK....",
+    ".KggggggggggggggggK.",
+    ".KggggggggggggggggK.",
+    "KmggggggggggggggggmK",
+    "KRGGGGGGGGGGGGGGGGRK",
+    "KRddRRRRRRRRRRRRddRK",
+    "KRddRRRRRRRRRRRRddRK",
+    ".KRddRRRRRRRRRRddRK.",
+    ".KRdddRRRRRRRRdddRK.",
+    ".KRdddRRRRRRRRdddRK.",
+    "..KRdddRRRRRRdddRK..",
+    "..KRdddRRRRRRdddRK..",
+    "...KddddRRRRddddK...",
+    "....KKKKKKKKKKKK....",
+  ], 0, 0, { g: "grass", G: "moss", m: "moss", R: "rock", d: "rockD" });
+}
+
+// Gull, 12x6 design in two wing phases. Body rows sit at the same heights in both frames so a
+// flapping bird never jitters its own centre; the beak and eye face downwind (+X) and the
+// loader flips for the way home.
+function birdFrame(rows) {
+  return ascii(rows, 0, 0, { w: "cw", c: "cl", f: "f2" });   // cream gull, lavender underside, orange beak
+}
+function birdUp() {
+  return birdFrame([
+    ".KK......KK.",
+    "KcwK....KcwK",
+    ".KwKKKKKKwK.",
+    ".KwwwwwKwwKf",
+    "..KwwwwwwwK.",
+    "...KKKKKK...",
+  ]);
+}
+function birdDown() {
+  return birdFrame([
+    "............",
+    "............",
+    "..KKKKKKKK..",
+    ".KwwwwwKwwKf",
+    "KcwKwwwwKcwK",
+    "..KwKKKKKwK.",
+  ]);
+}
+
+// Storm bank at internal resolution: the same cloud lobes as the fair-weather clouds, but the
+// lavender body sits under a bruised underbelly, the underside is closed with ink, and a brass
+// spark hangs off the middle. The two f1 eye slits are the whole "angry" trick.
+function stormCloud() {
+  const w = 140;
+  const foot = Math.round(0.31 * w);
+  const topAt = (x) => {
+    const u = (x + 0.5) / w;
+    let best = null;
+    for (const l of LOBES) {
+      const dx = u - l.cx;
+      if (Math.abs(dx) >= l.r) continue;
+      const yTop = (l.cy - Math.sqrt(l.r * l.r - dx * dx)) * w;
+      if (best === null || yTop < best) best = yTop;
+    }
+    return best === null ? null : Math.max(0, Math.round(best));
+  };
+  const px = [];
+  for (let x = 0; x < w; x++) {
+    const top = topAt(x);
+    if (top === null) continue;
+    for (let y = top; y <= foot; y++) {
+      let hex = PAL.cs;                                            // the gloom body
+      if (y >= foot - 2 && (x + y) % 2 === 0) hex = PAL.rockD;     // bruised floor
+      else if (y >= foot - 5 && (x + y) % 3 === 0) hex = PAL.cl;   // lit puffs in the dark
+      px.push([x, y, hex]);
+    }
+    px.push([x, Math.max(0, top - 1), PAL.K]);                     // ink crown, like the sheet's clouds
+    px.push([x, foot + 1, PAL.K]);                                 // closed, hard underside
+  }
+  // Eye slits and the spark — the bank's mean face, dead centre.
+  for (const [ex, ey] of [[58, 0], [59, 0], [60, 0], [78, 0], [79, 0], [80, 0]])
+    px.push([ex, 18 + ey, PAL.f1]);
+  const bolt = [[0, 0], [1, 0], [2, 0], [-1, 1], [0, 1], [1, 1], [0, 2], [1, 2], [2, 2], [1, 3], [0, 4], [1, 4]];
+  for (const [bx, by] of bolt) px.push([69 + bx, foot + 3 + by, PAL.f1]);
+  return px;
+}
+
 const SPRITES = {
   "balloon":      { w: 120, h: 150, frames: [0, 1, 2].map(f => balloonFrame(f)) },
   "bag-falling":  { w: 12, h: 14, frames: [sandbag()] },
@@ -622,6 +714,9 @@ const SPRITES = {
   "portrait":     { w: 44, h: 48, frames: [portrait()] },
   "heart-hud":    { w: 26, h: 22, frames: [x2(heartHud(true))] },
   "heart-hud-off": { w: 26, h: 22, frames: [x2(heartHud(false))] },
+  "rock":         { w: 40, h: 28, frames: [x2(skyRock())] },
+  "bird":         { w: 24, h: 12, frames: [x2(birdUp()), x2(birdDown())] },
+  "storm-cloud":  { w: 140, h: 52, frames: [stormCloud()] },
   "star-hud":     { w: 26, h: 22, frames: [x2(starHud())] },
   "gift":         { w: 26, h: 26, frames: [x2(gift())] },
   "flame-hud":    { w: 28, h: 28, frames: FLAME_HUD.map(x2) },

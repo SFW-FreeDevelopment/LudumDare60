@@ -9,8 +9,7 @@ namespace Balloonatic.Core
     /// this closes the loop gently so a player who holds the burner gets carried rather than punished.
     /// </summary>
     public static class Autopilot
-    {
-        /// <summary>
+    {        /// <summary>
         /// Pulse-width heat control toward an altitude target: a PD loop around the hover temperature
         /// (the one where lift equals weight, ballast included). The commanded temperature rises with
         /// altitude error and falls with vertical speed — start easing off before the band arrives,
@@ -51,7 +50,7 @@ namespace Balloonatic.Core
             for (int i = 0; i < steps; i++)
             {
                 SimInput input = TowardAltitude(state, target);
-                SimRules.Step(state, input, level);
+                SimRules.Step(state, input, level, hazards: false);   // a wind proof, not a dodge
                 if (state.X >= level.CourseLength)
                     return state.X;
             }
@@ -145,7 +144,7 @@ namespace Balloonatic.Core
                     braked = true;
                 }
 
-                SimRules.Step(state, input, level);
+                SimRules.Step(state, input, level, hazards: false);   // the ghost proves the wind line
                 if (state.Delivered)
                     return true;
             }
@@ -168,7 +167,7 @@ namespace Balloonatic.Core
             {
                 SimState sim = state.Clone();
                 for (int k = 0; k < horizon && !sim.Delivered; k++)
-                    SimRules.Step(sim, TowardAltitude(sim, alt), level);
+                    SimRules.Step(sim, TowardAltitude(sim, alt), level, hazards: false);
                 float score = ScoreLanding(sim, level);
                 if (score > bestScore)
                 {

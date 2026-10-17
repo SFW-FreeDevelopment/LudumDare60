@@ -132,6 +132,79 @@ test('a delivered run shows its banner — the win screen at a glance @shot @scr
   expect(buffer.length).toBeGreaterThan(1000);
 });
 
+/** Shared pose for the I9 hazard shots: a paused world on a given course, and the live hazard
+ *  coordinates straight from the bridge — the same closed-form functions that collide also draw,
+ *  so warping beside a hazard scripts a fact, not a camera angle. */
+async function poseHazards(page, levelId) {
+  await page.evaluate(() => window.__GAME.reset('1234'));
+  await page.evaluate(() => window.__GAME.screen('world'));
+  await expect.poll(() => page.evaluate(() => window.__GAME.screen()), { timeout: 10_000 }).toBe('world');
+  if (levelId) await page.evaluate((id) => window.__GAME.raw('level', id), levelId);
+  const hazards = await page.evaluate(async () => await window.__GAME.raw('hazards', ''));
+  const byKind = {};
+  for (const entry of hazards.split(';')) {
+    const [kind, xy] = entry.split(':');
+    (byKind[kind + 's'] ||= []).push(xy.split(',').map(Number));
+  }
+  return byKind;
+}
+
+function shootPath(page, testInfo, name) {
+  return (async () => {
+    await expect(page).toHaveScreenshot(`${name}.png`, { timeout: 60_000 });
+    fs.mkdirSync(SHOTS_DIR, { recursive: true });
+    const buffer = await page.screenshot({ path: path.join(SHOTS_DIR, `${name}-${testInfo.project.name}.png`) });
+    expect(buffer.length).toBeGreaterThan(1000);
+  })();
+}
+
+test('a floating rock bites — a heart spent and the balloon flung off it @shot @screens', async ({ page }, testInfo) => {
+  watchForErrors(page);
+  await bootGame(page);
+  const { rocks } = await poseHazards(page, null);
+
+  await page.evaluate(async ([x, y]) => {
+    await window.__GAME.raw('warp', `${x}=${y - 14}`);   // belly a hand above the rock centre
+    await window.__GAME.set('heat', 1);
+    await window.__GAME.step(25);                         // hit on the first step, flicker visible after
+  }, rocks[0]);
+
+  await page.waitForTimeout(300);
+  expect(await page.evaluate(async () => await window.__GAME.raw('hearts', ''))).toBe('2');
+  await shootPath(page, testInfo, '09-rock');
+});
+
+test('a bird works its path beside the balloon, wings mid-flap @shot @screens', async ({ page }, testInfo) => {
+  watchForErrors(page);
+  await bootGame(page);
+  const { birds } = await poseHazards(page, 'night-crossing');
+
+  await page.evaluate(async ([x, y]) => {
+    await window.__GAME.raw('warp', `${x + 50}=${y + 35}`);   // a clear hand away: no heart spent
+    await window.__GAME.set('heat', 1);
+    await window.__GAME.step(8);                              // flame lit, wings on the down beat
+  }, birds[0]);
+
+  await page.waitForTimeout(300);
+  expect(await page.evaluate(async () => await window.__GAME.raw('hearts', ''))).toBe('3');
+  await shootPath(page, testInfo, '10-bird');
+});
+
+test('the storm bank envelopes the balloon, chevrons showing the gust @shot @screens', async ({ page }, testInfo) => {
+  watchForErrors(page);
+  await bootGame(page);
+  const { storms } = await poseHazards(page, 'night-crossing');
+
+  await page.evaluate(async ([x, y]) => {
+    await window.__GAME.raw('warp', `${x}=${y}`);   // dead in the middle of the bank
+    await window.__GAME.step(30);                   // a mid-gust frame: the air is pushing downwind
+  }, storms[0]);
+
+  await page.waitForTimeout(300);
+  expect(await page.evaluate(async () => await window.__GAME.raw('hearts', ''))).toBe('3');
+  await shootPath(page, testInfo, '11-storm');
+});
+
 async function poseUiScreen(page, id) {
   await page.evaluate((screen) => window.__GAME.screen(screen), id);
   await expect.poll(() => page.evaluate(() => window.__GAME.screen()), { timeout: 10_000 }).toBe(id);

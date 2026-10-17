@@ -34,12 +34,12 @@ test('boots in a browser and the harness answers @smoke', async ({ page }, testI
     state: await window.__GAME.state(),
   }));
 
-  expect(protocol.version).toBe('i7');
+  expect(protocol.version).toBe('i9');
   expect(protocol.screen).toBe('menu');     // live play opens on the start screen; its clock is held
   expect(protocol.seed).toMatch(/^[0-9a-f]{16}$/);
   expect(protocol.hash).toMatch(/^[0-9a-f]{16}$/);
   expect(protocol.state.tick).toBeGreaterThanOrEqual(0);
-  expect(protocol.state.version).toBe('i7');
+  expect(protocol.state.version).toBe('i9');
 
   // I5's landing-rule fields ride in the state snapshot, so any watcher can judge a run's end.
   expect(protocol.state.delivered).toBe(false);
@@ -47,6 +47,7 @@ test('boots in a browser and the harness answers @smoke', async ({ page }, testI
   expect(protocol.state.stars).toBe(0);
   expect(protocol.state.bounces).toBe(0);
   expect(protocol.state.completedAtTick).toBe(0);   // nobody has landed yet; the results clock is blank
+  expect(protocol.state.hearts).toBe(3);            // I9: every flight starts with a full row
 
   // Reported for the record; the budget itself is an I12 concern, this is the baseline it compares to.
   console.log(
@@ -265,4 +266,31 @@ test('the canvas owns the page and the design frame letterboxes inside it', asyn
   const raw = Math.min(geometry.canvasWidth / 640, geometry.canvasHeight / 360);
   const expectedScale = raw >= 1 ? Math.floor(raw) : raw;
   expect(Number(values.scale)).toBeCloseTo(expectedScale, 3);
+});
+
+test('I9 hazards: warp onto a rock and the mirror spends a heart @smoke', async ({ page }) => {
+  watchForErrors(page);
+  await bootGame(page);
+
+  await page.evaluate(() => window.__GAME.reset('777'));
+  await page.evaluate(() => window.__GAME.screen('world'));
+  await expect.poll(() => page.evaluate(() => window.__GAME.screen()), { timeout: 10_000 }).toBe('world');
+
+  const reply = async (verb, arg) => await page.evaluate(async ([v, a]) => await window.__GAME.raw(v, a), [verb, arg]);
+
+  expect(await reply('hearts')).toBe('3');
+
+  // The bridge itself names the rock to stand on — no level data duplicated into JS.
+  const hazards = await reply('hazards');
+  expect(hazards).toMatch(/^rock:/);
+  const [rx, ry] = hazards.split(';')[0].replace('rock:', '').split(',').map(Number);
+
+  // Belly a hand above the rock centre: inside the hit box, sign of the knockback decided.
+  await reply('warp', `${rx}=${ry - 14}`);
+  await reply('step', '2');
+  expect(await reply('hearts')).toBe('2');
+
+  const state = await page.evaluate(() => window.__GAME.state());
+  expect(state.hearts).toBe(2);
+  expect(state.complete).toBe(false);   // two hearts left: still flying
 });

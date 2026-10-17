@@ -83,6 +83,18 @@ namespace Balloonatic.Core
         /// without reading a device, and so the hash covers it.</summary>
         public bool Heating;
 
+        /// <summary>Hearts left (I9): 3 at launch, one per rock or bird. The last one lost ends the run
+        /// where it stands — the panel that says so is the renderer's, this number is the fact.</summary>
+        public int Hearts = SimTuning.HeartsStart;
+
+        /// <summary>
+        /// Tick of the last hazard hit. Drives the invulnerability window, the hurt flicker and the
+        /// one-pixel camera shake — all three are pure functions of <c>Tick - HurtTick</c>, so stepped
+        /// frames stay byte-stable. Starts at 0, which makes the first two seconds of a launch a grace
+        /// period: the course cannot hit you before you have seen it.
+        /// </summary>
+        public int HurtTick;
+
         /// <summary>
         /// Wind Assist (I7 setting): the sky forgives gusts. Band winds still steer — the game stays
         /// the game — but the sudden gusts that can slap the balloon sideways are gone. Deliberately
@@ -120,6 +132,8 @@ namespace Balloonatic.Core
                 Stars = Stars,
                 CompletedAtTick = CompletedAtTick,
                 Heating = Heating,
+                Hearts = Hearts,
+                HurtTick = HurtTick,
                 WindAssist = WindAssist,
                 Screen = Screen,
             };
@@ -157,7 +171,13 @@ namespace Balloonatic.Core
         /// </summary>
         public static void Step(SimState state, SimInput input) => Step(state, input, LevelCatalog.Get(state.LevelId));
 
-        public static void Step(SimState state, SimInput input, LevelDef level)
+        /// <summary>
+        /// Advance one fixed step. <paramref name="hazards"/> turns the rocks-and-birds pass off —
+        /// the Autopilot flies with it off, because solvability is a promise about the <em>wind</em>:
+        /// the ghost proves a delivery line exists, and dodging is the player's job. Storm buffet
+        /// stays on for everyone; it is wind, and the navigation promise has to cover it.
+        /// </summary>
+        public static void Step(SimState state, SimInput input, LevelDef level, bool hazards = true)
         {
             float dt = Sim.StepSeconds;
             state.Seed = Sim.NextSeed(state.Seed);
@@ -264,8 +284,73 @@ namespace Balloonatic.Core
                 WindBand calm = level.BandAt(state.Altitude);
                 wind = calm.Direction * LevelDef.WindSpeed(calm.Strength);
             }
+            else
+            {
+                // Storm buffet rides on top of the band's air — and Wind Assist drops it exactly like
+                // the gust zones: banks of angry cloud become scenery, the navigation stays the same.
+                wind += level.StormWindAt(state.X, state.Altitude, state.Tick);
+            }
             state.VelocityX += (wind - state.VelocityX) * SimTuning.WindFollowRate * dt;
             state.X += state.VelocityX * dt;
+
+            // ---- I9 hazards: rocks and birds are things, and things you fly into cost a heart.
+            // One hit per InvulnTicks window; the knockback throws the balloon away from what it hit,
+            // so a collision is never a freeze — you are always left somewhere to fly on from.
+            if (hazards && state.Tick - state.HurtTick >= SimTuning.InvulnTicks)
+            {
+                for (int i = 0; i < level.Rocks.Length; i++)
+                {
+                    RockDef rock = level.Rocks[i];
+                    float rockAlt = rock.AltitudeAt(state.Tick);
+                    if (!TouchesBalloon(state, rock.X, rockAlt, SimTuning.RockHalfWidth, SimTuning.RockHalfHeight))
+                        continue;
+                    Hurt(state, rock.X, rockAlt);
+                    break;
+                }
+                if (state.Tick - state.HurtTick >= SimTuning.InvulnTicks)
+                {
+                    for (int i = 0; i < level.Birds.Length; i++)
+                    {
+                        (float bx, float birdAlt, int _) = level.Birds[i].At(state.Tick);
+                        if (!TouchesBalloon(state, bx, birdAlt, SimTuning.BirdHalfWidth, SimTuning.BirdHalfHeight))
+                            continue;
+                        Hurt(state, bx, birdAlt);
+                        break;
+                    }
+                }
+            }
+        }
+
+        /// <summary>Box overlap between the balloon's body (envelope and basket, as measured off the
+        /// sheet sprite) and a hazard's half-extents. Axis boxes, not circles: no sqrt in a step, and
+        /// the check is exactly what the drawn sprites look like they would touch.</summary>
+        static bool TouchesBalloon(SimState state, float x, float altitude, float halfWidth, float halfHeight)
+        {
+            float dx = Math.Abs(state.X - x);
+            float dy = Math.Abs(state.Altitude + SimTuning.BalloonBodyOffset - altitude);
+            return dx <= SimTuning.BalloonHalfWidth + halfWidth
+                && dy <= SimTuning.BalloonHalfHeight + halfHeight;
+        }
+
+        /// <summary>One heart, one flinch: knockback straight away from the thing hit, and if the last
+        /// heart goes, the run ends on the spot — delivered is false, and the panel the renderer
+        /// shows says why.</summary>
+        static void Hurt(SimState state, float hazardX, float hazardAltitude)
+        {
+            state.Hearts--;
+            state.HurtTick = state.Tick;
+
+            float dx = state.X - hazardX;
+            float dy = state.Altitude + SimTuning.BalloonBodyOffset - hazardAltitude;
+            state.VelocityX += SimTuning.KnockbackX * (dx >= 0f ? 1f : -1f);
+            state.VelocityY += SimTuning.KnockbackY * (dy >= 0f ? 1f : -1f);
+
+            if (state.Hearts <= 0)
+            {
+                state.Hearts = 0;
+                state.Complete = true;
+                state.CompletedAtTick = state.Tick;
+            }
         }
 
         /// <summary>
@@ -296,6 +381,8 @@ namespace Balloonatic.Core
             h = Mix(h, (ulong)state.BounceTick);
             h = Mix(h, (ulong)state.Stars);
             h = Mix(h, state.Heating ? 1UL : 0UL);
+            h = Mix(h, (ulong)state.Hearts);
+            h = Mix(h, (ulong)state.HurtTick);
             h = Mix(h, state.WindAssist ? 1UL : 0UL);
             foreach (char c in state.Screen)
                 h = Mix(h, c);

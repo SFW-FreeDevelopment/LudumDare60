@@ -13,8 +13,8 @@ exactly the way an entry host would.
 | Published payload on disk | 17.18 MB across 204 files (59 `.br` sidecars, 2.81 MB) | `export/web/` after `dotnet publish` |
 | `dotnet build` (5 projects, Release) | ~11 s | measured |
 | `dotnet publish` Blazor WebGL head | ~11 s (no `wasm-tools`, so no AOT) | measured |
-| Playwright suite | 56 tests, 2 viewports, ~50 s | `npx playwright test` |
-| xunit suite | 50 tests | `dotnet test` |
+| Playwright suite | 64 tests, 2 viewports, ~60 s | `npx playwright test` |
+| xunit suite | 58 tests | `dotnet test` |
 
 Budgets to watch (set in I12, warned about now): boot under ~3 s on a normal connection, payload under
 ~8 MB transferred, 60 fps in a Chromium tab. The 17 MB on disk is mostly uncompressed framework files
@@ -42,7 +42,7 @@ pinned in one place and cannot drift between browser and unit tests.
 | Call | Purpose |
 | --- | --- |
 | `ready`, `readyAtMs` | first drawn frame reached, and how long boot took |
-| `version()` | bridge protocol (`i7`) |
+| `version()` | bridge protocol (`i9`) |
 | `screen()` | which screen the game is actually drawing |
 | `screen(id)` | request a screen change; answered `ok:requested=<id>`, applied by the game's own frame loop, so callers poll `screen()` to confirm it |
 | `reset(seed)`, `seed()`, `tick()`, `hash()`, `state()` | scripted replays with a comparable hash |
@@ -58,6 +58,9 @@ pinned in one place and cannot drift between browser and unit tests.
 | `drops()` | sandbags released this run (`SimState.DropsSeen`), also in `state()` as `drops` — the falling-bag art draws from the release records, and the hash covers them |
 | `frames()`, `metrics()` | renderer-side counters: frame count, viewport/backbuffer/scale |
 | `settings()`, `settings('k=v')` | read/apply the menu options (`music`, `sfx`, `assist`, `motion`) — also mirrored in `state()` as `settings` and `windAssist` |
+| `raw('hearts')` | hearts left this run (I9) — also mirrored in `state()` as `hearts` |
+| `raw('hazards')` | the authored hazards as of the current tick: `rock:x,y;…;bird:x,y;…;storm:cx,cy` — the same closed-form functions the collision test and the renderer call |
+| `raw('warp', 'x=alt')` | park the balloon motionless and vulnerable at x/alt — scripted collisions and hazard screenshots |
 | `key(code=1\|0)`, `keyclear()` | internal: the WebGL head's keyboard feed (`WebKeys`), fired by `index.html`'s DOM listeners |
 
 Rules this enforces: only the harness advances time; `pause()` stops the game loop dead; rendering
@@ -221,3 +224,31 @@ Steven flew the desktop head and reported three things; each became a rule, not 
 - **xunit runs sequential now** (`[assembly: CollectionBehavior(DisableTestParallelization)]`):
    `AppSettings` is session state like a real options menu, and a settings toggle in one class was
    racing harness boots in another. The suite takes under a second either way.
+
+## Decisions recorded by I9 (hazards)
+
+- **Solvability is the wind's promise, not the dodge's.** `SimRules.Step` takes a `hazards` flag and
+  the Autopilot steps with it off: the ghost proves a delivery line through the wind bands exists,
+  and rocks/birds are the player's responsibility. Probing had shown imagined collisions poison the
+  planner's rollouts (return-air rocks made every recovery idea score as a knockback, and the ghost
+  drifted off the end of the world). Storm buffet stays on for everyone — gusts are wind, and the
+  navigation promise has to cover them. `GhostPilotFliesEveryCourseWithoutScratches` guards the
+  wiring: stitch real damage back into the ghost and an authored rock on a line goes red.
+- **Damage model**: 3 hearts, one hit per 2-second invulnerability window, knockback impulses away
+  from what was hit (48 px/s across, 30 up/down by side of contact) so a collision is never a
+  freeze. Zero hearts completes the run undelivered — the OUT OF HEARTS panel, not a game-over
+  screen; losing is one R away from flying again. A fresh state is invulnerable for its first two
+  seconds (launch grace), which also keeps warp-based tests honest: `warp` clears the window.
+- **Hazard positions are closed-form in the tick** (triangle-wave bob, polyline ping-pong, square-wave
+  gusts — no transcendental state, no integration), so the sprite, the collision test and the
+  `raw('hazards')` mirror all read one function of `(level, tick)`, and authored rock/bird/storm
+  placement is a data review, not a simulation log.
+- **Hearts and HurtTick join `SimState.Hash`**, the HUD draws `heart-hud-off` the moment the sim
+  spends one, and the hurt feedback respects the calmness floor: a 1 px, half-second camera wobble
+  (pure function of `Tick - HurtTick`, byte-stable under stepping) and a balloon blink — under
+  Reduced Motion the wobble is off and the blink becomes a steady dim through the window.
+- **Hazard art is sheet family, not a new dialect**: the rock is the islands' grass cap over a
+  `rock`/`rockD` taper, the gull is a cloud-bird (cream body, lavender underside, flame-orange beak)
+  flapping on the shared decoration clock, and the storm reuses the fair-weather cloud lobes with a
+  bruised underbelly, closed ink underside, eye slits and a hanging spark. The bank's drawn extent
+  *is* its box; a three-chevron arrow under it shows which way the gust pushes this tick.

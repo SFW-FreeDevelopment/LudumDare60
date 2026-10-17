@@ -21,6 +21,9 @@
 //   window.__GAME.frames()               // renderer frame counter (for frame-rate budgets)
 //   window.__GAME.settings()             // the mirrored settings string, e.g. "music=8;sfx=8;assist=0;motion=0"
 //   window.__GAME.settings('assist=1')   // apply one key=value pair, read back the whole line
+//   window.__GAME.raw('hearts')          // hearts left this run (I9)
+//   window.__GAME.raw('hazards')         // authored hazards as "rock:x,y;bird:x,y;storm:x,y" at the current tick
+//   window.__GAME.raw('warp', 'x=alt')   // park the balloon still and vulnerable at x/alt — scripted collisions
 (function () {
     const assembly = 'Balloonatic';
     const startedAt = performance.now();

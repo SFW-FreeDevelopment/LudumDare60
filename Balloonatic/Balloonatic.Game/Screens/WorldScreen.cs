@@ -67,8 +67,10 @@ namespace Balloonatic.Screens
             DrawStars(canvas, camX, camAlt, state);
             DrawCloudLayer(canvas, level, state, camX, camAlt, far: true);
             DrawCloudLayer(canvas, level, state, camX, camAlt, far: false);
+            DrawStormBanks(canvas, level, state, camX, camAlt);       // I9: angry cloud banks at mid-cloud depth
             DrawWindStreaks(canvas, level, state, camX, camAlt);
             DrawIslands(canvas, level, state, camX, camAlt);
+            DrawHazards(canvas, level, state, camX, camAlt);          // I9: rocks and birds, before the balloon
             DrawFallingBags(canvas, state, camX, camAlt);
             DrawBalloon(canvas, state, camX, camAlt);
             DrawHud(canvas, level, state);
@@ -102,8 +104,23 @@ namespace Balloonatic.Screens
                 PixelFont.DrawCentered(canvas, "TOO FAST!", bx, by, Theme.FlameRed);
             }
 
-            if (!state.Complete || !state.Delivered)
+            if (!state.Complete)
                 return;
+
+            if (!state.Delivered)
+            {
+                // The other ending (I9): hearts spent where she stands. Same crate, gentler words —
+                // losing is not a scold, and the run is one R away from being a flight again.
+                int ow = 210;
+                int oh = 78;
+                int ox = (Sim.DesignWidth - ow) / 2;
+                Kit.Panel(canvas, new Rectangle(ox, 92, ow, oh), "OUT OF HEARTS");
+                PixelFont.DrawCentered(canvas, "CHARLOTTE NEEDS A REST", ox + ow / 2, 92 + 26, Theme.TagCream);
+                for (int s = 0; s < 3; s++)
+                    Sprites.Draw(canvas, "star-off", ox + ow / 2 - 11 + s * 8, 92 + 42);
+                PixelFont.DrawCentered(canvas, "PRESS R TO FLY AGAIN", ox + ow / 2, 92 + 62, Theme.WoodLight);
+                return;
+            }
 
             int w = 210;
             int h = 96;
@@ -151,6 +168,15 @@ namespace Balloonatic.Screens
             // Pure state again — no render memory, byte-stable screenshots.
             float courseBias = state.X < level.CourseLength ? Sim.DesignWidth / 4 : 0;
             float camX = Clamp(targetX + courseBias, worldLeft + Sim.DesignWidth / 2, worldRight - Sim.DesignWidth / 2);
+
+            // I9 hurt shake: one pixel, half a second, a pure function of (Tick - HurtTick) so a
+            // stepped frame stays byte-stable. It is a bruise, not an earthquake — and Reduced
+            // Motion keeps it out entirely, leaving the balloon's own flicker to carry the news.
+            int hurtAge = state.Tick - state.HurtTick;
+            if (!AppSettings.ReducedMotion && state.Hearts < SimTuning.HeartsStart
+                && hurtAge >= 0 && hurtAge < SimTuning.ShakeTicks)
+                camX += (hurtAge / 3 % 2 == 0 ? 1f : -1f) * (1f - hurtAge / (float)SimTuning.ShakeTicks);
+
             return (camX, camAlt);
         }
 
@@ -339,6 +365,52 @@ namespace Balloonatic.Screens
             }
         }
 
+        /// <summary>
+        /// I9 storm banks: the art <em>is</em> the box — the row of angry clouds is drawn from the
+        /// zone's own bounds, so where the sprites end is exactly where the buffet stops. Beneath
+        /// the middle, a three-chevron arrow shows which way the bank is pushing this very tick,
+        /// read from the same square wave the sim is feeling.
+        /// </summary>
+        static void DrawStormBanks(DesignCanvas canvas, LevelDef level, SimState state, float camX, float camAlt)
+        {
+            for (int i = 0; i < level.Storms.Length; i++)
+            {
+                StormZone zone = level.Storms[i];
+                float midAlt = (zone.FromAltitude + zone.ToAltitude) / 2f;
+                Vector2 size = Sprites.Size("storm-cloud");
+                for (float cx = zone.FromX + size.X / 2f; cx < zone.ToX; cx += size.X - 10f)
+                    Sprites.Draw(canvas, "storm-cloud",
+                        ScreenX(cx, camX) - size.X / 2f, ScreenY(midAlt, camAlt) - size.Y / 2f);
+
+                float push = level.StormWindAt((zone.FromX + zone.ToX) / 2f, midAlt, state.Tick);
+                PixelFont.DrawCentered(canvas, push >= 0f ? ">>>" : "<<<",
+                    Round(ScreenX((zone.FromX + zone.ToX) / 2f, camX)), Round(ScreenY(zone.FromAltitude, camAlt) + 8),
+                    Theme.TagCream);
+            }
+        }
+
+        /// <summary>
+        /// I9 rocks and birds. Both drawn from the same closed-form tick functions the collision
+        /// test calls, so a rock's sprite and its temper are the same number, and the bird flaps on
+        /// the shared decoration clock — stopped when the run is, like everything else.
+        /// </summary>
+        static void DrawHazards(DesignCanvas canvas, LevelDef level, SimState state, float camX, float camAlt)
+        {
+            for (int i = 0; i < level.Rocks.Length; i++)
+            {
+                (float x, float alt) = level.RockAt(i, state.Tick);
+                Vector2 size = Sprites.Size("rock");
+                Sprites.Draw(canvas, "rock", ScreenX(x, camX) - size.X / 2f, ScreenY(alt, camAlt) - size.Y / 2f);
+            }
+            for (int i = 0; i < level.Birds.Length; i++)
+            {
+                (float x, float alt, int dir) = level.BirdAt(i, state.Tick);
+                Vector2 size = Sprites.Size("bird-0");
+                Sprites.Draw(canvas, "bird", Clock(state) / 8 % 2,
+                    ScreenX(x, camX) - size.X / 2f, ScreenY(alt, camAlt) - size.Y / 2f, flip: dir < 0);
+            }
+        }
+
         static void DrawBalloon(DesignCanvas canvas, SimState state, float camX, float camAlt)
         {
             // The craft sits at its true world position; when the camera leads it, the offset reads as
@@ -349,7 +421,17 @@ namespace Balloonatic.Screens
             float foot = ScreenY(state.Altitude, camAlt) + 4f;
             int frame = state.Heating ? 1 + Clock(state) / 8 % 2 : 0;
             Vector2 size = Sprites.Size("balloon-0");
-            Sprites.Draw(canvas, "balloon", frame, x - size.X / 2, foot - size.Y);
+
+            // I9 invulnerability: for the grace window after a hit the balloon blinks, from a pure
+            // (Tick - HurtTick) phase so stepped frames stay byte-stable. Reduced Motion dims her
+            // through the window instead of blinking it — same news, gentler for the eyes.
+            int hurtAge = state.Tick - state.HurtTick;
+            bool hurtWindow = state.Hearts < SimTuning.HeartsStart && hurtAge >= 0 && hurtAge < SimTuning.InvulnTicks;
+            if (hurtWindow && !AppSettings.ReducedMotion && hurtAge / 4 % 2 == 1)
+                return;
+            Color? tint = hurtWindow && AppSettings.ReducedMotion ? new Color(150, 150, 150) : null;
+
+            Sprites.Draw(canvas, "balloon", frame, x - size.X / 2, foot - size.Y, tint: tint);
         }
 
         /// <summary>
@@ -359,8 +441,8 @@ namespace Balloonatic.Screens
         /// </summary>
         static int Clock(SimState state) => state.Complete ? state.CompletedAtTick : state.Tick;
 
-        // The heart row is drawn full until damage exists; the I9 hazards initiative gives the sim a
-        // hearts field, and then the empty slots and the __GAME mirror arrive with it.
+        // Hearts: 3 at launch, one per rock or bird (I9). "heart-hud-off" is the empty slot the
+        // moment the sim spends one.
         const int HeartsTotal = 3;
 
         /// <summary>
@@ -379,7 +461,7 @@ namespace Balloonatic.Screens
             Sprites.Draw(canvas, "portrait", 13, 11);
             canvas.CutRectangle(39, 10, 68, 32, 1, Theme.Dim);              // inner well behind the counters
             for (int i = 0; i < HeartsTotal; i++)
-                Sprites.Draw(canvas, "heart-hud", 42 + i * 16, 12);
+                Sprites.Draw(canvas, i < state.Hearts ? "heart-hud" : "heart-hud-off", 42 + i * 16, 12);
             Sprites.Draw(canvas, "star-hud", 42, 28);
             PixelFont.DrawShadowed(canvas, "x" + state.Stars, 58, 31, Theme.TagCream);
             Sprites.Draw(canvas, "gift", 78, 27);

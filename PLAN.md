@@ -110,7 +110,7 @@ Milestones: **feel gate** (I5) by Sun ~20:00 · **content freeze** (I10) by Mon 
   stars/hearts — palette-audited export, embedded sheet 8.5 KB, every world placeholder replaced, screenshots
   judged both viewports. Title logo + Charlotte portrait + HUD gauge/tags are the *same pipeline's* next
   sprites, scheduled inside I6 which owns that screen.
-- [ ] **I9 — Hazards + damage** (~90m)
+- [x] **I9 — Hazards + damage** (~90m)
   Floating rocks, birds on authored paths, storm-cloud gust zones; knockback, hearts, invulnerability
   flicker, reduced-motion-safe shake.
   *Done when:* one sim test per hazard plus a screenshot of each in play.

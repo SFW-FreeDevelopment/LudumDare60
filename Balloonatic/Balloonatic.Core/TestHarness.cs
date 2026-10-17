@@ -124,6 +124,29 @@ namespace Balloonatic.Core
                     return _state.Stars.ToString(CultureInfo.InvariantCulture);
                 case "bounces":
                     return _state.Bounces.ToString(CultureInfo.InvariantCulture);
+                case "hearts":
+                    return _state.Hearts.ToString(CultureInfo.InvariantCulture);
+                case "hazards":
+                    return DescribeHazards();
+
+                case "warp":
+                {
+                    // Script a collision: park the balloon at a place with still air, vulnerable now
+                    // (the launch grace is a launch thing, not a teleport thing). Screenshots and the
+                    // mirror spec stand hazards up in front of the balloon with this.
+                    string[] parts = a.Split('=');
+                    if (parts.Length != 2
+                        || !float.TryParse(parts[0], NumberStyles.Float, CultureInfo.InvariantCulture, out float x)
+                        || !float.TryParse(parts[1], NumberStyles.Float, CultureInfo.InvariantCulture, out float alt))
+                        return "error:bad-arg:warp";
+                    _state.X = x;
+                    _state.Altitude = alt;
+                    _state.VelocityX = 0f;
+                    _state.VelocityY = 0f;
+                    _state.HurtTick = -SimTuning.InvulnTicks;
+                    return "ok:" + SimRules.HashHex(_state);
+                }
+
                 case "hash":
                     return SimRules.HashHex(_state);
                 case "state":
@@ -321,6 +344,43 @@ namespace Balloonatic.Core
             ulong.TryParse(text.StartsWith("0x", StringComparison.OrdinalIgnoreCase) ? text.Substring(2) : text,
                            NumberStyles.HexNumber, CultureInfo.InvariantCulture, out seed);
 
+        /// <summary>
+        /// The authored hazards as live coordinates — <c>rock:x,y;bird:x,y;storm:cx,cy</c> at the
+        /// current tick, from the same position functions the sim collides against and the renderer
+        /// draws. The JS side locates a rock through this to script a collision without duplicating
+        /// any level data.
+        /// </summary>
+        string DescribeHazards()
+        {
+            LevelDef level = LevelCatalog.Get(_state.LevelId);
+            StringBuilder sb = new StringBuilder(96);
+            for (int i = 0; i < level.Rocks.Length; i++)
+            {
+                (float x, float alt) = level.RockAt(i, _state.Tick);
+                AppendPoint(sb, "rock", x, alt);
+            }
+            for (int i = 0; i < level.Birds.Length; i++)
+            {
+                (float x, float alt, int _) = level.BirdAt(i, _state.Tick);
+                AppendPoint(sb, "bird", x, alt);
+            }
+            for (int i = 0; i < level.Storms.Length; i++)
+            {
+                StormZone zone = level.Storms[i];
+                AppendPoint(sb, "storm", (zone.FromX + zone.ToX) / 2f, (zone.FromAltitude + zone.ToAltitude) / 2f);
+            }
+            return sb.Length == 0 ? "none" : sb.ToString();
+        }
+
+        static void AppendPoint(StringBuilder sb, string kind, float x, float altitude)
+        {
+            if (sb.Length > 0)
+                sb.Append(';');
+            sb.Append(kind).Append(':')
+              .Append(x.ToString("0.0", CultureInfo.InvariantCulture)).Append(',')
+              .Append(altitude.ToString("0.0", CultureInfo.InvariantCulture));
+        }
+
         string StateJson()
         {
             StringBuilder sb = new StringBuilder(128);
@@ -345,6 +405,7 @@ namespace Balloonatic.Core
               .Append("\"stars\":").Append(_state.Stars.ToString(CultureInfo.InvariantCulture)).Append(',')
               .Append("\"completedAtTick\":").Append(_state.CompletedAtTick.ToString(CultureInfo.InvariantCulture)).Append(',')
               .Append("\"bounces\":").Append(_state.Bounces.ToString(CultureInfo.InvariantCulture)).Append(',')
+              .Append("\"hearts\":").Append(_state.Hearts.ToString(CultureInfo.InvariantCulture)).Append(',')
               .Append("\"windAssist\":").Append(_state.WindAssist ? "true" : "false").Append(',')
               .Append("\"settings\":\"").Append(AppSettings.Describe()).Append("\",")
               .Append("\"hash\":\"").Append(SimRules.HashHex(_state)).Append('"')
