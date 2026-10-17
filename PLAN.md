@@ -70,7 +70,7 @@ Milestones: **feel gate** (I5) by Sun ~20:00 · **content freeze** (I10) by Mon 
   velocity chases band wind with inertia; gust-zone hook; PD-loop autopilot.
   *Done when:* tests prove velocity never snaps across a band boundary, and an autopilot (heat toward
   a target band) reaches a target x — the same test reused for every level later.
-- [ ] **I4 — Draw layer + camera** (~90m)
+- [x] **I4 — Draw layer + camera** (~90m)
   Balloon/basket/Charlotte placeholders from the I1 kit, parallax cloud layers, wind streaks readable
   as direction+strength, smooth follow with look-ahead, letterboxed integer scaling, desktop + WebGL
   parity.

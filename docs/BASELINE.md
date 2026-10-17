@@ -13,7 +13,7 @@ exactly the way an entry host would.
 | Published payload on disk | 17.18 MB across 204 files (59 `.br` sidecars, 2.81 MB) | `export/web/` after `dotnet publish` |
 | `dotnet build` (5 projects, Release) | ~11 s | measured |
 | `dotnet publish` Blazor WebGL head | ~11 s (no `wasm-tools`, so no AOT) | measured |
-| Playwright suite | 22 tests, 2 viewports, ~16 s | `npx playwright test` |
+| Playwright suite | 24 tests, 2 viewports, ~25 s | `npx playwright test` |
 | xunit suite | 8 tests | `dotnet test` |
 
 Budgets to watch (set in I12, warned about now): boot under ~3 s on a normal connection, payload under
@@ -80,4 +80,14 @@ reads state and never writes it, so effects cannot perturb a replay.
   evidence and `docs/STYLE.md` locks it. Where a ramp needed a step the sheet lacks, `Theme.cs` marks
   it `INTERPOLATED`.
 - **Screen switching**: `screen(id)` is a request the game applies on its own frame, and `screen()`
-  reports only what is actually drawn â€” a test cannot make the game pretend to be on a screen.
+  reports only what is actually drawn — a test cannot make the game pretend to be on a screen.
+
+## Decisions recorded by I4
+
+- **Camera = pure function of state.** Position plus velocity look-ahead (plus a downwind framing bias
+  until the delivery is behind the balloon) is already smooth, because the physics is continuous — so
+  there is no render-side smoothing state, and a stepped frame is byte-stable. The world screenshot
+  test additionally asserts the state hash is unmoved after real frames of the world screen have
+  drawn: drawing reads state and never writes it.
+- **Live play boots on `world`**; a test's `reset` returns to the `scaffold` physics test bed, and any
+  pose that needs a specific screen requests it and polls until the game confirms the switch.

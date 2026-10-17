@@ -24,6 +24,7 @@ namespace Balloonatic
         DesignCanvas canvas = null!;
         readonly IScreen scaffoldScreen = new ScaffoldScreen();
         readonly IScreen styleScreen = new StyleScreen();
+        readonly IScreen worldScreen = new WorldScreen();
         IScreen screen;
         double accumulatorSeconds;
         bool ballastWasPressed;
@@ -34,7 +35,11 @@ namespace Balloonatic
             Content.RootDirectory = "Content";
             Harness = new TestHarness();
             Instance = this;
-            screen = scaffoldScreen;
+
+            // Live play opens on the world; a test's `reset` returns to the scaffold test bed. The
+            // screen field and the state must agree from the very first frame, so both are set here.
+            screen = worldScreen;
+            Harness.State.Screen = SimState.ScreenWorld;
 
             // Fixed stepping is done here, not by the framework, so a browser tab that throttles
             // rAF or a test that steps manually cannot change the simulation's result.
@@ -61,6 +66,7 @@ namespace Balloonatic
         {
             SimState.ScreenStyle => styleScreen,
             SimState.ScreenScaffold => scaffoldScreen,
+            SimState.ScreenWorld => worldScreen,
             _ => scaffoldScreen,
         };
 

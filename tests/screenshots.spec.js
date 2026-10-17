@@ -14,10 +14,14 @@ const { bootGame, watchForErrors, SHOTS_DIR } = require('./support');
 async function poseForScreenshot(page) {
   await page.evaluate(async () => {
     await window.__GAME.reset('1234');
+    await window.__GAME.screen('scaffold');
     await window.__GAME.set('heat', 1);
     await window.__GAME.step(240);
     await window.__GAME.set('heat', 0);
   });
+  // Live play boots on the world screen, so a scaffold pose has to ask for the scaffold — and wait for
+  // the game to confirm it is drawing it before anything is captured.
+  await expect.poll(() => page.evaluate(() => window.__GAME.screen()), { timeout: 10_000 }).toBe('scaffold');
 }
 
 test('scaffold frame matches its snapshot @shot @screens', async ({ page }, testInfo) => {
@@ -58,6 +62,36 @@ test('style sheet matches its snapshot @shot @screens', async ({ page }, testInf
   expect(errors, `console/JS errors while rendering: ${errors.join(' | ')}`).toEqual([]);
 });
 
+test('world screen renders the scrolling world, and drawing it never writes state @shot @screens', async ({ page }, testInfo) => {
+  watchForErrors(page);
+  await bootGame(page);
+
+  // Settle onto the world screen first: the switch is applied by the game's own frame, and the state
+  // hash includes the screen, so hashing before it lands would race with the switch itself.
+  await page.evaluate(() => window.__GAME.reset('1234'));
+  await page.evaluate(() => window.__GAME.screen('world'));
+  await expect.poll(() => page.evaluate(() => window.__GAME.screen()), { timeout: 10_000 }).toBe('world');
+
+  const hashBefore = await page.evaluate(async () => {
+    await window.__GAME.set('heat', 1);
+    await window.__GAME.step(240);    // burner lit: rise through the carrying band...
+    await window.__GAME.set('heat', 0);
+    await window.__GAME.step(300);    // ...then coast downwind, far enough for the delivery sign to show
+    return await window.__GAME.hash();
+  });
+
+  // Real frames of the world run while paused — if drawing wrote state, the hash would move here.
+  await page.waitForTimeout(300);
+  expect(await page.evaluate(() => window.__GAME.hash())).toBe(hashBefore);
+
+  const name = `02-world`;
+  await expect(page).toHaveScreenshot(`${name}.png`, { timeout: 60_000 });
+
+  fs.mkdirSync(SHOTS_DIR, { recursive: true });
+  const buffer = await page.screenshot({ path: path.join(SHOTS_DIR, `${name}-${testInfo.project.name}.png`) });
+  expect(buffer.length).toBeGreaterThan(1000);
+});
+
 test('heat visibly drives the balloon and the meter @shot @screens', async ({ page }, testInfo) => {
   watchForErrors(page);
   await bootGame(page);
@@ -66,9 +100,11 @@ test('heat visibly drives the balloon and the meter @shot @screens', async ({ pa
   for (const ticks of [0, 60, 150]) {
     await page.evaluate(async (n) => {
       await window.__GAME.reset('1234');
+      await window.__GAME.screen('scaffold');
       await window.__GAME.set('heat', 1);
       await window.__GAME.step(n);
     }, ticks);
+    await expect.poll(() => page.evaluate(() => window.__GAME.screen()), { timeout: 10_000 }).toBe('scaffold');
     frames[ticks] = await page.screenshot({
       path: path.join(SHOTS_DIR, `00-scaffold-heat-${String(ticks).padStart(3, '0')}-${testInfo.project.name}.png`),
     });

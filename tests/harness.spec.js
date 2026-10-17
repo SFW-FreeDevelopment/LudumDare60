@@ -22,7 +22,7 @@ test('boots in a browser and the harness answers @smoke', async ({ page }, testI
   }));
 
   expect(protocol.version).toBe('i3');
-  expect(protocol.screen).toBe('scaffold');
+  expect(protocol.screen).toBe('world');    // live play opens on the world; reset returns to the test bed
   expect(protocol.seed).toMatch(/^[0-9a-f]{16}$/);
   expect(protocol.hash).toMatch(/^[0-9a-f]{16}$/);
   expect(protocol.state.tick).toBeGreaterThanOrEqual(0);

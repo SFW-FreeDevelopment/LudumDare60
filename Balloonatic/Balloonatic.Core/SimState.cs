@@ -13,6 +13,7 @@ namespace Balloonatic.Core
     {
         public const string ScreenScaffold = "scaffold";
         public const string ScreenStyle = "style";
+        public const string ScreenWorld = "world";
 
         public ulong Seed;
         public int Tick;
