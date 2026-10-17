@@ -16,6 +16,7 @@ namespace Balloonatic.Core
         public const string ScreenStyle = "style";
         public const string ScreenWorld = "world";
         public const string ScreenLevels = "levels";
+        public const string ScreenWorldMap = "worldmap";
         public const string ScreenSettings = "settings";
         public const string ScreenCredits = "credits";
         public const string ScreenPause = "pause";

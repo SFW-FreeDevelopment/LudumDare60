@@ -118,7 +118,7 @@ namespace Balloonatic.Tests
         [Fact]
         public void StormBankBuffetsAndWindAssistTakesItAway()
         {
-            // Night Crossing's bank sits mid the contrary air (380..500 x, 335..365 alt). Park a
+            // Cloud Garden's bank sits mid the contrary air (380..500 x, 335..365 alt). Park a
             // balloon dead in it and hold the place: without assist the gust swings it about the
             // band wind; with assist the air is the band, flat as a line.
             float bandWind = -LevelDef.WindSpeed(1);

@@ -293,7 +293,9 @@ namespace Balloonatic.Core
 
     /// <summary>
     /// The authored levels. Three are enough for the jam scope (PLAN.md); each ships with the autopilot
-    /// solvability test in <c>WindLayerTests</c>.
+    /// solvability test in <c>WindLayerTests</c>. Ids are the harness's handles and stay frozen
+    /// (<c>winding-trail</c> is Toy Isles, <c>night-crossing</c> is Cloud Garden — the display names
+    /// followed PLAN, the ids did not, so committed tests and screenshots keep their anchors).
     /// </summary>
     public static class LevelCatalog
     {
@@ -322,12 +324,13 @@ namespace Balloonatic.Core
                     new RockDef(200f, 20f, 4f, 240, 40),
                 }),
 
-            // A zigzag: the middle air sprints, the upper air rebukes you, and the low air — the air a
-            // landing is made from — carries gently home. The bird works the mid sprint and the rocks
-            // guard the return and ceiling air: a player cruising fast, or fishing for home wind up
-            // high, shares that sky with them. The low approach stays clear for a landing descent.
+            // Toy Isles, a zigzag: the middle air sprints, the upper air rebukes you, and the low air —
+            // the air a landing is made from — carries gently home. The bird works the mid sprint and
+            // the rocks guard the return and ceiling air: a player cruising fast, or fishing for home
+            // wind up high, shares that sky with them. The low approach stays clear for a landing
+            // descent. Opposing bands are the lesson; the hazards are seasoning.
             new LevelDef(
-                "winding-trail", "Winding Trail", 520f,
+                "winding-trail", "Toy Isles", 520f,
                 new[]
                 {
                     new WindBand(0f, 110f, +1, 1),
@@ -347,13 +350,14 @@ namespace Balloonatic.Core
                     new BirdDef(new[] { 440f, 520f }, new[] { 280f, 240f }, 40f),
                 }),
 
-            // Night: a long haul under a fast ceiling, above a calm floor. The middle air barely
+            // Cloud Garden, the long haul: a fast ceiling over a calm floor. The middle air barely
             // carries and the air at the ceiling is the only real pace — go up to cross, come down to
             // land, and never try to land in the ceiling's hurry. A storm bank waits in the contrary
             // air mid-course, the bird patrols the quiet middle near home, and the rocks sit high —
-            // well clear of the long low drift the landing is flown from.
+            // well clear of the long low drift the landing is flown from. Strong wind plus hazards is
+            // the lesson.
             new LevelDef(
-                "night-crossing", "Night Crossing", 600f,
+                "night-crossing", "Cloud Garden", 600f,
                 new[]
                 {
                     new WindBand(0f, 140f, +1, 1),

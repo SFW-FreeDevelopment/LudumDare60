@@ -205,6 +205,41 @@ test('the storm bank envelopes the balloon, chevrons showing the gust @shot @scr
   await shootPath(page, testInfo, '11-storm');
 });
 
+/** The world map (I10) asked for and confirmed on screen — screen() only ever reports what is
+ *  actually being drawn, so a shot past this line cannot be racing the switch. */
+async function poseWorldMap(page) {
+  await page.evaluate(() => window.__GAME.reset('1234'));
+  await page.evaluate(() => window.__GAME.screen('worldmap'));
+  await expect.poll(() => page.evaluate(() => window.__GAME.screen()), { timeout: 10_000 }).toBe('worldmap');
+  await page.waitForTimeout(300);
+}
+
+test('the world map charts the voyage, balloon waiting at the next isle @shot @screens', async ({ page }, testInfo) => {
+  watchForErrors(page);
+  await bootGame(page);
+  await poseWorldMap(page);
+  await shootPath(page, testInfo, '12-worldmap');
+});
+
+test('a course carried home wears its stars on the map @shot @screens', async ({ page }, testInfo) => {
+  watchForErrors(page);
+  await bootGame(page);
+  await page.evaluate(() => window.__GAME.reset('1234'));
+  await page.evaluate(() => window.__GAME.screen('world'));
+  await expect.poll(() => page.evaluate(() => window.__GAME.screen()), { timeout: 10_000 }).toBe('world');
+  expect(await page.evaluate(async () => await window.__GAME.deliver())).toBe('ok:delivered');
+  await poseWorldMapAfterFlight(page);
+  await shootPath(page, testInfo, '13-worldmap-home');
+});
+
+/** Same ask as poseWorldMap but without the reset — the stars a finished flight just earned are
+ *  exactly what must survive onto the chart. */
+async function poseWorldMapAfterFlight(page) {
+  await page.evaluate(() => window.__GAME.screen('worldmap'));
+  await expect.poll(() => page.evaluate(() => window.__GAME.screen()), { timeout: 10_000 }).toBe('worldmap');
+  await page.waitForTimeout(300);
+}
+
 async function poseUiScreen(page, id) {
   await page.evaluate((screen) => window.__GAME.screen(screen), id);
   await expect.poll(() => page.evaluate(() => window.__GAME.screen()), { timeout: 10_000 }).toBe(id);

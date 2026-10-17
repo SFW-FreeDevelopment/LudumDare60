@@ -85,3 +85,34 @@ test('a real key press walks the title menu', async ({ page }) => {
   await page.keyboard.press('Escape');
   await expect.poll(() => screenOf(page), { timeout: 10_000 }).toBe('menu');
 });
+
+test('the voyage flies all three courses start to finish, charting each one home @smoke', async ({ page }) => {
+  // PLAN I10's "done when", end to end in WebGL: deliver a course, press the R the panel just
+  // advertised, and the world map opens under the balloon; Enter flies the next isle. After the
+  // last course the chart wraps — the voyage never dead-ends.
+  const errors = watchForErrors(page);
+  await bootGame(page);
+
+  await act(page, 'reset=606');
+  await act(page, 'screen=world');
+  await expect.poll(() => screenOf(page), { timeout: 10_000 }).toBe('world');
+
+  await page.locator('canvas').click({ position: { x: 2, y: 2 }, delay: 30 }); // keyboard needs the canvas focused; a stray click here is only one puff of heat
+
+  for (const id of ['nursery-skies', 'winding-trail', 'night-crossing']) {
+    expect(await act(page, 'level')).toBe(id);
+    expect(await act(page, 'deliver')).toBe('ok:delivered');
+    expect(await act(page, 'delivered')).toBe('1');
+
+    await act(page, 'resume');                     // the R handler is live only on a live world
+    await page.keyboard.press('KeyR');             // the panel's own key, through the browser pipeline
+    await expect.poll(() => screenOf(page), { timeout: 10_000 }).toBe('worldmap');
+    await page.keyboard.press('Enter');            // FLY ON
+    await expect.poll(() => screenOf(page), { timeout: 10_000 }).toBe('world');
+  }
+
+  // Wrapping the chart: home from the last course, the first course waits again.
+  expect(await act(page, 'level')).toBe('nursery-skies');
+  expect(await act(page, 'hearts')).toBe('3');     // fresh sky, fresh hearts — a wrap is a launch, not a carry-over
+  expect(errors, `console/JS errors during the voyage: ${errors.join(' | ')}`).toEqual([]);
+});

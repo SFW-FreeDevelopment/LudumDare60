@@ -13,7 +13,7 @@ exactly the way an entry host would.
 | Published payload on disk | 17.18 MB across 204 files (59 `.br` sidecars, 2.81 MB) | `export/web/` after `dotnet publish` |
 | `dotnet build` (5 projects, Release) | ~11 s | measured |
 | `dotnet publish` Blazor WebGL head | ~11 s (no `wasm-tools`, so no AOT) | measured |
-| Playwright suite | 64 tests, 2 viewports, ~60 s | `npx playwright test` |
+| Playwright suite | 70 tests, 2 viewports, ~80 s | `npx playwright test` |
 | xunit suite | 58 tests | `dotnet test` |
 
 Budgets to watch (set in I12, warned about now): boot under ~3 s on a normal connection, payload under
@@ -252,3 +252,24 @@ Steven flew the desktop head and reported three things; each became a rule, not 
   flapping on the shared decoration clock, and the storm reuses the fair-weather cloud lobes with a
   bruised underbelly, closed ink underside, eye slits and a hanging spark. The bank's drawn extent
   *is* its box; a three-chevron arrow under it shows which way the gust pushes this tick.
+
+## Decisions recorded by I10 (content freeze)
+
+- **Display names followed PLAN, ids did not.** The courses are **Nursery Skies**, **Toy Isles**
+  (opposing bands) and **Cloud Garden** (strong wind + hazards) on every tag and slat, while the
+  harness ids stay `nursery-skies` / `winding-trail` / `night-crossing` — committed tests, verbs and
+  snapshot anchors keep their handles.
+- **The world map sits between courses, not before them.** A delivered flight ends on the panel;
+  R or Enter opens `worldmap` — the three islands as chart nodes, a dotted route, stars earned
+  painted under each carried-home course, and the balloon parked at the next isle. `FLY ON` (Enter,
+  R, or the slat) advances the run; Escape walks to the menu; after the last course the chart
+  wraps, so the voyage never dead-ends. `screen('worldmap')` reaches it like any screen.
+- **R's meaning sharpens by outcome**: delivered → the chart; anything else (including out of
+  hearts) → replay the same sky. Running out of hearts no longer *skips* a course the way plain
+  `Complete` used to — the check is Delivered, not Complete.
+- **Voyage progress is session-scoped rendering state** (`AppProgress`): best stars per course,
+  written from Update the instant a run is home — scripted `deliver` counts exactly like a flown
+  one, and the sim hash never sees it. A reload starts the voyage fresh, like a scrap of chart
+  paper lost between sessions.
+- **The whole voyage is a Playwright test**: three courses delivered start-to-finish in WebGL
+  through the real keyboard (R, Enter), ending wrapped on the first course with fresh hearts.

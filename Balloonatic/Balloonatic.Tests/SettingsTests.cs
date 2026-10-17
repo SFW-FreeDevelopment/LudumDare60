@@ -34,7 +34,7 @@ namespace Balloonatic.Tests
         [Fact]
         public void WindAssistIgnoresGustsButKeepsTheBands()
         {
-            // Winding Trail carries a -14 gust inside 240..300 on top of a -28 band wind. With assist
+            // Toy Isles carries a -14 gust inside 240..300 on top of a -28 band wind. With assist
             // the balloon must settle on the band alone: gentler air, and altitude still steers.
             try
             {

@@ -114,7 +114,7 @@ Milestones: **feel gate** (I5) by Sun ~20:00 · **content freeze** (I10) by Mon 
   Floating rocks, birds on authored paths, storm-cloud gust zones; knockback, hearts, invulnerability
   flicker, reduced-motion-safe shake.
   *Done when:* one sim test per hazard plus a screenshot of each in play.
-- [ ] **I10 → content freeze** — **Levels + world map** (~90m)
+- [x] **I10 → content freeze** — **Levels + world map** (~90m)
   **Nursery Skies** (teaches heat/cool/land), **Toy Isles** (opposing bands), **Cloud Garden** (strong
   wind + hazards), taught by level geometry and windsock placement, not text; world-map screen between
   levels; every level passes the I3 autopilot solvability test.

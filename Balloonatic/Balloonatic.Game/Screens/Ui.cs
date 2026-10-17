@@ -19,6 +19,9 @@ namespace Balloonatic.Screens
 
         public bool Up, Down, Left, Right, Enter;
 
+        /// <summary>The R key went down this frame — the "again/on" key menus can honour too.</summary>
+        public bool Restart;
+
         /// <summary>The back verb (Escape). What "back" means is each screen's own call.</summary>
         public bool Back;
 
@@ -33,6 +36,9 @@ namespace Balloonatic.Screens
 
         /// <summary>Choose a course and launch it: the level-select row's whole job.</summary>
         void FlyLevel(string levelId);
+
+        /// <summary>Advance the voyage one course (the world map's FLY ON: the course after the last flight).</summary>
+        void FlyNextCourse();
 
         /// <summary>The pause panel's RESTART: the same run, the same sky, from the deck.</summary>
         void RestartFlight();

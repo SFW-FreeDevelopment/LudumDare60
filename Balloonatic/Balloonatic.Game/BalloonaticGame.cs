@@ -27,6 +27,7 @@ namespace Balloonatic
         readonly IScreen worldScreen;
         readonly IScreen menuScreen;
         readonly IScreen levelsScreen;
+        readonly IScreen worldMapScreen;
         readonly IScreen settingsScreen;
         readonly IScreen creditsScreen;
         readonly IScreen pauseScreen;
@@ -46,6 +47,7 @@ namespace Balloonatic
         // One-frame input edges: the UI thinks in presses, not holds (see UiFrame), so every device
         // snapshot is differenced against the last one and then remembered.
         bool enterWasPressed, escapeWasPressed, upWasPressed, downWasPressed, leftWasPressed, rightWasPressed;
+        bool rWasPressed;
         bool mouseWasPressed;
 
         protected BalloonaticGame()
@@ -60,6 +62,7 @@ namespace Balloonatic
             worldScreen = new WorldScreen(this);
             menuScreen = new MenuScreen(this);
             levelsScreen = new LevelSelectScreen(this);
+            worldMapScreen = new WorldMapScreen(this);
             settingsScreen = new SettingsScreen(this);
             creditsScreen = new CreditsScreen(this);
             pauseScreen = new PauseScreen((WorldScreen)worldScreen, this);
@@ -104,6 +107,7 @@ namespace Balloonatic
             SimState.ScreenWorld => worldScreen,
             SimState.ScreenMenu => menuScreen,
             SimState.ScreenLevels => levelsScreen,
+            SimState.ScreenWorldMap => worldMapScreen,
             SimState.ScreenSettings => settingsScreen,
             SimState.ScreenCredits => creditsScreen,
             SimState.ScreenPause => pauseScreen,
@@ -197,18 +201,17 @@ namespace Balloonatic
 
             if (!Harness.Paused && Harness.State.Screen == SimState.ScreenWorld)
             {
-                // R is the "again" key, and its meaning follows the run: a delivered flight advances to
-                // the next course (the last one loops back to the first), anything else replays this
-                // level's own sky on the same seed. Edge-triggered like the ballast key so holding it
-                // cannot re-trigger every frame.
+                // R is the "again" key, and its meaning follows the run: a delivered flight charts
+                // the next course on the world map (I10 — the voyage between levels), anything else
+                // replays this level's own sky on the same seed, so running out of hearts never skips
+                // a course. Enter answers the same call the delivery panel just advertised. Edge-
+                // triggered like the ballast key so holding cannot re-trigger every frame.
                 bool restartPressed = KeyIsDown(keyboard, Keys.R);
-                if (restartPressed && !restartWasPressed)
-                {
-                    if (Harness.State.Complete)
-                        Harness.AdvanceRun();
-                    else
-                        Harness.RestartRun();
-                }
+                if (Harness.State.Complete && Harness.State.Delivered
+                    && ((restartPressed && !restartWasPressed) || frame.Enter))
+                    Harness.State.RequestedScreen = SimState.ScreenWorldMap;
+                else if (restartPressed && !restartWasPressed)
+                    Harness.RestartRun();
                 restartWasPressed = restartPressed;
 
                 // Heat is one verb: hold Space or hold the left mouse button. Sandbags drop on the
@@ -236,6 +239,12 @@ namespace Balloonatic
                 accumulatorSeconds = 0;
             }
 
+            // The voyage record (I10): the moment a flight is home it is written on the chart paper,
+            // from any head and whether paused or not — scripted deliveries count exactly like flown
+            // ones. Rendering state only; the sim hash never sees it.
+            if (Harness.State.Complete && Harness.State.Delivered)
+                AppProgress.Mark(Harness.State.LevelId, Harness.State.Stars);
+
             ApplyScreenRequest();
 
             // Every key has been read for this frame: release the fresh-press latches so a sub-frame
@@ -260,6 +269,7 @@ namespace Balloonatic
             bool left = KeyIsDown(keyboard, Keys.Left) || KeyIsDown(keyboard, Keys.A);
             bool right = KeyIsDown(keyboard, Keys.Right) || KeyIsDown(keyboard, Keys.D);
             bool mouseDown = mouse.LeftButton == ButtonState.Pressed;
+            bool r = KeyIsDown(keyboard, Keys.R);   // the "again/on" key, also offered to menus (world map)
 
             // Before the first Present the frame is unknown; a pointer outside every rectangle is the
             // honest answer, so no menu can hover on an invisible letterbox.
@@ -272,6 +282,7 @@ namespace Balloonatic
                 PointerInside = design.X >= 0f && design.X < Sim.DesignWidth && design.Y >= 0f && design.Y < Sim.DesignHeight,
                 Click = mouseDown && !mouseWasPressed,
                 Enter = enter && !enterWasPressed,
+                Restart = r && !rWasPressed,
                 Back = escape && !escapeWasPressed,
                 Up = up && !upWasPressed,
                 Down = down && !downWasPressed,
@@ -286,6 +297,7 @@ namespace Balloonatic
             leftWasPressed = left;
             rightWasPressed = right;
             mouseWasPressed = mouseDown;
+            rWasPressed = r;
             return frame;
         }
 
@@ -304,6 +316,12 @@ namespace Balloonatic
         void UiHost.FlyLevel(string levelId)
         {
             Harness.SelectLevel(levelId);
+            Harness.State.RequestedScreen = SimState.ScreenWorld;
+        }
+
+        void UiHost.FlyNextCourse()
+        {
+            Harness.AdvanceRun();
             Harness.State.RequestedScreen = SimState.ScreenWorld;
         }
 
