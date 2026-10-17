@@ -76,14 +76,16 @@ Milestones: **feel gate** (I5) by Sun ~20:00 · **content freeze** (I10) by Mon 
   parity.
   *Done when:* Playwright screenshots at both viewports show a readable balloon against its background,
   and effects on/off keeps the state hash identical.
-- [ ] **I5 — Delivery loop + landing rule** → **FEEL GATE** (~90m)
+- [x] **I5 — Delivery loop + landing rule** → **FEEL GATE** (~90m)
   Launch platform, pickup, destination, soft-touch landing rule with a reason shown on a hard bounce,
   level-complete + 1–3 rating, instant restart.
   *Done when:* an autopilot run completes a delivery in the **WebGL** head under Playwright, and
   **Steven has played it and says the balloon feels good.** Do not continue past here on red feel —
   tune heat curve, drag, and band strengths until it does.
-  *Status:* code complete and green (40 xunit + 34 Playwright, screenshots judged both viewports);
-  awaiting Steven's playtest — the box is his to tick.
+  *Status:* **gate passed 2026-10-17** after four playtest rounds: frozen results clock + level
+  advance (c411e31), wind halved + background pushed far (50f1919), fixed-step presentation + third
+  wind notch (7a408f9). Verdict: *"It feels alright. We'll adjust more after running through your
+  plan"* — re-tune offer stands after the I8 art initiative.
 
 ### Presentation
 - [ ] **I6 — HUD** (~90m)
