@@ -152,6 +152,7 @@
             } catch (_) { api.persistence = 'unavailable'; }
             await saveLocal();
             api.ready = true;
+            document.getElementById('boot-shell')?.remove();
             api.readyAtMs = Math.round(performance.now() - startedAt);
             setInterval(saveLocal, 400);
             document.addEventListener('visibilitychange', () => { if (document.hidden) saveLocal(); });

@@ -11,4 +11,5 @@ for (const script of ['pack.js','render.js']) {
 const result=spawnSync('uv',['run','--project',server,path.join(__dirname,'export-art.py'),server],{cwd:root,stdio:'inherit',env:process.env});
 if(result.status!==0)process.exit(result.status || 1);
 const audit=spawnSync(process.execPath,[path.join(root,'art','.art','audit.js')],{cwd:root,stdio:'inherit'});
-process.exit(audit.status === 0 ? 0 : 1);
+if(audit.status!==0)process.exit(1);
+require('./build-boot.cjs');

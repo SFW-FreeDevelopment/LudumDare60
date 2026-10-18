@@ -4,28 +4,30 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>Balloonatic</title>
+    <title>Charlotte's Balloonatic</title>
     <base href="./" />
-    <link href="css/bootstrap/bootstrap.min.css" rel="stylesheet" />
+    <link href="css/boot-theme.css" rel="stylesheet" />
     <link href="css/app.css" rel="stylesheet" />
     <link href="Balloonatic.styles.css" rel="stylesheet" />
 </head>
 
 <body>
 
-    <div id="app">
-        <div id="loading" style="display: table-cell; margin: auto; width:100vw; height:100vh; vertical-align: middle; background: #000;">
-            <div style="display: block; margin: auto; width: 9em; color: white;font-family: 'Segoe UI', sans-serif;">
-                <div style="text-align: center; font-size: 0.85em;">Made with<br/><a href="https://github.com/kniEngine/kni"><img src="kni.png" border="0" alt="Kni"></a></div>
-                <div style="text-align: center; font-size: 1.8em;">loading&nbsp;<marquee style="width:0.9em; vertical-align: bottom;">.&nbsp;.&nbsp;.&nbsp;&nbsp;&nbsp;</marquee></div>
-            </div>
+    <div id="app"></div>
+    <div id="boot-shell" role="status" aria-label="Warming up Charlotte's Balloonatic">
+        <div class="boot-card">
+            <img class="boot-cloud cloud-a" src="images/boot-cloud.png" alt="" />
+            <img class="boot-cloud cloud-b" src="images/boot-cloud.png" alt="" />
+            <img class="boot-cloud cloud-c" src="images/boot-cloud.png" alt="" />
+            <img class="boot-hero" src="images/boot-hero.png" alt="Charlotte and her bunny in their pink balloon" />
+            <img class="boot-logo" src="images/boot-logo.png" alt="Charlotte's Balloonatic" />
+            <div class="boot-status"><img src="images/boot-warmup.svg" alt="" /></div>
+            <img class="boot-dedication" src="images/boot-dedication.svg" alt="For Charlotte" />
         </div>
     </div>
-
-    <div id="blazor-error-ui">
-        An unhandled error has occurred.
-        <a href="" class="reload">Reload</a>
-        <a class="dismiss">x</a>
+    <div id="blazor-error-ui" role="alert" aria-label="The burner needs a rest. Reload the game.">
+        <img class="boot-error-message" src="images/boot-error.svg" alt="" />
+        <a href="" class="reload" aria-label="Reload game"><img src="images/boot-reload.svg" alt="" /></a>
     </div>
 
     <script src="_framework/blazor.webassembly.js" autostart="false"></script>

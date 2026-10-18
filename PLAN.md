@@ -119,9 +119,11 @@ complete; implementation is proceeding in the order below.
   Verified: 83 unit tests, 116 browser tests; reviewed all `30-focus-pause-*`, `30-pause-settings-*`,
   `30-reduced-motion-*`, `30-voyage-all-home-*`. Full collision-enabled voyage reaches 3/3 and the
   ending. Active/muted audio + motion profiles preserve identical flight hashes; compiler warnings zero.
-- [ ] **I30b — Brand the WebGL boot shell** (~45m)
+- [x] **I30b — Brand the WebGL boot shell** (~45m)
   Final package audit found the template's black/system-font/marquee loader. Reuse the Aseprite hero,
   logo, clouds, palette and pixel glyphs during cold boot, then remove the shell on renderer readiness.
+  Verified: `npm run art` palette audit; Release build zero warnings, 83 unit tests and 118 browser
+  tests. Held cold boot and ready menu screenshots (`30-branded-*`) opened and judged at both sizes.
 - [ ] **I30 — Submission revalidation** (~90m)
   Full gates, real-collision voyage, settings/reload/focus-loss coverage, both viewport reviews and
   fresh WebGL/archive smoke. Reconcile STYLE/credits/completion claims and prepare I13's review candidate.

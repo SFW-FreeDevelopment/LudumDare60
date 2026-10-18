@@ -25,6 +25,14 @@ async def main():
     script+=f'spr:saveAs({lua(ROOT/"art/src/balloonatic.aseprite")})\n'
     script+=f'spr:saveAs({lua(ROOT/"art/export/sheet.png")})\n'
     script+='print("EXPORTED "..spr.width.."x"..spr.height)\n'
+    boot=ROOT/'Balloonatic/Balloonatic.Blazor.GL/wwwroot/images'
+    boot.mkdir(parents=True,exist_ok=True)
+    for name,filename in [('balloon-happy-0','boot-hero.png'),('title-logo','boot-logo.png'),('cloud-large','boot-cloud.png')]:
+        rect=next(r for r in slices if r['name']==name)
+        script+=f'local copy=app.open({lua(ROOT/"art/export/sheet.png")})\n'
+        script+=f'copy:crop(Rectangle({rect["x"]},{rect["y"]},{rect["w"]},{rect["h"]}))\n'
+        script+=f'copy:saveAs({lua(boot/filename)})\n'
+    script+='print("BOOT_EXPORTED")\n'
     params=StdioServerParameters(command=sys.executable,args=['-m','aseprite_mcp'],cwd=str(SERVER),env=env)
     async with stdio_client(params) as (read,write):
         async with ClientSession(read,write) as session:
@@ -32,7 +40,7 @@ async def main():
             result=await session.call_tool('run_lua_script',{'script':script})
             text='\n'.join(c.text for c in result.content if c.type=='text')
             print(text)
-            if result.isError or 'EXPORTED ' not in text: raise RuntimeError('Aseprite export failed')
+            if result.isError or 'EXPORTED ' not in text or 'BOOT_EXPORTED' not in text: raise RuntimeError('Aseprite export failed')
     await asyncio.sleep(.2)
 
 asyncio.run(main())
