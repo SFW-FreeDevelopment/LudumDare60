@@ -118,10 +118,10 @@ namespace Balloonatic.Tests
         [Fact]
         public void StormBankBuffetsAndWindAssistTakesItAway()
         {
-            // Cloud Garden's bank sits mid the contrary air (380..500 x, 335..365 alt). Park a
+            // Cloud Garden's bank sits mid the contrary air (380..500 x, 210..236 alt). Park a
             // balloon dead in it and hold the place: without assist the gust swings it about the
             // band wind; with assist the air is the band, flat as a line.
-            float bandWind = -LevelDef.WindSpeed(1);
+            float bandWind = LevelCatalog.Get("night-crossing").WindAt(223f);
             SimState raw = HoldInStorm(assist: false, out List<float> rawVx);
             SimState calm = HoldInStorm(assist: true, out List<float> calmVx);
 
@@ -141,7 +141,7 @@ namespace Balloonatic.Tests
             {
                 SimRules.Step(state, SimInput.None);
                 state.X = 440f;       // hold the place inside the bank — this test is about the gust,
-                state.Altitude = 350f;    // and drift or sink would carry it out mid-swing
+                state.Altitude = 223f;    // and drift or sink would carry it out mid-swing
                 state.VelocityY = 0f;
                 if (i >= 120)         // only after the initial settle; the first second always swings to the band
                     vxTrack.Add(state.VelocityX);

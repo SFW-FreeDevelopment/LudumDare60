@@ -190,7 +190,7 @@ namespace Balloonatic.Screens
             foreach (RestDeck deck in level.Platforms)
             {
                 float x = ScreenX(deck.X, camX), y = ScreenY(deck.Altitude, camAlt);
-                Sprites.Draw(canvas, "island-perch", x - deck.HalfWidth, y - 3);
+                Sprites.Draw(canvas, WorldArt.Perch(level), x - deck.HalfWidth, y - 3);
                 WindBand wind = level.BandAt(deck.Altitude + 1f);
                 Kit.Windsock(canvas, x + 20, y, wind.Direction, wind.Strength);
                 Kit.Tag(canvas, Round(x)-30, Round(y)+10, "BREEZE PERCH");
@@ -211,7 +211,7 @@ namespace Balloonatic.Screens
             // so the draw offset puts it where it always was: groundY - 38.
             Sprites.Draw(canvas, launch ? "island-launch" : "island-delivery", x - 60f, groundY - 54f);
             // Buildings sit on the rear edge; the clear timber deck in front is the landing surface.
-            Sprites.Draw(canvas, WorldArt.Landmark(level, launch), x - 6f, groundY - 105f);
+            Sprites.Draw(canvas, WorldArt.Landmark(level, launch, Clock(state)), x - 6f, groundY - 105f);
 
             // A sign on the deck: what this island is for, in the paper-and-ink language of the sheet.
             // The board glides with the island; its lettering holds the coarse grid (Round) — text that
@@ -229,7 +229,7 @@ namespace Balloonatic.Screens
             {
                 Sprites.Draw(canvas, "recipient", state.Delivered ? 1 : 0, x + 37, groundY - 64);
                 if (state.Delivered) Sprites.Draw(canvas, WorldArt.Parcel(level.Package), x + 22, groundY - 53);
-                Kit.Tag(canvas, xi + 10, Round(groundY) - 78, state.Delivered ? "THANK YOU!" : level.RequestLabel);
+                Kit.Tag(canvas, xi + 10, Round(groundY) - 120, state.Delivered ? "THANK YOU!" : level.RequestLabel);
             }
 
             // The windsock flies off the windward post of the deck — the truth about this altitude,
@@ -310,9 +310,9 @@ namespace Balloonatic.Screens
                         ScreenX(cx, camX) - size.X / 2f, ScreenY(midAlt, camAlt) - size.Y / 2f);
 
                 float push = level.StormWindAt((zone.FromX + zone.ToX) / 2f, midAlt, state.Tick);
-                PixelFont.DrawCentered(canvas, push >= 0f ? ">>>" : "<<<",
-                    Round(ScreenX((zone.FromX + zone.ToX) / 2f, camX)), Round(ScreenY(zone.FromAltitude, camAlt) + 8),
-                    Theme.TagCream);
+                float centre=ScreenX((zone.FromX+zone.ToX)/2f,camX);
+                PixelFont.DrawCenteredShadowed(canvas,"GUST",Round(centre),Round(ScreenY(zone.ToAltitude,camAlt)-28),Theme.StarGold,2);
+                Kit.WindChevrons(canvas,centre-14,ScreenY(zone.FromAltitude,camAlt)+8,push>=0?1:-1,3,Theme.StarGold,2);
             }
         }
 

@@ -17,10 +17,15 @@ public static class FlightGuidance
     public static string HeatTrend(SimState state) => state.Heating ? "heating" :
         state.Temperature > SimTuning.TempAmbient + .01f ? "cooling" : "cool";
 
-    public static string ControlHint(SimState state, LevelDef level) =>
-        state.Altitude >= level.WorldHeight-.5f ? "LET GO TO DESCEND" :
-        level.Bands[0].Direction < 0 && BandIndex(state,level)==0 && state.X<level.CourseLength-160 ? "RISE FOR > WIND" :
-        state.Heating ? "SPACE: HEATING" : HeatTrend(state)=="cooling" ? "COOLING..." : "SPACE: RISE";
+    public static string ControlHint(SimState state, LevelDef level) {
+        foreach(StormZone zone in level.Storms) {
+            if(Math.Abs(state.Altitude-(zone.FromAltitude+zone.ToAltitude)/2)<70 && state.X>=zone.FromX-120 && state.X<=zone.ToX)
+                return state.WindAssist?"ASSIST: CALM AIR":state.X<zone.FromX?"GUST AHEAD":"GUST: WATCH WIND";
+        }
+        return state.Altitude >= level.WorldHeight-.5f ? "LET GO TO DESCEND" :
+            level.Bands[0].Direction < 0 && BandIndex(state,level)==0 && state.X<level.CourseLength-160 ? "RISE FOR > WIND" :
+            state.Heating ? "SPACE: HEATING" : HeatTrend(state)=="cooling" ? "COOLING..." : "SPACE: RISE";
+    }
 
     public static string Approach(SimState state, LevelDef level)
     {

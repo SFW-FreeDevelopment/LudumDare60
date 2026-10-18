@@ -370,3 +370,11 @@ The objective panel shields text from world marks; four-band instruments use dis
 
 Parcel assignment now follows the reference's delivery examples: nursery bottle, Toy Isles teddy;
 Cloud Garden's letter is added in I28. Earlier I19 screenshots/notes describe its original teddy MVP.
+# I28 garden route
+
+Cloud Garden delivers a letter to the garden windmill. Its first carrying band crosses a visible
+gust bank at x380–500 / altitude210–236; flowers mark two resting perches. `state.hint` warns before
+entry, `state.stormWind` reports the effective gust and becomes zero with Wind Assist. Three seeded
+normal-collision recordings prove the flight actually meets the bank and still lands; replay hashes
+match. The mill has two Aseprite frames and freezes under Reduced Motion. Recipient messages sit above
+the buildings rather than over their defining details. Evidence: `28-garden-*` at both sizes.

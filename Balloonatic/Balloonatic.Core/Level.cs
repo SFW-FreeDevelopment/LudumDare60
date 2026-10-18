@@ -221,7 +221,7 @@ namespace Balloonatic.Core
             Package = package;
             Platforms = platforms ?? Array.Empty<RestDeck>();
             PackageName = package == CargoKind.Bottle ? "BOTTLE" : package == CargoKind.Letter ? "LETTER" : "TEDDY";
-            DestinationName = id == "nursery-skies" ? "NURSERY" : id == "winding-trail" ? "TOY ROOM" : "COTTAGE";
+            DestinationName = id == "nursery-skies" ? "NURSERY" : id == "winding-trail" ? "TOY ROOM" : id == "night-crossing" ? "GARDEN" : "COTTAGE";
             CollectObjective = "COLLECT THE " + PackageName;
             CarryObjective = PackageName + " > " + DestinationName;
             DeliveredMessage = package==CargoKind.Bottle ? "MILK HAS ARRIVED!" : package==CargoKind.Letter ? "LETTER DELIVERED!" : "TEDDY IS HOME!";
@@ -377,16 +377,16 @@ namespace Balloonatic.Core
                 "night-crossing", "Cloud Garden", 600f,
                 new[]
                 {
-                    new WindBand(0f, 140f, +1, 1),
-                    new WindBand(140f, 300f, +1, 1),
+                    new WindBand(0f, 140f, -1, 1),
+                    new WindBand(140f, 300f, +1, 2),
                     new WindBand(300f, 460f, -1, 1),
-                    new WindBand(460f, 600f, +1, 2),
+                    new WindBand(460f, 600f, +1, 3),
                 },
                 new[] { new GustZone(460f, 540f, +1, 15f) },
                 900f, 80,
                 rocks: new[]
                 {
-                    new RockDef(420f, 240f, 8f, 240, 40),
+                    new RockDef(420f, 350f, 8f, 240, 40),
                     new RockDef(760f, 480f, 6f, 280, 130),
                 },
                 birds: new[]
@@ -395,8 +395,8 @@ namespace Balloonatic.Core
                 },
                 storms: new[]
                 {
-                    new StormZone(380f, 500f, 335f, 365f, 12f),
-                }),
+                    new StormZone(380f, 500f, 210f, 236f, 12f),
+                }, package: CargoKind.Letter, platforms: new[] {new RestDeck(280f,170f,36f),new RestDeck(650f,170f,36f)}),
         };
 
         public static bool TryGet(string? id, out LevelDef level)

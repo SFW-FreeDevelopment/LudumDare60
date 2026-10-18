@@ -410,6 +410,7 @@ namespace Balloonatic.Core
               .Append("\"hearts\":").Append(_state.Hearts.ToString(CultureInfo.InvariantCulture)).Append(',')
               .Append("\"recoveries\":").Append(_state.Recoveries.ToString(CultureInfo.InvariantCulture)).Append(',')
               .Append("\"band\":").Append(FlightGuidance.BandIndex(_state, level)).Append(',')
+              .Append("\"stormWind\":").Append((_state.WindAssist?0f:level.StormWindAt(_state.X,_state.Altitude,_state.Tick)).ToString("0.00",CultureInfo.InvariantCulture)).Append(',')
               .Append("\"windDirection\":").Append(level.BandAt(_state.Altitude).Direction).Append(',')
               .Append("\"approach\":\"").Append(FlightGuidance.Approach(_state, level)).Append("\",")
               .Append("\"hint\":\"").Append(FlightGuidance.ControlHint(_state, level)).Append("\", ")

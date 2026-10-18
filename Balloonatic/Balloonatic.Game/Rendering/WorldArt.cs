@@ -3,8 +3,9 @@ namespace Balloonatic.Rendering;
 
 static class WorldArt
 {
-    public static string Landmark(LevelDef level, bool launch) =>
-        launch ? "cottage" : level.Id == "nursery-skies" ? "nursery-house" : level.Id == "winding-trail" ? "toy-blocks" : "cottage";
+    public static string Landmark(LevelDef level, bool launch, int tick=0) =>
+        launch ? "cottage" : level.Id == "nursery-skies" ? "nursery-house" : level.Id == "winding-trail" ? "toy-blocks" : level.Id == "night-crossing" ? "garden-mill-"+(AppSettings.ReducedMotion?0:tick/18%2) : "cottage";
+    public static string Perch(LevelDef level) => level.Id=="night-crossing" ? "garden-perch" : "island-perch";
     public static string Parcel(CargoKind kind) => kind == CargoKind.Bottle ? "parcel-bottle" :
         kind == CargoKind.Letter ? "parcel-letter" : "parcel-teddy";
     public static string Describe(SimState state)

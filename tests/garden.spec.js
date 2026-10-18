@@ -1,0 +1,20 @@
+const {test,expect}=require('@playwright/test');
+const path=require('path');
+const {bootGame,act,reviewShot,SHOTS_DIR,watchForErrors}=require('./support');
+test('Cloud Garden telegraphs gusts, offers calm assist and delivers a letter to the windmill',async({page},info)=>{
+ const errors=watchForErrors(page);await bootGame(page);await act(page,'settings=motion=1');await act(page,'reset=2828');await act(page,'level=night-crossing');await act(page,'step=1');
+ expect((await page.evaluate(()=>window.__GAME.state())).cargo).toBe('letter');
+ await page.evaluate(()=>window.__GAME.raw('warp','320=223'));await act(page,'screen=world');await expect.poll(()=>act(page,'screen')).toBe('world');
+ expect((await page.evaluate(()=>window.__GAME.state())).hint).toBe('GUST AHEAD');
+ await reviewShot(page,{path:path.join(SHOTS_DIR,`28-garden-gust-${info.project.name}.png`)});
+ await page.evaluate(()=>window.__GAME.raw('warp','440=223'));let state=await page.evaluate(()=>window.__GAME.state());
+ expect(Math.abs(state.stormWind)).toBe(12);expect(state.hint).toBe('GUST: WATCH WIND');
+ await act(page,'settings=assist=1');state=await page.evaluate(()=>window.__GAME.state());expect(state.stormWind).toBe(0);expect(state.hint).toBe('ASSIST: CALM AIR');
+ await act(page,'settings=assist=0');await page.evaluate(()=>window.__GAME.raw('warp','760=90'));
+ expect(await page.evaluate(()=>window.__GAME.raw('art'))).toContain('landmark=garden-mill-0');
+ await reviewShot(page,{path:path.join(SHOTS_DIR,`28-garden-arrival-${info.project.name}.png`)});
+ await act(page,'reset=2828');await act(page,'level=night-crossing');expect(await page.evaluate(()=>window.__GAME.raw('fly','120'))).toBe('ok:delivered');
+ state=await page.evaluate(()=>window.__GAME.state());expect(state.cargoStatus).toBe('delivered');expect(state.hearts).toBeGreaterThan(0);
+ await act(page,'screen=world');await expect.poll(()=>act(page,'screen')).toBe('world');
+ await reviewShot(page,{path:path.join(SHOTS_DIR,`28-garden-home-${info.project.name}.png`)});expect(errors).toEqual([]);
+});

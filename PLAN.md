@@ -100,8 +100,12 @@ complete; implementation is proceeding in the order below.
   at both sizes. Homeward floor requires carrying air; a perch and shared hint teach the climb.
   Three seeded legal replays land without bounces with collisions on; example run 49s against 60s par.
   Nursery now receives the bottle and Toy Isles the teddy, matching the reference's delivery examples.
-- [ ] **I28 — Cloud Garden** (~90m)
+- [x] **I28 — Cloud Garden** (~90m)
   Garden/windmill landmark, telegraphed gust challenge and safe approach; active-hazard route proof.
+  Verified: 82 unit tests, 108 browser tests; Aseprite audit (51 slices); reviewed `28-garden-*`
+  at both sizes. Letter, animated mill, flowered resting perches and a dark marked bank in carrying air.
+  Three legal seeded replays meet the bank and land with collisions on; example 68s against 80s par.
+  Shared pre-entry/inside/assist guidance mirrors the actual gust; Reduced Motion freezes mill sails.
 - [ ] **I29 — Dream-world sound** (~60m)
   Gentle music-box character, restrained mix and appropriate Charlotte reactions; provenance and listening gate.
 - [ ] **I30 — Submission revalidation** (~90m)

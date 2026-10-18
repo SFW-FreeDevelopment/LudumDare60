@@ -86,7 +86,7 @@ function envelope() {
 
 // Small drawing helpers for the character block — circles and outlined boxes read at internal
 // resolution the way the sheet's round shapes do; everything still lands on whole pixels.
-function disc(cx, cy, r, fill, outline) {
+function disc(cx, cy, r, fill, outline = fill) {
   const px = [];
   for (let y = Math.floor(cy - r - 2); y <= cy + r + 2; y++) {
     for (let x = Math.floor(cx - r - 2); x <= cx + r + 2; x++) {
@@ -630,7 +630,7 @@ function stormCloud() {
     const top = topAt(x);
     if (top === null) continue;
     for (let y = top; y <= foot; y++) {
-      let hex = PAL.cs;                                            // the gloom body
+      let hex = PAL.rock;                                            // the gloom body
       if (y >= foot - 2 && (x + y) % 2 === 0) hex = PAL.rockD;     // bruised floor
       else if (y >= foot - 5 && (x + y) % 3 === 0) hex = PAL.cl;   // lit puffs in the dark
       px.push([x, y, hex]);
@@ -682,7 +682,34 @@ function toyBlocks() {
   return px;
 }
 
+function gardenMill(frame) {
+  const px=polygon([[42,128],[52,58],[82,58],[94,128]],(x,y)=>x>73?PAL.wd:PAL.paperWarm);
+  px.push(...polygon([[39,65],[67,38],[96,65]],(x,y)=>x>68?PAL.rockD:PAL.rock));
+  px.push(...obox(60,102,17,25,PAL.bark,PAL.K),...obox(57,79,20,14,PAL.f1,PAL.w2));
+  px.push(...fillPixels(65,79,2,14,PAL.w2),...fillPixels(57,85,20,2,PAL.w2));
+  for(let blade=0;blade<4;blade++) {
+    const a=Math.PI/4+blade*Math.PI/2+frame*.2,dx=Math.cos(a),dy=Math.sin(a),nx=-dy,ny=dx;
+    const pt=(r,w)=>[Math.round(67+dx*r+nx*w),Math.round(67+dy*r+ny*w)];
+    px.push(...polygon([pt(7,-3),pt(51,-6),pt(51,6),pt(7,3)],PAL.paperWarm));
+    for(let r=12;r<=48;r+=9)px.push(...polygon([pt(r,-5),pt(r+2,-5),pt(r+2,5),pt(r,5)],PAL.bark));
+  }
+  px.push(...disc(67,67,7,PAL.brass,PAL.K),...disc(67,67,3,PAL.wd,PAL.bark));
+  for(const x of[9,22,106,117]) {
+    px.push(...fillPixels(x,116,2,12,PAL.moss),...disc(x,114,4,PAL.gp,PAL.gP),...disc(x,114,1.5,PAL.f1));
+  }
+  return px;
+}
+function gardenPerch() {
+  const px=perch();
+  for(let x=8;x<140;x+=15) {
+    px.push(...fillPixels(x,4,2,10,PAL.moss),...disc(x,4,3,PAL.dress,PAL.gP),...disc(x,4,1,PAL.gold));
+  }
+  return px;
+}
+
 const SPRITES = {
+  "garden-mill": {w:128,h:134,frames:[gardenMill(0),gardenMill(1)]},
+  "garden-perch": {w:144,h:64,frames:[gardenPerch()]},
   "toy-blocks": {w:128,h:134,frames:[toyBlocks()]},
   "title-logo": {w:700,h:176,frames:[titleLogo()]},
   "far-isle": {w:144,h:150,frames:[farIsle()]},
@@ -740,4 +767,5 @@ if (typeof require !== "undefined" && typeof module !== "undefined" && require.m
   const p = pack(768);
   console.log(JSON.stringify({ width: p.width, height: p.height, sprites: p.rects.map(r => ({ name: r.name, x: r.x, y: r.y, w: r.w, h: r.h, frames: r.frames.length })) }, null, 1));
 }
+
 
