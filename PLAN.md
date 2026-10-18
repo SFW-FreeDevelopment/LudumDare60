@@ -60,8 +60,12 @@ complete; implementation is proceeding in the order below.
   A landing perch marks the faster breeze; low teaching corridor is clear. Recorded legal input
   replays match full state hashes on all three courses with collisions enabled; nursery retains 3 hearts.
   Human feel approval is still tracked under I17, independently of these route proofs.
-- [ ] **I21 — Charlotte and craft** (~90m)
+- [x] **I21 — Charlotte and craft** (~90m)
   Reference-led rounded balloon, readable Charlotte/bunny, portrait and minimal reactions.
+  Verified: 73 unit tests, 90 browser tests; reviewed `21-charlotte-{idle,worried,happy}-*` and a
+  magnified Aseprite export. Hero/portrait share expressions; bags are attached to the basket.
+  `npm run art` uses the installed Aseprite MCP, saves named slices and palette in the source, and
+  audits the export. Two builds produced identical PNG bytes; payload remains ~3.13 MiB locally.
 - [ ] **I22 — Nursery environment assets** (~90m)
   One nursery landmark/recipient, coherent island modules and rounded cloud variants; reproducible sources.
 - [ ] **I23 — Compose the sky** (~90m)

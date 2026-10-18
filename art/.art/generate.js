@@ -59,53 +59,26 @@ function ascii(rows, ox, oy, map) {
 }
 
 // ================================================================ balloon — the hero
-// design 60x75 -> internal 120x150, the sheet's proportions: the balloon is the biggest thing in
-// frame after the islands, a round onion in a PINK/CREAM CHECKERBOARD (the sheet's pattern — not
-// stripes), a deep-pink crown, a red skirt band, and Charlotte + the bunny riding an oversize
-// heart basket. Half-widths are design px per design row, sampled at internal resolution.
-const PROFILE = [2, 8, 14, 20, 24, 27, 29, 30, 30, 30, 30, 29, 27, 25, 22, 19, 15, 11, 7, 3];
-const ENVELOPE_H = 88;                       // internal rows 0..87
-const CROWN_H = 14;                          // deep pink cap
-const SKIRT_TOP = 74;                        // red gather band where the fabric meets the ring
-const CX = 60;                               // envelope centre column, internal
+// 60x75 design canvas: a rounded fabric envelope, clear rigging, Charlotte and her bunny.
+const CX = 60;
 
-// checkerboard gore: eight panels of 2x2-cell checks, alternating cream and pink, gore seams in
-// deep pink; sphere shading darkens the whole pattern toward the right, the crown reads flat deep
-// pink, and the skirt band closes the mouth in red. Ramps only move within the palette.
 function envelope() {
-  const px = [];
-  // profile rows are design half-widths; resample them smoothly across the full internal height
-  const halfAt = (y) => {
-    const r = (y / ENVELOPE_H) * (PROFILE.length - 1);
-    const i = Math.min(PROFILE.length - 1, Math.floor(r));
-    const j = Math.min(PROFILE.length - 1, i + 1);
-    const t = r - i;
-    return 2 * (PROFILE[i] * (1 - t) + PROFILE[j] * t);
-  };
-  for (let y = 0; y < ENVELOPE_H; y++) {
-    const half = halfAt(y);
-    const left = Math.round(CX - half);
-    const right = Math.round(CX + half);
-    const w = right - left;
-    if (w < 2) continue;
-    const skirt = y >= SKIRT_TOP;
-    for (let x = left; x < right; x++) {
-      const u = (x - left) / (w - 1);
-      if (x - left < 2 || right - x <= 2) { px.push([x, y, PAL.K]); continue; }
-      if (skirt) {
-        px.push([x, y, u > 0.78 ? PAL.gL : (y - SKIRT_TOP) % 4 < 2 ? PAL.gR : PAL.gP]);
-        continue;
-      }
-      if (y < CROWN_H) { px.push([x, y, u > 0.82 ? PAL.gL : PAL.gP]); continue; } // deep pink cap
-      // three check cells per gore, alternating every 5 rows — the sheet's square pattern
-      const seam = (u * 8) % 1;
-      const cell = (Math.floor(seam * 3) + Math.floor((y - CROWN_H) / 5)) % 2;
-      let key = cell === 0 ? "C" : "gp";
-      if (seam < 0.06 || seam > 0.94) key = "gP";                 // gore seam line
-      if (u > 0.9) key = key === "C" ? "paperWarm" : "gL";        // deep rim: warm, then magenta
-      else if (u > 0.78) key = key === "C" ? "C" : "gP";           // checks stay crisp, pinks deepen
-      else if (u < 0.12 && y < 30 && ((x + y) & 1) === 0) key = "cw"; // dithered sun glare
-      px.push([x, y, PAL[key]]);
+  const px=[];
+  for(let y=2;y<88;y++) {
+    const t=(y-44)/42;
+    const half=Math.max(2,Math.round(50*Math.sqrt(Math.max(0,1-t*t))));
+    for(let x=CX-half;x<=CX+half;x++) {
+      const u=(x-(CX-half))/(2*half), panel=Math.min(6,Math.floor(u*7));
+      let key=["gL","gP","paper","gp","paper","gP","gL"][panel];
+      if(y<17)key=u<.5?"gp":"gP";
+      if(y>73)key=y<79?"gR":"gL";
+      if(y>=17 && y<=73 && (u*7)%1<.045)key="gR";
+      if(key==="paper" && u>.5)key="paperWarm";
+      if(key==="gp" && y>53)key="gP";
+      if(x<CX-18 && y>20 && y<36 && (u*7)%1>.25 && (u*7)%1<.65)key="gp";
+      if(Math.abs(x-CX)>=half-1 || y===2)key="K";
+      px.push([x,y,PAL[key]]);
+      if(y%16===0 && y>20 && y<72 && (u*7)%1>.08 && (u*7)%1<.13)px.push([x,y,PAL.paperWarm]);
     }
   }
   return px;
@@ -149,90 +122,68 @@ const FLAME_FRAMES = [
 
 // Burner, ropes, Charlotte + bunny, wicker heart-basket — painted after the flame so the rig
 // sits in front of the throat. Basket x 28..91, rim y 116.
-function rigging() {
-  const px = [];
-  // brass load ring + cable
-  for (let x = CX - 26; x <= CX + 25; x++) {
-    px.push([x, 88, PAL.brass], [x, 89, (x & 1) ? PAL.w2 : PAL.w1]);
-  }
-  // burner cage: posts from the ring to a brass bar under the mouth
-  for (let y = 90; y <= 97; y++) { px.push([CX - 11, y, PAL.w2], [CX - 10, y, PAL.brass], [CX + 9, y, PAL.w2], [CX + 10, y, PAL.brass]); }
-  px.push(...obox(CX - 12, 98, 24, 3, PAL.brass, PAL.K));
-  for (let x = CX - 10; x <= CX + 9; x += 4) px.push([x, 99, PAL.w2]); // gas jets
-  // ropes: two per side from ring to basket corners, lit core + shadow column, sparse twist beat
-  const rope = (x0, y0, x1, y1) => {
-    const steps = y1 - y0;
-    for (let i = 0; i <= steps; i++) {
-      const x = Math.round(x0 + (x1 - x0) * (i / steps));
-      const beat = i % 7 === 4;
-      px.push([x, y0 + i, beat ? PAL.w2 : PAL.w0], [x + 1, y0 + i, beat ? PAL.w1 : PAL.w1]);
-    }
-  };
-  rope(CX - 26, 90, 28, 124);
-  rope(CX - 12, 90, 40, 124);
-  rope(CX + 11, 90, 79, 124);
-  rope(CX + 25, 90, 90, 124);
-  // ---- Charlotte: ONE chibi head, clearly below the burner and sitting inside the basket.
-  // The earlier pass stacked buns above the hairline so the hair read as a second head — buns
-  // now sit at the temples (space-buns off the sheet), the face is a compact block, and only
-  // her head and a sliver of dress rise above the basket rim.
-  px.push(...disc(41, 107, 3.5, PAL.hair, PAL.K), ...disc(55, 107, 3.5, PAL.hair, PAL.K));          // temple buns
-  px.push([40, 103, PAL.gp], [41, 103, PAL.gp], [55, 103, PAL.gp], [56, 103, PAL.gp]);              // pink beads on the buns
-  px.push(...obox(42, 104, 14, 13, PAL.skin, PAL.K));                                               // face
-  for (let x = 42; x <= 55; x++) for (let y = 104; y <= 106; y++) px.push([x, y, PAL.hair]);        // hair cap
-  for (let x = 43; x <= 55; x += 3) px.push([x, 107, PAL.hair]);                                    // bangs zigzag
-  for (let y = 106; y <= 119; y++) {                                                                // long side hair to the rim
-    px.push([40, y, PAL.hair], [41, y, PAL.hair], [56, y, PAL.hair], [57, y, PAL.hair]);
-    px.push([39, y, PAL.K], [58, y, PAL.K]);
-  }
-  // big glossy eyes: 3x4 ink with a cream shine pixel, the sheet's signature
-  ascii(["KKK", "KCK", "KKK", ".KK."], 44, 110, { K: "K", C: "C" }).forEach(p => px.push(p));
-  ascii(["KKK", "KCK", "KKK", ".KK."], 50, 110, { K: "K", C: "C" }).forEach(p => px.push(p));
-  px.push([42, 115, PAL.cheek], [43, 115, PAL.cheek], [54, 115, PAL.cheek], [55, 115, PAL.cheek]);  // blush
-  px.push([47, 116, PAL.K], [48, 116, PAL.K], [47, 117, PAL.gP], [48, 117, PAL.gP]);                // smile
-  for (let x = 44; x <= 53; x++) for (let y = 119; y <= 122; y++) px.push([x, y, PAL.dress]);       // dress above the rim
-  px.push([43, 119, PAL.K], [43, 120, PAL.K], [43, 121, PAL.K], [54, 119, PAL.K], [54, 120, PAL.K], [54, 121, PAL.K]);
-  // ---- the bunny: clearly NOT a second girl — smaller than Charlotte, ears far taller than
-  // his head, a 2 px ink eye and a pink nose in profile so the silhouette is unmistakable.
-  px.push(...obox(65, 105, 3, 8, PAL.cream, PAL.K), ...obox(71, 105, 3, 8, PAL.cream, PAL.K));      // tall ears
-  px.push([66, 107, PAL.gp], [66, 108, PAL.gp], [66, 109, PAL.gp], [72, 107, PAL.gp], [72, 108, PAL.gp], [72, 109, PAL.gp]); // inner ears
-  px.push(...disc(69, 116, 4.2, PAL.cream, PAL.K));                                                 // small head
-  px.push([66, 115, PAL.K], [66, 116, PAL.K]);                                                      // eye, facing Charlotte
-  px.push([64, 117, PAL.gp]);                                                                       // nose at the profile edge
-  for (let x = 65; x <= 73; x++) for (let y = 120; y <= 122; y++) px.push([x, y, PAL.cream]);       // body into the rim
-  // ---- basket: oversize wicker with the sheet's heart emblem. Weave reads as horizontal
-  // wicker rows (2 px lit / 2 px dark bands) with stakes over them, not a checkerboard.
-  const L = 28, W = 64, T = 124, B = 148;
-  px.push(...obox(L, T, W, B - T, PAL.wd, PAL.K));
-  for (let x = L + 1; x < L + W - 1; x++) { px.push([x, T + 1, (x & 1) ? PAL.w0 : PAL.w1]); px.push([x, T + 2, (x & 1) ? PAL.w1 : PAL.w2]); } // rope rim
-  for (let y = T + 3; y < B - 4; y++) {
-    const lit = ((y - T) >> 1) % 2 === 1;                                                           // 2-row wicker bands
-    for (let x = L + 1; x < L + W - 1; x++) {
-      let hex = lit ? PAL.wk : PAL.wd;
-      if (((x - L) % 14) === 0) hex = PAL.bark;                                                     // stakes over the weave
-      if (x >= L + W - 6) hex = PAL.w2;                                                             // shaded face
-      if (y >= B - 8 && (x + y) % 2 === 0) hex = PAL.w2;                                            // foot dither
-      px.push([x, y, hex]);
-    }
-  }
-  // the heart on the basket, straight off the sheet's hero basket
-  ascii([
-    "..KKK..KKK..",
-    ".KhhhKKhhhK.",
-    "KhhhhhhhhhhK",
-    "KcchhhhhhhhK",
-    "KcchhhhhhhhK",
-    ".KhhhhhhhhK.",
-    "..KhhhhhhK..",
-    "...KhhhhK...",
-    "....KhhK....",
-    ".....KK.....",
-  ], CX - 6, 129, { h: "gP", c: "C" }).forEach(p => px.push(p));
+function fillPixels(x,y,w,h,color) {
+  const px=[];
+  for(let iy=Math.round(y);iy<Math.round(y+h);iy++)for(let ix=Math.round(x);ix<Math.round(x+w);ix++)px.push([ix,iy,color]);
   return px;
 }
 
-function balloonFrame(flameFrame) {
-  return envelope().concat(throat(), FLAME_FRAMES[flameFrame % 3], rigging());
+// Rounded face shared by the basket and portrait, with deliberately large expression clusters.
+function charlotteFace(cx,cy,scale=1,mood="idle") {
+  const px=[], box=(x,y,w,h,key)=>px.push(...fillPixels(cx+x*scale,cy+y*scale,w*scale,h*scale,PAL[key]));
+  px.push(...disc(cx,cy,10*scale,PAL.skin,PAL.K));
+  px.push(...disc(cx-9*scale,cy-6*scale,4*scale,PAL.hair,PAL.K));
+  px.push(...disc(cx+8*scale,cy-7*scale,4*scale,PAL.hair,PAL.K));
+  for(let y=-10;y<=-5;y++)for(let x=-8;x<=8;x++)if(x*x+y*y<112)box(x,y,1,1,"hair");
+  box(-8,-5,4,3,"hair");box(3,-5,5,2,"hair");box(-10,-3,2,10,"hair");box(8,-3,2,9,"hair");
+  box(-12,-8,4,3,"dress");box(-9,-6,3,3,"gP");
+  if(mood==="happy") {
+    for(const x of [-6,3]){box(x,-1,1,1,"K");box(x+1,-2,2,1,"K");box(x+3,-1,1,1,"K");}
+    box(-2,4,5,2,"K");box(-1,6,3,1,"gP");
+  } else {
+    for(const x of [-6,3]){box(x,-2,3,5,"K");box(x,-2,1,2,"C");}
+    if(mood==="worried"){box(-2,5,4,1,"K");box(-1,4,2,1,"K");box(-6,-4,3,1,"hair");box(3,-4,3,1,"hair");}
+    else {box(-2,5,1,1,"K");box(-1,6,3,1,"K");box(2,5,1,1,"K");}
+  }
+  box(-8,3,3,2,"cheek");box(6,3,3,2,"cheek");
+  return px;
+}
+
+function rigging(mood="idle") {
+  const px=[];
+  px.push(...obox(42,90,36,3,PAL.brass,PAL.K));
+  px.push(...obox(49,97,22,3,PAL.w2,PAL.K));
+  for(const [a,b] of [[35,29],[48,38],[72,82],[85,91]]) {
+    for(let y=92;y<=130;y++) {
+      const x=Math.round(a+(b-a)*(y-92)/38);
+      px.push([x,y,PAL.K],[x+1,y,PAL.w0],[x+2,y,PAL.wk]);
+    }
+  }
+  px.push(...fillPixels(39,120,23,9,PAL.dress));
+  px.push(...charlotteFace(49,113,1,mood));
+  // Bunny ears rise above her friend's head, with a round cream muzzle and pink lining.
+  px.push(...obox(67,99,4,16,PAL.C,PAL.K),...obox(76,100,4,15,PAL.C,PAL.K));
+  px.push(...fillPixels(68,102,2,9,PAL.gp),...fillPixels(77,103,2,8,PAL.gp));
+  px.push(...disc(74,117,7,PAL.C,PAL.K),...disc(74,126,7,PAL.C,PAL.K));
+  px.push(...fillPixels(69,115,2,3,PAL.K),...fillPixels(77,115,2,3,PAL.K));
+  px.push(...fillPixels(73,119,2,2,PAL.gP));
+  // Quiet wicker clusters and a thick rolled rim, instead of a field of tiny checks.
+  px.push(...obox(27,127,66,20,PAL.wd,PAL.K));
+  for(let y=130;y<145;y++)for(let x=29;x<92;x++) {
+    const shade=x>84?"w2":(Math.floor((y-130)/3)%2===0?"wk":"wd");
+    px.push([x,y,PAL[shade]]);
+  }
+  for(let x=31;x<92;x+=12)px.push(...fillPixels(x,130,2,15,PAL.w1));
+  px.push(...obox(26,125,68,4,PAL.w0,PAL.K),...fillPixels(28,125,63,1,PAL.wk));
+  px.push(...ascii([".hh.hh.","hhhhhhh","hhhhhhh",".hhhhh.","..hhh..","...h..."],57,134,{h:"gP"}));
+  px.push([58,135,PAL.C],[59,135,PAL.C]);
+  px.push(...disc(42,125,2,PAL.skin,PAL.K),...disc(55,125,2,PAL.skin,PAL.K));
+  px.push(...disc(70,125,2,PAL.C,PAL.K),...disc(80,125,2,PAL.C,PAL.K));
+  return px;
+}
+
+function balloonFrame(flameFrame,mood="idle") {
+  return envelope().concat(throat(),flameFrame===0?[]:FLAME_FRAMES[flameFrame%3],rigging(mood));
 }
 
 // ================================================================ clouds
@@ -475,32 +426,12 @@ function x2(px) {
 // Charlotte's face, 24x26 design. Blue backing + stitched cream frame in the sprite itself, so
 // the HUD draws one thing. The face is the balloon basket's Charlotte, grown up for the frame:
 // bigger glossy eyes with two shine pixels, a pink headband with a bow, shoulders in her dress.
-function portrait() {
-  const px = [];
-  px.push(...obox(0, 0, 44, 48, PAL.paper, PAL.K));                                  // cream frame
-  for (let y = 3; y < 45; y += 3) for (let x = 3; x < 41; x += 3) px.push([x, y, PAL.paperWarm]); // stitching
-  px.push(...obox(5, 5, 34, 38, PAL.rockD, PAL.K));                                  // violet-blue backing
-  px.push(...disc(22, 16, 11, PAL.hair, PAL.K));                                     // hair mass
-  px.push(...obox(11, 15, 22, 20, PAL.skin, PAL.K));                                 // face
-  for (let x = 12; x <= 31; x++) for (let y = 15; y <= 17; y++) px.push([x, y, PAL.hair]); // fringe
-  for (let x = 12; x <= 31; x += 3) px.push([x, 18, PAL.hair]);                      // fringe zigzag
-  for (let y = 18; y <= 35; y++) { px.push([10, y, PAL.hair], [11, y, PAL.hair], [32, y, PAL.hair], [33, y, PAL.hair]); } // side hair
-  for (let x = 12; x <= 31; x++) px.push([x, 6, PAL.gP], [x, 7, PAL.gP]);            // headband
-  ascii([
-    "KK..KK",
-    "KggggK",
-    "KggggK",
-    ".KggK.",
-    "..KK..",
-  ], 27, 6, { g: "gP" }).forEach(p => px.push(p));                                   // bow pinned to the band
-  // big glossy eyes: 4x6 ink, cream shine at the top, a second speck low — the sheet's gloss
-  ascii(["KKKK", "KCKK", "KKKK", "KKKK", "KKCK", ".KK."], 14, 22, { K: "K", C: "C" }).forEach(p => px.push(p));
-  ascii(["KKKK", "KCKK", "KKKK", "KKKK", "KKCK", ".KK."], 25, 22, { K: "K", C: "C" }).forEach(p => px.push(p));
-  px.push([12, 29, PAL.cheek], [13, 29, PAL.cheek], [30, 29, PAL.cheek], [31, 29, PAL.cheek]); // blush
-  px.push([20, 31, PAL.K], [21, 31, PAL.K], [22, 31, PAL.K], [23, 31, PAL.K]);       // smile line
-  px.push([20, 32, PAL.gP], [21, 32, PAL.gP], [22, 32, PAL.gP], [23, 32, PAL.gP]);   // open smile
-  for (let x = 14; x <= 29; x++) for (let y = 38; y <= 43; y++) px.push([x, y, PAL.dress]);     // shoulders
-  for (let x = 16; x <= 27; x += 4) px.push([x, 38, PAL.gp]);                        // collar trim
+function portrait(mood="idle") {
+  const px=obox(1,1,41,45,PAL.paper,PAL.K);
+  px.push(...obox(5,5,33,37,PAL.rockD,PAL.K));
+  px.push(...fillPixels(10,36,25,8,PAL.dress));
+  px.push(...charlotteFace(22,24,1.3,mood));
+  for(let x=4;x<41;x+=5)px.push([x,3,PAL.paperWarm],[x,44,PAL.paperWarm]);
   return px;
 }
 
@@ -698,6 +629,8 @@ function stormCloud() {
 
 const SPRITES = {
   "balloon":      { w: 120, h: 150, frames: [0, 1, 2].map(f => balloonFrame(f)) },
+  "balloon-happy": { w: 120, h: 150, frames: [0,1,2].map(f=>balloonFrame(f,"happy")) },
+  "balloon-worried": { w: 120, h: 150, frames: [0,1,2].map(f=>balloonFrame(f,"worried")) },
   "bag-falling":  { w: 12, h: 14, frames: [sandbag()] },
   "cloud-small":  { w: 140, h: 48, frames: [cloud(140)] },
   "cloud-mid":    { w: 200, h: 66, frames: [cloud(200)] },
@@ -712,6 +645,8 @@ const SPRITES = {
   "heart-off":    { w: 12, h: 9, frames: [heart(false)] },
   "heart-on":     { w: 12, h: 9, frames: [heart(true)] },
   "portrait":     { w: 44, h: 48, frames: [portrait()] },
+  "portrait-happy": { w:44,h:48,frames:[portrait("happy")] },
+  "portrait-worried": { w:44,h:48,frames:[portrait("worried")] },
   "heart-hud":    { w: 26, h: 22, frames: [x2(heartHud(true))] },
   "heart-hud-off": { w: 26, h: 22, frames: [x2(heartHud(false))] },
   "rock":         { w: 40, h: 28, frames: [x2(skyRock())] },

@@ -467,7 +467,7 @@ namespace Balloonatic.Screens
             // visibly touches the deck at touchdown instead of hovering a hand above it. The burner
             // flickers only while the sim says heat is on — three frames, clock-driven, deterministic.
             float x = ScreenX(state.X, camX);
-            float foot = ScreenY(state.Altitude, camAlt) + 4f;
+            float foot = ScreenY(state.Altitude, camAlt) + 1f;
             int frame = state.Heating ? 1 + Clock(state) / 8 % 2 : 0;
             Vector2 size = Sprites.Size("balloon-0");
 
@@ -486,9 +486,13 @@ namespace Balloonatic.Screens
                 return;
             Color? tint = hurtWindow && AppSettings.ReducedMotion ? new Color(150, 150, 150) : null;
 
-            Sprites.Draw(canvas, "balloon", frame, x - size.X / 2, foot - size.Y, tint: tint);
+            string expression = FlightGuidance.Expression(state);
+            string sprite = expression == "happy" ? "balloon-happy" : expression == "worried" ? "balloon-worried" : "balloon";
+            Sprites.Draw(canvas, sprite, frame, x - size.X / 2, foot - size.Y, tint: tint);
+            for(int bag=0;bag<state.BallastHeld;bag++)
+                Sprites.Draw(canvas, "bag-falling", x + (bag == 0 ? -22 : 16), foot - 12);
             if (state.Cargo != CargoKind.None)
-                Sprites.Draw(canvas, "gift", x + 18, foot - 12);
+                Sprites.Draw(canvas, "gift", x + 25, foot - 12);
 
             // I12 burner puffs: while heat is on, three small puffs vent from the envelope crown on a
             // rolling 30-tick cycle — pure from the decoration clock, palette clouds, and gone the
@@ -567,7 +571,8 @@ namespace Balloonatic.Screens
 
             // ---- crate panel, top left: who is flying, and how she is doing ----
             Kit.Panel(canvas, new Rectangle(8, 8, 118, 44));
-            Sprites.Draw(canvas, "portrait", 13, 11);
+            string expression = FlightGuidance.Expression(state);
+            Sprites.Draw(canvas, expression == "happy" ? "portrait-happy" : expression == "worried" ? "portrait-worried" : "portrait", 13, 11);
             canvas.CutRectangle(39, 10, 68, 32, 1, Theme.Dim);              // inner well behind the counters
             for (int i = 0; i < HeartsTotal; i++)
                 Sprites.Draw(canvas, i < state.Hearts ? "heart-hud" : "heart-hud-off", 42 + i * 16, 12);

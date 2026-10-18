@@ -1,0 +1,21 @@
+const {test,expect}=require('@playwright/test');
+const path=require('path');
+const {bootGame,act,reviewShot,SHOTS_DIR}=require('./support');
+test('Charlotte shares happy, idle and concerned expressions with her portrait',async({page},info)=>{
+ await bootGame(page);await act(page,'settings=motion=1');await act(page,'reset=2121');
+ await act(page,'step=1');expect((await page.evaluate(()=>window.__GAME.state())).expression).toBe('happy');
+ await page.evaluate(()=>window.__GAME.raw('warp','185=170'));await act(page,'step=121');
+ expect((await page.evaluate(()=>window.__GAME.state())).expression).toBe('idle');
+ await act(page,'screen=world');await expect.poll(()=>act(page,'screen')).toBe('world');
+ await reviewShot(page,{path:path.join(SHOTS_DIR,`21-charlotte-idle-${info.project.name}.png`)});
+ await act(page,'reset=2121');
+ const point=await page.evaluate(async()=>{const r=(await window.__GAME.raw('hazards')).split(';')[0].split(':')[1].split(',').map(Number);return [r[0],r[1]-14];});
+ await page.evaluate(p=>window.__GAME.raw('warp',`${p[0]}=${p[1]}`),point);await act(page,'step=1');
+ expect((await page.evaluate(()=>window.__GAME.state())).expression).toBe('worried');
+ await act(page,'screen=world');await expect.poll(()=>act(page,'screen')).toBe('world');
+ await reviewShot(page,{path:path.join(SHOTS_DIR,`21-charlotte-worried-${info.project.name}.png`)});
+ await act(page,'reset=2121');expect(await act(page,'deliver')).toBe('ok:delivered');
+ expect((await page.evaluate(()=>window.__GAME.state())).expression).toBe('happy');
+ await act(page,'screen=world');await expect.poll(()=>act(page,'screen')).toBe('world');
+ await reviewShot(page,{path:path.join(SHOTS_DIR,`21-charlotte-happy-${info.project.name}.png`)});
+});

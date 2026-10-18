@@ -1,0 +1,11 @@
+# Rebuilding the pixel art
+
+Run `npm run art` to generate the sheet, send it through the installed Aseprite MCP server, save the
+editable `.aseprite` with named slices, export its PNG, and audit palette/slice bounds. Pixel rules are
+in `.art/generate.js`; game assets are embedded from `export/`, so players and clean clones never
+need Aseprite or the MCP server installed.
+
+Art-authoring prerequisites: Node, uv, Aseprite, and the Python Aseprite MCP server. Set
+`ASEPRITE_MCP_DIR` to the server checkout and `ASEPRITE_PATH` to the executable if they are outside
+the usual `~/Repos/aseprite-mcp` and Steam locations. The build reuses the same stdio entry point as
+the user's OpenCode MCP configuration; it does not modify that configuration or other MCP entries.

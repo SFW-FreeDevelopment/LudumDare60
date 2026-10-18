@@ -5,6 +5,7 @@
   "description": "Charlotte's Balloonatic - Ludum Dare 60 entry (KNI, WebGL). JS/Playwright harness around the .NET build.",
   "scripts": {
     "dev": "dotnet run --project Balloonatic/Balloonatic.Desktop -c Release",
+    "art": "node tools/build-art.cjs",
     "build": "dotnet build Balloonatic/Balloonatic.sln -c Release",
     "unit": "dotnet test Balloonatic/Balloonatic.sln -c Release",
     "web": "dotnet publish Balloonatic/Balloonatic.Blazor.GL -c Release -o export/web",

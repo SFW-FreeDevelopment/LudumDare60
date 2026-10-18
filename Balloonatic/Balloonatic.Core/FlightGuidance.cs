@@ -4,6 +4,9 @@ namespace Balloonatic.Core;
 /// <summary>The instruments and test bridge share the same interpretation of a flight.</summary>
 public static class FlightGuidance
 {
+    public static string Expression(SimState state) => state.Delivered ? "happy" :
+        state.Hearts < SimTuning.HeartsStart && state.Tick - state.HurtTick < SimTuning.InvulnTicks ? "worried" :
+        state.PickupTick >= 0 && state.Tick - state.PickupTick < 120 ? "happy" : "idle";
     public static int BandIndex(SimState state, LevelDef level)
     {
         for(int i=0;i<level.Bands.Length;i++)
