@@ -387,3 +387,17 @@ independently; breeze shares the SFX bus and pauses with the world. `raw('audio'
 loop states, last cue, giggle/jingle counts and queued cues. Damage requests creak, delivery requests
 jingle and delayed giggle; leaving a completed flight clears delayed sounds. Endpoint/mute tests
 remain in place. Technical playback checks cannot replace Steven's listening judgment.
+# I30a interaction and presentation contract
+
+Blur/hidden-page events clear input and request pause; focus return waits for deliberate resume.
+The desktop head uses the same pause rule on window deactivation. Settings entered from pause return
+to pause with the flight hash unchanged. The harness's course switch clears completed-flight/cargo/
+damage/pending-input state while retaining its documented seed/tick; player launches also restart time.
+
+`raw('presentation')` reports the same frame selectors used by the renderer. Reduced Motion freezes
+burner, bird flaps, windsocks and mill sails; cloud drift, puffs, shake and transitions already honor
+the setting. Bird movement and dropped bags still communicate gameplay. An identical legal input
+script hashes identically with active/muted audio and both motion settings. The full browser voyage
+uses normal collisions on all three stages and reaches the explicit ending. Boot timing is logged
+without an absolute speed assertion. Evidence: `30-focus-pause-*`, `30-pause-settings-*`,
+`30-reduced-motion-*`, `30-voyage-all-home-*`.

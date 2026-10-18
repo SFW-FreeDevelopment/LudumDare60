@@ -240,7 +240,7 @@ namespace Balloonatic.Screens
             string sock = band.Strength switch
             {
                 1 => "windsock-1",
-                _ => $"windsock-{band.Strength}-{Clock(state) / 12 % 2}",
+                _ => $"windsock-{band.Strength}-{WorldArt.SockFrame(state)}",
             };
             Vector2 sockSize = Sprites.Size(sock);
             float postX = x + (band.Direction >= 0 ? -50 : 50);
@@ -276,6 +276,7 @@ namespace Balloonatic.Screens
                 // I12 sand puffs: the release shakes a three-mote cloud that spreads for a fifth of a
                 // second, and the fall trails a single grain every other tick — the sand is visibly
                 // leaving the basket, which is the brake being spent. Pure clock math, no new state.
+                if (AppSettings.ReducedMotion)continue;
                 if (age < 12)
                 {
                     float ry = ScreenY(state.DropAltitude[i], camAlt);
@@ -333,7 +334,7 @@ namespace Balloonatic.Screens
             {
                 (float x, float alt, int dir) = level.BirdAt(i, state.Tick);
                 Vector2 size = Sprites.Size("bird-0");
-                Sprites.Draw(canvas, "bird", Clock(state) / 8 % 2,
+                Sprites.Draw(canvas, "bird", WorldArt.BirdFrame(state),
                     ScreenX(x, camX) - size.X / 2f, ScreenY(alt, camAlt) - size.Y / 2f, flip: dir < 0);
             }
         }
@@ -346,7 +347,7 @@ namespace Balloonatic.Screens
             // flickers only while the sim says heat is on — three frames, clock-driven, deterministic.
             float x = ScreenX(state.X, camX);
             float foot = ScreenY(state.Altitude, camAlt) + 1f;
-            int frame = state.Heating ? 1 + Clock(state) / 8 % 2 : 0;
+            int frame = WorldArt.BurnerFrame(state);
             Vector2 size = Sprites.Size("balloon-0");
 
             // I12 basket sway: the load leans one px into fast climbs and the other into fast drops,
@@ -362,7 +363,7 @@ namespace Balloonatic.Screens
             bool hurtWindow = state.Hearts < SimTuning.HeartsStart && hurtAge >= 0 && hurtAge < SimTuning.InvulnTicks;
             if (hurtWindow && !AppSettings.ReducedMotion && hurtAge / 4 % 2 == 1)
                 return;
-            Color? tint = hurtWindow && AppSettings.ReducedMotion ? new Color(150, 150, 150) : null;
+            Color? tint = hurtWindow && AppSettings.ReducedMotion ? Theme.HurtDim : null;
 
             string expression = FlightGuidance.Expression(state);
             string sprite = expression == "happy" ? "balloon-happy" : expression == "worried" ? "balloon-worried" : "balloon";
@@ -430,7 +431,7 @@ namespace Balloonatic.Screens
         /// The sim keeps ticking after a delivery (its own determinism), but a results screen behind
         /// which clouds still sail and the flame still flickers tells the player the run is not over.
         /// </summary>
-        static int Clock(SimState state) => state.Complete ? state.CompletedAtTick : state.Tick;
+        static int Clock(SimState state) => WorldArt.Clock(state);
 
         // Hearts: 3 at launch, one per rock or bird (I9). "heart-hud-off" is the empty slot the
         // moment the sim spends one.

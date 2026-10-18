@@ -82,6 +82,8 @@ namespace Balloonatic
 
         /// <summary>The pause veil: dusk drawn over the held flight — one colour with an alpha, nothing more.</summary>
         public static readonly Color PauseVeil = new Color(11, 17, 41, 150);
+        public static readonly Color HurtDim = new Color(150, 150, 150); // neutral sprite modulation for reduced-motion damage
+        public static Color ScreenFade(int age)=>new Color(Ink.R,Ink.G,Ink.B,(byte)(140*(6-age)/6));
 
         /// <summary>
         /// Shade steps for anything with thickness (panels, buttons, baskets): index 0 is the lit top/left

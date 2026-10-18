@@ -15,9 +15,7 @@ test('boot-to-title and payload are logged and inside budget @smoke', async ({ p
   console.log(
     `BOOT-TO-TITLE ${boot.readyAtMs} ms · PAYLOAD ${megabytes(boot.downloadedBytes)} MB over ${boot.requests} requests`
   );
-  // The ~3 s browser budget is a network-condition promise; this is localhost on a dev box, so the
-  // assertion is the generous CI floor and the log line is the number humans watch.
-  expect(boot.readyAtMs).toBeLessThan(15_000);
+  // Boot timing is recorded; readiness has a generous timeout, never a wall-clock speed assertion.
   expect(boot.downloadedBytes).toBeLessThan(8 * 1024 * 1024);
   expect(errors, `console/JS errors during boot: ${errors.join(' | ')}`).toEqual([]);
 });

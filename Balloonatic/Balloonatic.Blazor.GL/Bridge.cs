@@ -43,6 +43,11 @@ namespace Balloonatic
                 return game.AudioStatus();   // the audio kit lives renderer side, like the frame counters
             if (name == "audiomix")
                 return game.AudioMixStatus();
+            if (name == "focus") {
+                if(arg!="0"&&arg!="1")return "error:bad-arg:focus";
+                game.SetBrowserFocus(arg=="1");return "ok";
+            }
+            if (name == "presentation")return game.PresentationStatus();
             if (name == "save") return game.SaveState();
             if (name == "loadsave") return game.RestoreSave(arg ?? string.Empty);
             if (name == "progress") return game.ProgressStatus();

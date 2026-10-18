@@ -112,10 +112,13 @@ complete; implementation is proceeding in the order below.
   prompts/sources, byte-reproducible offline mastering, independent music/effects/ambience routing.
   Reviewed `29-concern-*` and `29-joy-*`; payload ~4.21 MiB, local frame cadence ~16.67 ms.
   **Pending: Steven's listening review** of music, loop joins, effects and mix. The box remains open.
-- [ ] **I30a — Close browser interaction and motion edges** (~60m)
+- [x] **I30a — Close browser interaction and motion edges** (~60m)
   Final audit follow-up: pause safely on focus loss, return from pause settings to the flight,
   freeze remaining decorative frames under Reduced Motion, and prove the full voyage with collisions.
   Split from submission revalidation so fixes can be committed before a clean-clone package check.
+  Verified: 83 unit tests, 116 browser tests; reviewed all `30-focus-pause-*`, `30-pause-settings-*`,
+  `30-reduced-motion-*`, `30-voyage-all-home-*`. Full collision-enabled voyage reaches 3/3 and the
+  ending. Active/muted audio + motion profiles preserve identical flight hashes; compiler warnings zero.
 - [ ] **I30 — Submission revalidation** (~90m)
   Full gates, real-collision voyage, settings/reload/focus-loss coverage, both viewport reviews and
   fresh WebGL/archive smoke. Reconcile STYLE/credits/completion claims and finish I13's ship requirements.

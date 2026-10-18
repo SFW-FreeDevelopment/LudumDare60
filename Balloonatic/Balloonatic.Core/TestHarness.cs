@@ -286,13 +286,8 @@ namespace Balloonatic.Core
             if (!LevelCatalog.TryGet(id, out LevelDef level))
                 return "error:unknown-level:" + id;
 
-            _state.LevelId = level.Id;
-            _state.X = 0f;
-            _state.VelocityX = 0f;
-            _state.Altitude = SimTuning.DeckTopAltitude;
-            _state.VelocityY = 0f;
-            _state.Temperature = SimTuning.TempAmbient;
-            _state.BallastHeld = SimTuning.BagCapacity;
+            _state=new SimState {Seed=_state.Seed,Tick=_state.Tick,Screen=_state.Screen,LevelId=level.Id,WindAssist=_state.WindAssist};
+            _input=SimInput.None;_pendingBallast=false;
             return "ok:level=" + level.Id;
         }
 

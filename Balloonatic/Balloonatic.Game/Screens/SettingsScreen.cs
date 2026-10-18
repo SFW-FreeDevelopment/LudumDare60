@@ -59,7 +59,7 @@ namespace Balloonatic.Screens
             }
 
             if (f.Back)
-                _host.GoTo(SimState.ScreenMenu);
+                _host.ReturnFromSettings();
         }
 
         void Activate(int row)
@@ -71,7 +71,7 @@ namespace Balloonatic.Screens
                     _host.LiveSettingsChanged();
                     break;
                 case BackRow:
-                    _host.GoTo(SimState.ScreenMenu);
+                    _host.ReturnFromSettings();
                     break;
                 default:
                     Adjust(row, +1);   // Enter nudges a value forward; volumes wrap, switches flip
@@ -117,7 +117,7 @@ namespace Balloonatic.Screens
                 PixelFont.DrawShadowed(canvas,value,r.Right-32-PixelFont.Width(value,font),r.Y+5,Theme.StarGold,font);
             }
             Kit.Button(canvas,UiLayout.Setting(RestoreRow),"RESTORE DEFAULTS",_hover==RestoreRow?Kit.UiState.Hover:Kit.UiState.Rest,_focus==RestoreRow);
-            Kit.Button(canvas,UiLayout.Setting(BackRow),"BACK TO TITLE",_hover==BackRow?Kit.UiState.Hover:Kit.UiState.Rest,_focus==BackRow);
+            Kit.Button(canvas,UiLayout.Setting(BackRow),_host.SettingsReturnToPause?"BACK TO PAUSE":"BACK TO TITLE",_hover==BackRow?Kit.UiState.Hover:Kit.UiState.Rest,_focus==BackRow);
             PixelFont.DrawCenteredShadowed(canvas,"ARROWS ADJUST / 0 MUTES",320,312,Theme.SignCream,font);
         }
     }

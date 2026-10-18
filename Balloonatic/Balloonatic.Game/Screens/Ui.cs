@@ -34,6 +34,8 @@ namespace Balloonatic.Screens
     {
         Balloonatic.Core.SimState Flight { get; }
         void GoTo(string screen);
+        bool SettingsReturnToPause { get; }
+        void ReturnFromSettings();
 
         /// <summary>Choose a course and launch it: the level-select row's whole job.</summary>
         void FlyLevel(string levelId);

@@ -113,8 +113,16 @@
         window.addEventListener("blur", function()
         {
             // Keys held while the tab loses focus never fire keyup: clear the table so nothing sticks.
-            if (window.__GAME)
+            if (window.__GAME) {
                 window.__GAME.keyclear();
+                window.__GAME.raw('focus','0');
+            }
+        });
+        window.addEventListener("focus", function() {
+            if(window.__GAME)window.__GAME.raw('focus','1');
+        });
+        document.addEventListener("visibilitychange", function() {
+            if(window.__GAME)window.__GAME.raw('focus',document.hidden?'0':'1');
         });
         window.addEventListener("wheel", function(event)
         {

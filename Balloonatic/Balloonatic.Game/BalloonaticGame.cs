@@ -49,6 +49,9 @@ namespace Balloonatic
         // snapshot is differenced against the last one and then remembered.
         bool enterWasPressed, escapeWasPressed, upWasPressed, downWasPressed, leftWasPressed, rightWasPressed;
         bool rWasPressed;
+        bool browserFocused=true, wasNativeActive=true;
+        string settingsReturn=SimState.ScreenMenu;
+        bool HasInputFocus=>UseWebKeyboard?browserFocused:IsActive;
 
         // I11 audio edge cache: the director turns state into sound by watching for edges here,
         // renderer side — it reads state, never writes it, like every other decoration.
@@ -189,7 +192,10 @@ namespace Balloonatic
             MouseState mouse = Mouse.GetState();
             DiagPacing(gameTime);
 
+            if(!UseWebKeyboard && wasNativeActive && !IsActive)PauseForFocusLoss();
+            wasNativeActive=IsActive;
             UiFrame frame = BuildUiFrame(keyboard, mouse);
+            if(!HasInputFocus)frame=default;
 
             // The first deliberate touch — a press or a key — is the player saying they are here,
             // and the browser's definition of when audio may exist. Until then the audio stack
@@ -216,7 +222,7 @@ namespace Balloonatic
             if (screen is IUiScreen uiScreen)
                 uiScreen.Tick(frame);
 
-            if (!Harness.Paused && Harness.State.Screen == SimState.ScreenWorld)
+            if (!Harness.Paused && HasInputFocus && Harness.State.Screen == SimState.ScreenWorld)
             {
                 // R is the "again" key, and its meaning follows the run: a delivered flight charts
                 // the next course on the world map (I10 — the voyage between levels), anything else
@@ -331,7 +337,21 @@ namespace Balloonatic
 
         SimState UiHost.Flight => Harness.State;
 
-        void UiHost.GoTo(string target) => Harness.State.RequestedScreen = target;
+        void UiHost.GoTo(string target) {
+            if(target==SimState.ScreenSettings)settingsReturn=Harness.State.Screen==SimState.ScreenPause?SimState.ScreenPause:SimState.ScreenMenu;
+            Harness.State.RequestedScreen=target;
+        }
+        bool UiHost.SettingsReturnToPause=>settingsReturn==SimState.ScreenPause;
+        void UiHost.ReturnFromSettings() {
+            Harness.State.RequestedScreen=settingsReturn;settingsReturn=SimState.ScreenMenu;
+        }
+        void PauseForFocusLoss() {
+            WebKeys.Clear();Harness.SetLiveInput(false,false);
+            if(Harness.State.Screen==SimState.ScreenWorld&&!Harness.State.Complete)Harness.State.RequestedScreen=SimState.ScreenPause;
+        }
+        public void SetBrowserFocus(bool focused) {
+            browserFocused=focused;if(!focused)PauseForFocusLoss();
+        }
 
         void UiHost.FlyLevel(string levelId)
         {
@@ -401,6 +421,7 @@ namespace Balloonatic
         /// <summary>Renderer-side audio readout for the bridge (<c>__GAME.audio()</c>).</summary>
         public string AudioStatus() => Audio.Sound.Status();
         public string AudioMixStatus() => Audio.Sound.MixStatus();
+        public string PresentationStatus()=>WorldArt.Presentation(Harness.State)+";focus="+(HasInputFocus?1:0);
         public string SaveState() => AppProgress.Save();
         public string ProgressStatus() => "count="+AppProgress.Count+";"+AppProgress.Save();
         public string RestoreSave(string value) {
@@ -491,7 +512,7 @@ namespace Balloonatic
             int age = FrameCount - fadeStartFrame;
             if (age < 6 && !AppSettings.ReducedMotion)
                 canvas.Fill(0, 0, Sim.DesignWidth, Sim.DesignHeight,
-                    new Color(11, 17, 41, 140 * (6 - age) / 6));
+                    Theme.ScreenFade(age));
         }
 
         protected override void OnExiting(System.EventArgs args)

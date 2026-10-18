@@ -1,6 +1,7 @@
 // @ts-check
 const { test, expect } = require('@playwright/test');
-const { bootGame, watchForErrors, act, clickDesign, clickUi } = require('./support');
+const path=require('path');
+const { bootGame, watchForErrors, act, clickDesign, clickUi, reviewShot, SHOTS_DIR } = require('./support');
 
 /**
  * I7's flow gate: Playwright drives title → levels → pause → settings → credits (PLAN's "done when",
@@ -86,7 +87,7 @@ test('a real key press walks the title menu', async ({ page }) => {
   await expect.poll(() => screenOf(page), { timeout: 10_000 }).toBe('menu');
 });
 
-test('the voyage flies all three courses start to finish, charting each one home @smoke', async ({ page }) => {
+test('the voyage flies all three courses start to finish, charting each one home @smoke', async ({ page }, info) => {
   // PLAN I10's "done when", end to end in WebGL: deliver a course, press the R the panel just
   // advertised, and the world map opens under the balloon; Enter flies the next isle. After the
   // last course the voyage closes with Charlotte's dedication.
@@ -101,13 +102,18 @@ test('the voyage flies all three courses start to finish, charting each one home
 
   for (const id of ['nursery-skies', 'winding-trail', 'night-crossing']) {
     expect(await act(page, 'level')).toBe(id);
-    expect(await act(page, 'deliver')).toBe('ok:delivered');
+    expect(await page.evaluate(()=>window.__GAME.raw('fly','120'))).toBe('ok:delivered');
+    expect(Number(await act(page,'hearts'))).toBeGreaterThan(0);
     expect(await act(page, 'delivered')).toBe('1');
 
     await act(page, 'resume');                     // the R handler is live only on a live world
     await page.keyboard.press('KeyR');             // the panel's own key, through the browser pipeline
     await expect.poll(() => screenOf(page), { timeout: 10_000 }).toBe('worldmap');
-    await page.keyboard.press('Enter');            // FLY ON
+    if(id==='night-crossing') {
+      expect(await page.evaluate(()=>window.__GAME.raw('progress'))).toContain('count=3;');
+      await reviewShot(page,{path:path.join(SHOTS_DIR,`30-voyage-all-home-${info.project.name}.png`)});
+    }
+    await page.keyboard.press('Enter');            // FLY ON or homeward
     await expect.poll(() => screenOf(page), { timeout: 10_000 }).toBe(id === 'night-crossing' ? 'ending' : 'world');
   }
 
