@@ -347,3 +347,15 @@ actions now use shared `UiLayout` bounds, exposed through `raw('ui')`; tests cli
 Settings, pause, credits and illustrated course choices use the adaptive body/heading scale. Controls
 are at least 32 design pixels tall. `25-*` records every menu at desktop and narrow sizes. Screenshot
 review copies wait 16 rendered frames so the six-frame transition has settled before export.
+# I26 save and voyage contract
+
+WebGL stores versioned best ratings and settings in `localStorage['balloonatic.save.v1']` after changes,
+with a 400 ms polling interval. Storage denial falls back to session play. Save loading validates the
+whole schema and value ranges before applying anything; unknown versions/keys and invalid values leave
+the running data unchanged. `raw('progress')` reports actual saved completion count. Selecting the last
+course directly does not imply earlier deliveries. `raw('save')`/`raw('loadsave', value)` expose the same
+format for verification; `flushSave()` flushes browser storage when needed. Desktop uses session records.
+
+After the last course, the map leads home to the dedication. Replay explicitly launches a fresh first
+flight, preserving best ratings. All player-facing course launches reset completion/cargo/hearts via
+the normal restart path. Screenshot evidence: `26-voyage-record-*`, `26-sweet-dreams-*`.

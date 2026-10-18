@@ -279,6 +279,25 @@ namespace Balloonatic.Rendering
             SkyBackdrop.Draw(canvas, 0, 180, 0);
         }
 
+        public static void VoyageBackdrop(DesignCanvas canvas)
+        {
+            canvas.Fill(0, 0, 640, 360, Theme.NightBlue);
+            for (int i=0;i<48;i++)
+                canvas.Fill(12+i*97%616,12+i*53%326,i%7==0?2:1,1,Theme.CloudLavender);
+            for (int y=-18;y<=18;y++) {
+                int half=(int)MathF.Sqrt(18*18-y*y);
+                canvas.Fill(584-half,44+y,half*2,1,Theme.TagCream);
+            }
+            for (int y=-18;y<=18;y++) {
+                int half=(int)MathF.Sqrt(18*18-y*y);
+                canvas.Fill(592-half,38+y,half*2,1,Theme.NightBlue);
+            }
+            Sprites.Draw(canvas,"cloud-large",-20,104,tint:Theme.SkyHigh);
+            Sprites.Draw(canvas,"cloud-large",240,162,tint:Theme.SkyHigh);
+            Sprites.Draw(canvas,"cloud-large",534,274,tint:Theme.SkyHigh);
+            canvas.Outline(new Rectangle(0,0,640,360),2,Theme.WoodDark);
+        }
+
         static readonly int[] EnvelopeWidths = { 12, 20, 26, 30, 32, 32, 32, 30, 26, 20, 14 };
 
         /// <summary>

@@ -108,7 +108,7 @@ namespace Balloonatic.Screens
             } else {
                 Sprites.Draw(canvas,"balloon-worried-0",290,154);
             }
-            Kit.Button(canvas,UiLayout.Result,state.Delivered?"NEXT SKY >":"TRY AGAIN",
+            Kit.Button(canvas,UiLayout.Result,state.Delivered?(state.LevelId==LevelCatalog.Levels[2].Id?"HOMEWARD >":"NEXT SKY >"):"TRY AGAIN",
                 _resultHover?Kit.UiState.Hover:Kit.UiState.Rest,focused:true);
         }
 

@@ -88,8 +88,12 @@ complete; implementation is proceeding in the order below.
   Verified: 76 unit tests, 100 browser tests; Aseprite audit (47 slices); opened all `25-*`
   desktop/narrow menu shots. Shared 32+ pixel controls, readable settings/credits/pause, real pointer
   and keyboard navigation. Stage-specific landmarks will distinguish the remaining thumbnails in I27–28.
-- [ ] **I26 — Voyage and closure** (~60m)
+- [x] **I26 — Voyage and closure** (~60m)
   Distinct destination thumbnails, truthful progress, remembered results/settings and a simple dedication.
+  Verified: 76 unit tests, 104 browser tests; reviewed moonlit `26-voyage-record-*` and
+  `26-sweet-dreams-*`. Best results/settings survive reload; invalid saves apply nothing and blocked
+  storage stays playable. Direct selection counts honestly; final course leads to an explicit ending/replay.
+  Player-facing course selection now clears completed-flight flags. Landmark selectors feed map thumbnails.
 - [ ] **I27 — Toy Isles** (~90m)
   Distinct toy landmark and opposing-wind delivery, using the approved kit; active-hazard route proof.
 - [ ] **I28 — Cloud Garden** (~90m)

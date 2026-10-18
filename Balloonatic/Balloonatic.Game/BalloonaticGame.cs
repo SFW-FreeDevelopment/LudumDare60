@@ -31,6 +31,7 @@ namespace Balloonatic
         readonly IScreen settingsScreen;
         readonly IScreen creditsScreen;
         readonly IScreen pauseScreen;
+        readonly IScreen endingScreen;
         IScreen screen;
         double accumulatorSeconds;
         bool ballastWasPressed;
@@ -67,6 +68,7 @@ namespace Balloonatic
             // never for the simulation itself.
             worldScreen = new WorldScreen(this);
             menuScreen = new MenuScreen(this);
+            endingScreen = new EndingScreen(this);
             levelsScreen = new LevelSelectScreen(this);
             worldMapScreen = new WorldMapScreen(this);
             settingsScreen = new SettingsScreen(this);
@@ -117,6 +119,7 @@ namespace Balloonatic
             SimState.ScreenSettings => settingsScreen,
             SimState.ScreenCredits => creditsScreen,
             SimState.ScreenPause => pauseScreen,
+            SimState.ScreenEnding => endingScreen,
             _ => scaffoldScreen,
         };
 
@@ -333,11 +336,15 @@ namespace Balloonatic
         void UiHost.FlyLevel(string levelId)
         {
             Harness.SelectLevel(levelId);
+            Harness.RestartRun();
             Harness.State.RequestedScreen = SimState.ScreenWorld;
         }
 
         void UiHost.FlyNextCourse()
         {
+            if(Harness.State.LevelId==LevelCatalog.Levels[LevelCatalog.Levels.Length-1].Id) {
+                Harness.State.RequestedScreen=SimState.ScreenEnding;return;
+            }
             Harness.AdvanceRun();
             Harness.State.RequestedScreen = SimState.ScreenWorld;
         }
@@ -394,6 +401,12 @@ namespace Balloonatic
         /// <summary>Renderer-side audio readout for the bridge (<c>__GAME.audio()</c>).</summary>
         public string AudioStatus() => Audio.Sound.Status();
         public string AudioMixStatus() => Audio.Sound.MixStatus();
+        public string SaveState() => AppProgress.Save();
+        public string ProgressStatus() => "count="+AppProgress.Count+";"+AppProgress.Save();
+        public string RestoreSave(string value) {
+            if(!AppProgress.Restore(value))return "error:bad-save";
+            ((UiHost)this).LiveSettingsChanged();return "ok";
+        }
         public string UiStatus() => UiLayout.Describe(canvas, Harness.State.Screen, Harness.State.Complete);
         public string BackdropStatus() => SkyBackdrop.Describe(Harness.State);
         public string ArtStatus() => WorldArt.Describe(Harness.State);

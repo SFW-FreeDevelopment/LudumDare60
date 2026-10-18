@@ -89,7 +89,7 @@ test('a real key press walks the title menu', async ({ page }) => {
 test('the voyage flies all three courses start to finish, charting each one home @smoke', async ({ page }) => {
   // PLAN I10's "done when", end to end in WebGL: deliver a course, press the R the panel just
   // advertised, and the world map opens under the balloon; Enter flies the next isle. After the
-  // last course the chart wraps — the voyage never dead-ends.
+  // last course the voyage closes with Charlotte's dedication.
   const errors = watchForErrors(page);
   await bootGame(page);
 
@@ -108,10 +108,12 @@ test('the voyage flies all three courses start to finish, charting each one home
     await page.keyboard.press('KeyR');             // the panel's own key, through the browser pipeline
     await expect.poll(() => screenOf(page), { timeout: 10_000 }).toBe('worldmap');
     await page.keyboard.press('Enter');            // FLY ON
-    await expect.poll(() => screenOf(page), { timeout: 10_000 }).toBe('world');
+    await expect.poll(() => screenOf(page), { timeout: 10_000 }).toBe(id === 'night-crossing' ? 'ending' : 'world');
   }
 
-  // Wrapping the chart: home from the last course, the first course waits again.
+  await clickUi(page, 'replay');
+  await expect.poll(() => screenOf(page)).toBe('world');
+  // An explicit replay launches the first course with fresh hearts.
   expect(await act(page, 'level')).toBe('nursery-skies');
   expect(await act(page, 'hearts')).toBe('3');     // fresh sky, fresh hearts — a wrap is a launch, not a carry-over
   expect(errors, `console/JS errors during the voyage: ${errors.join(' | ')}`).toEqual([]);

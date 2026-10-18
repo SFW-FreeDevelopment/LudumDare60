@@ -39,7 +39,7 @@ namespace Balloonatic.Screens
         {
             switch (index)
             {
-                case 0: _host.GoTo(SimState.ScreenWorld); break;
+                case 0: _host.FlyLevel(LevelCatalog.DefaultId); break;
                 case 1: _host.GoTo(SimState.ScreenLevels); break;
                 case 2: _host.GoTo(SimState.ScreenSettings); break;
                 case 3: _host.GoTo(SimState.ScreenCredits); break;

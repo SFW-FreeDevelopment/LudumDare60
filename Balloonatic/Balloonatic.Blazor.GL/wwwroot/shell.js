@@ -125,13 +125,36 @@
     // The WASM runtime, the .NET assemblies and the first drawn frame all arrive on their own
     // schedule, and that schedule is machine-dependent — so readiness is polled, never assumed, and
     // no test ever asserts on an absolute boot time (only records it).
+    const saveKey = 'balloonatic.save.v1';
+    let lastSave = '', saving = false;
+    api.persistence = 'available';
+    async function saveLocal() {
+        if (saving || api.persistence !== 'available') return;
+        saving = true;
+        try {
+            const value = await raw('save');
+            if (value.startsWith('version=1;') && value !== lastSave) {
+                localStorage.setItem(saveKey, value);
+                lastSave = value;
+            }
+        } catch (_) { api.persistence = 'unavailable'; }
+        finally { saving = false; }
+    }
+    api.flushSave = saveLocal;
     let attempts = 0;
     async function pollUntilReady() {
         const reply = await raw('ready');
         if (reply === '1') {
+            await syncSurface();
+            try {
+                const stored = localStorage.getItem(saveKey);
+                if (stored && await raw('loadsave', stored) === 'ok') lastSave = stored;
+            } catch (_) { api.persistence = 'unavailable'; }
+            await saveLocal();
             api.ready = true;
             api.readyAtMs = Math.round(performance.now() - startedAt);
-            await syncSurface();
+            setInterval(saveLocal, 400);
+            document.addEventListener('visibilitychange', () => { if (document.hidden) saveLocal(); });
             return;
         }
         if (attempts++ < 1200) {

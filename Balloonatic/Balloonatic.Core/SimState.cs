@@ -20,6 +20,7 @@ namespace Balloonatic.Core
         public const string ScreenSettings = "settings";
         public const string ScreenCredits = "credits";
         public const string ScreenPause = "pause";
+        public const string ScreenEnding = "ending";
 
         public ulong Seed;
         public int Tick;
