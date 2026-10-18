@@ -111,6 +111,12 @@ namespace Balloonatic.Core
         public static bool Deliver(SimState state, LevelDef level, float maxSeconds, bool hazards = false, Action<SimInput>? record = null)
         {
             float cruise = BandCenter(CarryingBand(level));
+            // A homeward floor must first be crossed in carrying air; a landing-only horizon
+            // otherwise keeps choosing to hover near the launch. Use the first forward band.
+            bool homewardFloor = level.Bands[0].Direction < 0;
+            if (homewardFloor)
+                foreach (WindBand band in level.Bands)
+                    if (band.Direction > 0) { cruise = BandCenter(band); break; }
             float lowest = Math.Max(BandCenter(level.Bands[0]), SimTuning.DeckTopAltitude + LowestFloor);
             float returnAlt = ReturnBandTarget(level, cruise);
 
@@ -127,7 +133,7 @@ namespace Balloonatic.Core
             {
                 if (decideIn <= 0)
                 {
-                    chosen = BestIdea(state, level, ideas, hazards);
+                    chosen = homewardFloor && state.X < level.CourseLength - 220f ? cruise : BestIdea(state, level, ideas, hazards);
                     decideIn = ReplanSeconds * Sim.StepHz;
                 }
                 decideIn--;
@@ -203,6 +209,14 @@ namespace Balloonatic.Core
             float effSink = 0.5f * (sink + Math.Max(0f, -s.VelocityY));
             float fall = effSink > 2f ? Math.Max(0f, s.Altitude - SimTuning.DeckTopAltitude) / effSink : 999f;
             float touchdown = s.X + s.VelocityX * fall;
+            if (level.Bands[0].Direction < 0) {
+                // Coasting crosses opposing bands: extrapolating today's horizontal speed
+                // invents a landing point. Predict through the same cooling/wind rules instead.
+                SimState coast=s.Clone();
+                for(int k=0;k<20*Sim.StepHz && coast.Altitude>SimTuning.DeckTopAltitude && !coast.Complete;k++)
+                    SimRules.Step(coast,SimInput.None,level,hazards:false);
+                touchdown=coast.X;
+            }
             score -= Math.Abs(touchdown - deckCentre);
 
             // Height is only useful as landing material; too high, and it is just weather.

@@ -670,7 +670,20 @@ function titleLogo() {
   return px;
 }
 
+function toyBlocks() {
+  const px=[];
+  const cells=[[12,98,"gP","A"],[44,98,"cs","B"],[76,98,"f1","C"],[28,66,"foam","B"],[60,66,"gp","A"],[44,34,"gold","C"]];
+  const letters={A:[".###.","#...#","#####","#...#","#...#"],B:["####.","#...#","####.","#...#","####."],C:[".####","#....","#....","#....",".####"]};
+  for(const [x,y,color,letter] of cells) {
+    px.push(...obox(x,y,29,29,PAL[color],PAL.K),...fillPixels(x+2,y+2,25,2,PAL.paper),...fillPixels(x+25,y+3,3,24,PAL.wd));
+    for(const [xx,yy,c] of ascii(letters[letter],0,0,{"#":"K"}))px.push(...fillPixels(x+6+xx*3,y+6+yy*3,3,3,c));
+  }
+  for(const [x,y,c] of teddy())px.push([90+x,68+y,c]);
+  return px;
+}
+
 const SPRITES = {
+  "toy-blocks": {w:128,h:134,frames:[toyBlocks()]},
   "title-logo": {w:700,h:176,frames:[titleLogo()]},
   "far-isle": {w:144,h:150,frames:[farIsle()]},
   "nursery-house": {w:128,h:134,frames:[house(true)]},

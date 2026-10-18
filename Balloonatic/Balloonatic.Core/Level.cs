@@ -224,7 +224,7 @@ namespace Balloonatic.Core
             DestinationName = id == "nursery-skies" ? "NURSERY" : id == "winding-trail" ? "TOY ROOM" : "COTTAGE";
             CollectObjective = "COLLECT THE " + PackageName;
             CarryObjective = PackageName + " > " + DestinationName;
-            DeliveredMessage = PackageName + " IS HOME!";
+            DeliveredMessage = package==CargoKind.Bottle ? "MILK HAS ARRIVED!" : package==CargoKind.Letter ? "LETTER DELIVERED!" : "TEDDY IS HOME!";
             RequestLabel = PackageName + "?";
             WorldHeight = worldHeight;
             Bands = bands;
@@ -339,7 +339,7 @@ namespace Balloonatic.Core
                     new RockDef(300f, 320f, 8f, 240, 0),
                     new RockDef(540f, 340f, 8f, 300, 90),
                     new RockDef(200f, 345f, 4f, 240, 40),
-                }, platforms: new[] { new RestDeck(220f, 120f, 36f) }),
+                }, package: CargoKind.Bottle, platforms: new[] { new RestDeck(220f, 120f, 36f) }),
 
             // Toy Isles, a zigzag: the middle air sprints, the upper air rebukes you, and the low air —
             // the air a landing is made from — carries gently home. The bird works the mid sprint and
@@ -350,7 +350,7 @@ namespace Balloonatic.Core
                 "winding-trail", "Toy Isles", 520f,
                 new[]
                 {
-                    new WindBand(0f, 110f, +1, 1),
+                    new WindBand(0f, 110f, -1, 1),
                     new WindBand(110f, 240f, +1, 2),
                     new WindBand(240f, 360f, -1, 2),
                     new WindBand(360f, 520f, +1, 3),
@@ -365,7 +365,7 @@ namespace Balloonatic.Core
                 birds: new[]
                 {
                     new BirdDef(new[] { 440f, 520f }, new[] { 280f, 240f }, 40f),
-                }),
+                }, platforms: new[] { new RestDeck(200f,165f,36f) }),
 
             // Cloud Garden, the long haul: a fast ceiling over a calm floor. The middle air barely
             // carries and the air at the ceiling is the only real pace — go up to cross, come down to

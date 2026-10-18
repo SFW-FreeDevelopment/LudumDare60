@@ -24,7 +24,7 @@ namespace Balloonatic.Rendering
                 int y=40+(level.Bands.Length-1-i)*24;
                 Color tint=i==0?Theme.WindLowBand:i==1?Theme.WindMidBand:Theme.WindHighBand;
                 if(i==current)canvas.Outline(new Rectangle(476,y-2,108,24),2,Theme.TagCream);
-                string name=i==level.Bands.Length-1?"HI":i==0?"LO":"MID";
+                string name=i==level.Bands.Length-1?"HI":i==0?"LO":level.Bands.Length>3?"M"+i:"MID";
                 PixelFont.DrawShadowed(canvas,name,480,y,Theme.TagCream,font);
                 WindChevrons(canvas,540,y+6,level.Bands[i].Direction,level.Bands[i].Strength,tint,2);
             }

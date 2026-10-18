@@ -94,8 +94,12 @@ complete; implementation is proceeding in the order below.
   `26-sweet-dreams-*`. Best results/settings survive reload; invalid saves apply nothing and blocked
   storage stays playable. Direct selection counts honestly; final course leads to an explicit ending/replay.
   Player-facing course selection now clears completed-flight flags. Landmark selectors feed map thumbnails.
-- [ ] **I27 — Toy Isles** (~90m)
+- [x] **I27 — Toy Isles** (~90m)
   Distinct toy landmark and opposing-wind delivery, using the approved kit; active-hazard route proof.
+  Verified: 79 unit tests, 106 browser tests; Aseprite audit (48 slices); reviewed `27-toy-*`
+  at both sizes. Homeward floor requires carrying air; a perch and shared hint teach the climb.
+  Three seeded legal replays land without bounces with collisions on; example run 49s against 60s par.
+  Nursery now receives the bottle and Toy Isles the teddy, matching the reference's delivery examples.
 - [ ] **I28 — Cloud Garden** (~90m)
   Garden/windmill landmark, telegraphed gust challenge and safe approach; active-hazard route proof.
 - [ ] **I29 — Dream-world sound** (~60m)

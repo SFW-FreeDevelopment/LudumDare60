@@ -10,7 +10,7 @@ public class CargoTests
         SimState s=new(){Seed=1234};
         s.CargoStatus.Should().Be("waiting");
         SimRules.Step(s,SimInput.None);
-        s.Cargo.Should().Be(CargoKind.Teddy);
+        s.Cargo.Should().Be(LevelCatalog.Get(s.LevelId).Package);
         s.CargoStatus.Should().Be("carried");
         int pickup=s.PickupTick;
         Autopilot.Deliver(s,LevelCatalog.Get(s.LevelId),120).Should().BeTrue();

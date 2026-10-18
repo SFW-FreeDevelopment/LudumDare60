@@ -359,3 +359,14 @@ format for verification; `flushSave()` flushes browser storage when needed. Desk
 After the last course, the map leads home to the dedication. Replay explicitly launches a fresh first
 flight, preserving best ratings. All player-facing course launches reset completion/cargo/hearts via
 the normal restart path. Screenshot evidence: `26-voyage-record-*`, `26-sweet-dreams-*`.
+# I27 opposing-wind route
+
+Toy Isles has a homeward low band, forward middle band, return band and optional fast high band. A
+perch marks carrying air. The control hint and `state.hint` say `RISE FOR > WIND` when the player needs
+that first climb. Normal-collision legal replays prove a soft teddy delivery across multiple seeds.
+The test pilot predicts cooling through wind reversals instead of extrapolating constant horizontal
+velocity; its recorded input is replayed through ordinary `SimRules.Step` and compared by full hash.
+The objective panel shields text from world marks; four-band instruments use distinct M1/M2 labels.
+
+Parcel assignment now follows the reference's delivery examples: nursery bottle, Toy Isles teddy;
+Cloud Garden's letter is added in I28. Earlier I19 screenshots/notes describe its original teddy MVP.

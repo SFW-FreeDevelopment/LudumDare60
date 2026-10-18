@@ -8,7 +8,7 @@ test('a parcel must be collected and carried to its recipient',async({page},info
  await page.evaluate(()=>window.__GAME.raw('warp','550=60'));await act(page,'step=600');
  expect((await page.evaluate(()=>window.__GAME.state())).delivered).toBe(false);
  await act(page,'reset=1919');await act(page,'step=1');
- let s=await page.evaluate(()=>window.__GAME.state());expect(s.cargo).toBe('teddy');expect(s.cargoStatus).toBe('carried');expect(s.recipient).toBe('NURSERY');
+ let s=await page.evaluate(()=>window.__GAME.state());expect(s.cargo).toBe('bottle');expect(s.cargoStatus).toBe('carried');expect(s.recipient).toBe('NURSERY');
  await act(page,'screen=world');await expect.poll(()=>act(page,'screen')).toBe('world');
  await reviewShot(page,{path:path.join(SHOTS_DIR,`19-cargo-pickup-${info.project.name}.png`)});
  expect(await act(page,'deliver=120')).toBe('ok:delivered');

@@ -4,7 +4,7 @@ namespace Balloonatic.Rendering;
 static class WorldArt
 {
     public static string Landmark(LevelDef level, bool launch) =>
-        !launch && level.Id == "nursery-skies" ? "nursery-house" : "cottage";
+        launch ? "cottage" : level.Id == "nursery-skies" ? "nursery-house" : level.Id == "winding-trail" ? "toy-blocks" : "cottage";
     public static string Parcel(CargoKind kind) => kind == CargoKind.Bottle ? "parcel-bottle" :
         kind == CargoKind.Letter ? "parcel-letter" : "parcel-teddy";
     public static string Describe(SimState state)

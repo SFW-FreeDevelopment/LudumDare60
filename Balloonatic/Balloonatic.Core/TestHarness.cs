@@ -412,6 +412,7 @@ namespace Balloonatic.Core
               .Append("\"band\":").Append(FlightGuidance.BandIndex(_state, level)).Append(',')
               .Append("\"windDirection\":").Append(level.BandAt(_state.Altitude).Direction).Append(',')
               .Append("\"approach\":\"").Append(FlightGuidance.Approach(_state, level)).Append("\",")
+              .Append("\"hint\":\"").Append(FlightGuidance.ControlHint(_state, level)).Append("\", ")
               .Append("\"heatTrend\":\"").Append(FlightGuidance.HeatTrend(_state)).Append("\",")
               .Append("\"cargo\":\"").Append(_state.Cargo.ToString().ToLowerInvariant()).Append("\",")
               .Append("\"cargoStatus\":\"").Append(_state.CargoStatus).Append("\",")

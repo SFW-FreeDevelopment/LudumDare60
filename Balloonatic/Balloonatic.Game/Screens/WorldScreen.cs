@@ -457,10 +457,10 @@ namespace Balloonatic.Screens
             int font=Kit.Body(canvas);
             Sprites.Draw(canvas, WorldArt.Parcel(level.Package), 104, 28);
             Kit.WindLadder(canvas,state,level);
-            string heat=FlightGuidance.HeatTrend(state);
+            Kit.Panel(canvas,new Rectangle(140,8,324,64));
             PixelFont.DrawShadowed(canvas,state.Delivered?level.DeliveredMessage:state.Cargo==CargoKind.None?level.CollectObjective:level.CarryObjective,
                 146,12,Theme.TagCream,font);
-            if(!state.Complete) PixelFont.DrawShadowed(canvas,state.Altitude>=level.WorldHeight-.5f?"LET GO TO DESCEND":heat=="heating"?"SPACE: HEATING":heat=="cooling"?"COOLING...":"SPACE: RISE",146,42,Theme.TagCream,font);
+            if(!state.Complete) PixelFont.DrawShadowed(canvas,FlightGuidance.ControlHint(state,level),146,42,Theme.TagCream,font);
 
             // ---- heat gauge, right edge: a brass instrument capped with a live flame, the way the
             // sheet draws the burner's own thermometer ----

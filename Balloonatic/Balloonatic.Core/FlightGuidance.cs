@@ -17,6 +17,11 @@ public static class FlightGuidance
     public static string HeatTrend(SimState state) => state.Heating ? "heating" :
         state.Temperature > SimTuning.TempAmbient + .01f ? "cooling" : "cool";
 
+    public static string ControlHint(SimState state, LevelDef level) =>
+        state.Altitude >= level.WorldHeight-.5f ? "LET GO TO DESCEND" :
+        level.Bands[0].Direction < 0 && BandIndex(state,level)==0 && state.X<level.CourseLength-160 ? "RISE FOR > WIND" :
+        state.Heating ? "SPACE: HEATING" : HeatTrend(state)=="cooling" ? "COOLING..." : "SPACE: RISE";
+
     public static string Approach(SimState state, LevelDef level)
     {
         if(state.Delivered)return "delivered";
