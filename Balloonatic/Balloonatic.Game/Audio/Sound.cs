@@ -33,7 +33,7 @@ namespace Balloonatic.Audio
         static bool _unlocked;      // a real gesture happened — audio may exist
         static bool _broken;        // any audio failure retires the kit for the session
         static bool _musicWanted;   // remembered across pause (screen) and volume (settings) changes
-        static bool _burnerOn;
+        static int _musicLevel = -1, _soundLevel = -1;
 
         public static bool Unlocked => _unlocked;
 
@@ -68,16 +68,19 @@ namespace Balloonatic.Audio
 
         static string ResourceName(string clip) => "Balloonatic.content.audio." + clip + ".wav";
 
-        /// <summary>The menu sliders are 0..8; audio wants 0..1. Called on unlock and every settings change.</summary>
+        /// <summary>Independent 0..10 buses, normalized once for every audio backend.</summary>
         public static void ApplyVolumes()
         {
-            if (_broken) return;
-            float music = AppSettings.MusicVolume / 8f;
+            if (_broken || !_unlocked) return;
+            if (_musicLevel == AppSettings.MusicVolume && _soundLevel == AppSettings.SoundVolume) return;
+            float music = AppSettings.MusicVolume / (float)AppSettings.VolumeMax;
+            float effects = AppSettings.SoundVolume / (float)AppSettings.VolumeMax;
             try
             {
                 if (_music != null) _music.Volume = music;
-                if (_burner != null) _burner.Volume = music * 0.6f;   // the burner shares the tune's bed, never over it
-                _burnerOn = _burnerOn && AppSettings.SoundVolume > 0;
+                if (_burner != null) _burner.Volume = effects * 0.6f;
+                _musicLevel = AppSettings.MusicVolume;
+                _soundLevel = AppSettings.SoundVolume;
             }
             catch (System.Exception) { _broken = true; }
         }
@@ -99,8 +102,6 @@ namespace Balloonatic.Audio
         public static void SetBurner(bool on)
         {
             on = on && AppSettings.SoundVolume > 0;
-            if (on == _burnerOn) return;
-            _burnerOn = on;
             if (_broken || !_unlocked || _burner == null) return;
             try
             {
@@ -117,7 +118,7 @@ namespace Balloonatic.Audio
             try
             {
                 if (Clips.TryGetValue(clip, out SoundEffect? fx))
-                    fx.Play(AppSettings.SoundVolume / 8f, 0f, 0f);
+                    fx.Play(AppSettings.SoundVolume / (float)AppSettings.VolumeMax, 0f, 0f);
             }
             catch (System.Exception) { _broken = true; }
         }
@@ -136,9 +137,15 @@ namespace Balloonatic.Audio
                 + ";burner=" + burner;
         }
 
+        public static string MixStatus() =>
+            "music=" + (_music?.Volume ?? 0f).ToString("0.00", System.Globalization.CultureInfo.InvariantCulture)
+            + ";sfx=" + (AppSettings.SoundVolume / (float)AppSettings.VolumeMax).ToString("0.00", System.Globalization.CultureInfo.InvariantCulture)
+            + ";burner=" + (_burner?.Volume ?? 0f).ToString("0.00", System.Globalization.CultureInfo.InvariantCulture);
+
         /// <summary>Advance the small delayed queue; called once per Update.</summary>
         public static void Tick()
         {
+            ApplyVolumes();
             for (int i = Queued.Count - 1; i >= 0; i--)
             {
                 (string name, int left) = Queued.Dequeue();

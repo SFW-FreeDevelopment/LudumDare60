@@ -26,15 +26,17 @@ Milestones: **feel gate** (I5) by Sun ~20:00 · **content freeze** (I10) by Mon 
 Full findings, evidence, dependencies, acceptance criteria and cuts: [docs/ASSESSMENT.md](docs/ASSESSMENT.md).
 The original checked initiatives below remain implementation history; they are not a claim that the
 game meets the reference's creative bar. This queue takes priority over stretch work. Planning is
-complete; implementation of this queue has not started.
+complete; implementation is proceeding in the order below.
 
 - [x] **I15 — Assess current game and plan recovery** (documentation)
   Compared the reference and shared conversation with code, desktop launch/idle behavior and published
   WebGL probes; reviewed `docs/screenshots/15-assessment-*.png`. Verified Release build with zero
   warnings/errors, 58 unit tests and 78 Chromium tests at both viewports. Confirmed empty-ballast
   descent trap, volume-9 audio failure, missing cargo/recipient state, and hazard-disabled route proof.
-- [ ] **I16 — Audio settings reliability** (~60m)
+- [x] **I16 — Audio settings reliability** (~60m)
   Correct 0–10 normalization and independent music/SFX/burner control; browser endpoint/mute regression.
+  Verified: build clean, 58 unit tests, 80 browser tests; reviewed `16-audio-settings-*` at both sizes.
+  Existing narrow type issue is tracked by I24; audio mix is mirrored through `raw('audioMix')`.
 - [ ] **I17 — Recoverable flight** (~90m)
   Landable 0/1/2-bag loadouts, clearer thermal response, forgiving course recovery; human flight gate.
 - [ ] **I18 — Readable wind and approach** (~90m)

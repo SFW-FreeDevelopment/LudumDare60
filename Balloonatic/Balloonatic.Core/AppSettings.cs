@@ -14,7 +14,7 @@ namespace Balloonatic.Core
         public const int VolumeDefault = 8;
         public const int VolumeMax = 10;
 
-        /// <summary>0..10. Nothing plays until I11 ships audio; the number is the contract I11 honours.</summary>
+        /// <summary>0..10, normalized against VolumeMax by the independent audio buses.</summary>
         public static int MusicVolume = VolumeDefault;
         public static int SoundVolume = VolumeDefault;
 
