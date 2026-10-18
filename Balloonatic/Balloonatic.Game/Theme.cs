@@ -56,7 +56,7 @@ namespace Balloonatic
         public static readonly Color GrassLight = new Color(0x7C, 0xD4, 0x87);    // INTERPOLATED sunlit grass edge
         public static readonly Color MossGreen = new Color(0x23, 0x7A, 0x54);     // grass shadow
         public static readonly Color BarkBrown = new Color(0x8D, 0x57, 0x26);     // trunks, masts, posts
-        public static readonly Color RockSlate = new Color(0x87, 0x99, 0xA5);     // island rock faces
+        public static readonly Color RockSlate = new Color(0x5D, 0x76, 0x9B);     // reference slate-blue island faces
         public static readonly Color RockDark = new Color(0x58, 0x56, 0x87);      // rock underside
         public static readonly Color WaterPale = new Color(0x7F, 0xD7, 0xE0);     // falls, foam
         public static readonly Color WaterCyan = new Color(0x5E, 0xC6, 0xF1);     // falls, stream

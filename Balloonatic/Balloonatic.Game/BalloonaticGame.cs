@@ -392,6 +392,7 @@ namespace Balloonatic
         /// <summary>Renderer-side audio readout for the bridge (<c>__GAME.audio()</c>).</summary>
         public string AudioStatus() => Audio.Sound.Status();
         public string AudioMixStatus() => Audio.Sound.MixStatus();
+        public string ArtStatus() => WorldArt.Describe(Harness.State);
 
         /// <summary>
         /// Sound from state, once per Update, watching only for edges (I11). The music holds behind

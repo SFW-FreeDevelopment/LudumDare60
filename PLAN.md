@@ -66,8 +66,11 @@ complete; implementation is proceeding in the order below.
   magnified Aseprite export. Hero/portrait share expressions; bags are attached to the basket.
   `npm run art` uses the installed Aseprite MCP, saves named slices and palette in the source, and
   audits the export. Two builds produced identical PNG bytes; payload remains ~3.13 MiB locally.
-- [ ] **I22 — Nursery environment assets** (~90m)
+- [x] **I22 — Nursery environment assets** (~90m)
   One nursery landmark/recipient, coherent island modules and rounded cloud variants; reproducible sources.
+  Verified: 73 unit tests, 92 browser tests; Aseprite palette/slice audit, 45 slices; reviewed
+  `22-nursery-arrival-*` and `22-nursery-thanks-*`. Nursery/cottage, bunny recipient, teddy/bottle/letter,
+  perch and cliff/plant/waterfall/cloud assets replace their temporary markers through shared selectors.
 - [ ] **I23 — Compose the sky** (~90m)
   Replace dominant ground slab with cloud depth, authored scenery and a clear arrival; calm parallax.
 - [ ] **I24 — Type, HUD and narrow readability** (~90m)

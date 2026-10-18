@@ -43,6 +43,8 @@ namespace Balloonatic
                 return game.AudioStatus();   // the audio kit lives renderer side, like the frame counters
             if (name == "audiomix")
                 return game.AudioMixStatus();
+            if (name == "art")
+                return game.ArtStatus();
             if (name == "surface")
             {
                 string[] parts = (arg ?? string.Empty).Split('x');

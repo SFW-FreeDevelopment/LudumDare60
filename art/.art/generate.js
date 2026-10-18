@@ -36,9 +36,9 @@ const PAL = {
   cl: "#d7d7fb", cs: "#b6b8fa", cw: "#faf6f9",
   // world
   leaf: "#36a565", grass: "#7cd487", moss: "#237a54",
-  rock: "#8799a5", rockD: "#585687",
+  rock: "#5d769b", rockD: "#585687",
   gold: "#f1bf37", heart: "#f73e6a", heartOff: "#74534f",
-  sand: "#d2b383",
+  sand: "#d2b383", water: "#5ec6f1", foam: "#7fd7e0",
 };
 PAL.C = PAL.cream; // the gore table spells cream "C", same fabric
 
@@ -201,33 +201,16 @@ const LOBES = [
   { cx: 0.90, cy: 0.31, r: 0.11 },
 ];
 function cloud(w) {
-  const foot = Math.round(0.31 * w);
-  const topAt = (x) => {
-    const u = (x + 0.5) / w;
-    let best = null;
-    for (const l of LOBES) {
-      const dx = u - l.cx;
-      if (Math.abs(dx) >= l.r) continue;
-      const yTop = (l.cy - Math.sqrt(l.r * l.r - dx * dx)) * w;
-      if (best === null || yTop < best) best = yTop;
+  const px=[], foot=Math.round(.31*w);
+  for(let x=0;x<w;x++) {
+    let top=foot;
+    for(const l of LOBES) {
+      const dx=(x+.5)/w-l.cx;
+      if(Math.abs(dx)<l.r)top=Math.min(top,Math.round((l.cy-Math.sqrt(l.r*l.r-dx*dx))*w));
     }
-    return best === null ? null : Math.max(0, Math.round(best));
-  };
-  const px = [];
-  for (let x = 0; x < w; x++) {
-    const top = topAt(x);
-    if (top === null) continue;
-    for (let y = top; y <= foot; y++) {
-      let hex = PAL.cw;                                            // cream body
-      if (y >= foot - 2 && (x + y) % 2 === 0) hex = PAL.cs;        // dithered lavender foot
-      else if (y >= foot - 5 && (x + y) % 3 === 0) hex = PAL.cl;   // first soft row above it
-      px.push([x, y, hex]);
-    }
-  }
-  // ink outline along the bumpy top edge only — clouds read soft against the sky
-  for (let x = 0; x < w; x++) {
-    const top = topAt(x);
-    if (top !== null) px.push([x, Math.max(0, top - 1), PAL.K]);
+    top=Math.max(1,top);
+    const base=foot-Math.floor((x%37)/28);
+    for(let y=top;y<=base;y++)px.push([x,y,y>base-4?PAL.cs:y>base-9?PAL.cl:PAL.cw]);
   }
   return px;
 }
@@ -316,102 +299,138 @@ function heart(filled) {
 // design 120x62 -> internal 240x124: 16 px of headroom above the deck so trees and bunting stand
 // ON the island surface, then bunting (delivery only), plank deck, grass cap, rock underbelly to
 // a point. Launch and delivery differ in deck wood, bunting, tree and waterfall side.
-function island(delivery) {
-  const W = 240, px = [];
-  const deckTop = 32, deckH = 8;                      // 24 rows of headroom: trees stand ON the island
-  const capTop = 40, pointY = 124;                    // grass cap starts, rock tapers to here
-  const deckWood = delivery ? "w0" : "w1";
-  // bunting: gold pips on a line across the delivery deck (the prize reads at a glance)
-  if (delivery) {
-    for (let x = 30; x < W - 30; x += 18) px.push([x, deckTop - 4, PAL.gold], [x + 1, deckTop - 4, PAL.gold], [x, deckTop - 3, PAL.gold], [x + 1, deckTop - 3, PAL.gold]);
-    for (let x = 12; x < W - 12; x++) px.push([x, deckTop - 5, PAL.K]); // the string, post to post
-  }
-  // deck: lit top line, plank seams every 16 px, shaded bottom edge. Width matches the sim's
-  // landing tolerance exactly: DeckHalfWidth 56 design px = 112 internal, centred.
-  for (let x = W / 2 - 112; x < W / 2 + 112; x++) {
-    px.push([x, deckTop, PAL.K], [x, deckTop + deckH + 1, PAL.K]);
-    for (let y = deckTop + 1; y <= deckTop + deckH; y++) px.push([x, y, PAL[deckWood]]);
-    if ((x - (W / 2 - 112)) % 16 === 0) for (let y = deckTop + 1; y <= deckTop + deckH; y++) px.push([x, y, PAL.w2]);
-    px.push([x, deckTop + 1, (x & 1) ? PAL.w0 : PAL[deckWood]]);
-  }
-  // ---- the island body, in the concept sheet's language: an overhanging grass lip with flowers
-  // and hanging vines, warm brown strata above a violet dithered underside, tree clusters on the
-  // flanks, and a waterfall down the delivery island. Half-widths keep the old smooth taper.
-  const halfAt = (y) => {
-    const t = (y - capTop) / (pointY - capTop);       // 0 at cap, 1 at point
-    const w = 224 * (1 - t * t * t);                  // cap slightly wider than the deck, long taper
-    return Math.max(0, w / 2);
-  };
-  const LIP = capTop + 8;                             // lip depth, then bare rock
-  for (let y = capTop; y < pointY; y++) {
-    const overhang = y < LIP ? 6 : 0;                 // the lip juts out past the rock, like the sheet
-    const half = halfAt(Math.max(y, y < LIP ? capTop + 4 : LIP)) + overhang;
-    const left = Math.round(W / 2 - half), right = Math.round(W / 2 + half);
-    for (let x = left; x < right; x++) {
-      const edge = x - left < 2 || right - x <= 2;
-      if (edge) { px.push([x, y, PAL.K]); continue; }
-      let hex;
-      if (y < LIP) {                                  // grass lip: lit top, leaf body, moss fringe
-        hex = y < capTop + 4 ? PAL.grass : y < LIP - 1 ? PAL.leaf : PAL.moss;
-        if (y === LIP - 1 && (x & 1) === 0) hex = PAL.leaf;  // dithered fringe into the rock
-      } else {
-        const u = (x - left) / Math.max(1, right - left - 1);
-        const yUnder = 92 - Math.round(u * 12);       // the shadow line rides higher up the right face
-        if (y >= yUnder) {                            // violet underside, gathering to ink at the tip
-          const deep = (y - yUnder) / 34;
-          hex = ((x + y) & 1) ? PAL.rockD : PAL.rock;
-          if (deep > 0.45 && (((x >> 1) + y) & 1) === 0) hex = PAL.K;
-          if (u > 0.8) hex = ((x + y) & 1) ? PAL.K : PAL.rockD;
-        } else {                                      // warm strata, sun from the left
-          const band = Math.floor(y / 9) % 2;
-          hex = band ? PAL.w2 : PAL.bark;
-          if (u < 0.3 || (u < 0.36 && ((x + y) & 1) === 0)) hex = band ? PAL.bark : PAL.w1;
-          if (u > 0.84) hex = (y & 1) ? PAL.K : PAL.w2;
-          if ((x * 31 + y * 17) % 89 === 0) hex = PAL.K; // sparse cracks
-        }
-      }
-      px.push([x, y, hex]);
+function polygon(points, color, outline=true) {
+  const px=[], minY=Math.min(...points.map(p=>p[1])), maxY=Math.max(...points.map(p=>p[1]));
+  for(let y=minY;y<maxY;y++) {
+    const xs=[];
+    for(let i=0;i<points.length;i++) {
+      const a=points[i],b=points[(i+1)%points.length];
+      if((a[1]>y+.5)!==(b[1]>y+.5))xs.push(a[0]+(y+.5-a[1])*(b[0]-a[0])/(b[1]-a[1]));
     }
-  }
-  // flowers along the first grass band visible below the deck lip, cycling pink/gold/cream
-  for (let x = 36; x < W - 36; x += 16) {
-    const bloom = [PAL.gp, PAL.gold, PAL.C][((x / 16) | 0) % 3];
-    px.push([x, capTop + 2, bloom], [x + 1, capTop + 2, bloom], [x, capTop + 3, PAL.leaf]);
-  }
-  // hanging vines off the lip edge — 1 px strands, leaf tip, lengths that vary along the rim
-  [[40, 14], [76, 22], [164, 17], [200, 10]].forEach(([vx, len]) => {
-    for (let i = 0; i < len; i++) px.push([vx, LIP + i, i === len - 1 ? PAL.leaf : (i & 1) ? PAL.moss : PAL.leaf]);
-    px.push([vx + 1, LIP + len - 2, PAL.moss]);
-  });
-  // tree clusters standing on the island surface beside the deck — the sheet's trees sit on top,
-  // not on the flank. Canopies clear the deck line; trunks run down behind the planks.
-  const tree = (cx, cy, r) => {
-    px.push(...obox(cx - 2, cy + r - 4, 5, r + 6, PAL.bark, PAL.K));                // trunk
-    px.push(...disc(cx, cy, r + 1.15, PAL.K, PAL.K), ...disc(cx, cy, r, PAL.leaf, PAL.K));
-    px.push(...disc(cx - Math.round(r * 0.3), cy - Math.round(r * 0.35), r * 0.55, PAL.grass, PAL.grass));
-    px.push(...disc(cx + Math.round(r * 0.28), cy + Math.round(r * 0.34), r * 0.5, PAL.moss, PAL.moss));
-  };
-  if (delivery) { tree(30, 20, 12); tree(54, 28, 8); }
-  else { tree(208, 20, 12); tree(184, 28, 8); }
-  // waterfall down the delivery island's right flank, following the rock face inward as it
-  // narrows, with a dithered splash foot where it leaves the island
-  if (delivery) {
-    let foot = 0;
-    for (let y = deckTop + 10; y < pointY - 10; y++) {
-      const right = Math.round(W / 2 + halfAt(y));
-      for (let x = right - 14; x <= right - 3; x++) px.push([x, y, (x & 1) ? PAL.cl : PAL.cw]);
-      px.push([right - 15, y, PAL.K]);
-      foot = right;
-    }
-    for (let x = foot - 18; x <= foot; x++) {
-      const s = 1 - Math.abs(x - (foot - 9)) / 10;
-      for (let y = pointY - 10; y < pointY; y++) if (((x + y) & 1) === 0 && s > (y - (pointY - 10)) / 10) px.push([x, y, PAL.C]);
+    xs.sort((a,b)=>a-b);
+    for(let n=0;n<xs.length;n+=2) {
+      const l=Math.ceil(xs[n]),r=Math.floor(xs[n+1]);
+      for(let x=l;x<=r;x++)px.push([x,y,outline&&(x===l||x===r)?PAL.K:typeof color==="function"?color(x,y):color]);
     }
   }
   return px;
 }
 
-// Double a 1x-authored block to internal resolution — every pixel becomes a crisp 2x2.
+function island(delivery) {
+  const px=[], W=240;
+  const rock=[[5,40],[20,73],[43,86],[62,104],[88,110],[112,123],[137,108],[164,111],[183,91],[213,78],[235,40]];
+  px.push(...polygon(rock,(x,y)=> {
+    if(y<49)return PAL.moss;
+    if(y>94 || x>198-y*.2)return PAL.rockD;
+    const shelf=Math.floor((y+Math.floor(x/21)*3)/13)%3;
+    if(x<64)return shelf===0?PAL.w1:PAL.wd;
+    return shelf===0?PAL.rockD:shelf===1?PAL.rock:PAL.w2;
+  }));
+  // Broad lit facets and discrete cracks; no checker overlay on the underside.
+  px.push(...polygon([[24,51],[51,54],[56,71],[46,74],[50,89],[36,82]],PAL.w1,false));
+  px.push(...polygon([[103,54],[124,54],[130,69],[122,77],[127,97],[119,109],[110,95]],PAL.rockD,false));
+  for(const [x,y]of[[45,69],[89,75],[161,66],[186,82]])px.push(...fillPixels(x,y,11,2,PAL.K),...fillPixels(x+4,y+2,2,5,PAL.K));
+  // Grass shelves overhang the faceted rock, with little tufts and warm timber decking.
+  px.push(...fillPixels(4,39,232,5,PAL.leaf),...fillPixels(6,39,228,2,PAL.grass));
+  for(let x=11;x<231;x+=13)px.push(...fillPixels(x,43,7,3,PAL.moss));
+  px.push(...obox(8,32,224,6,PAL.w1,PAL.K),...fillPixels(10,32,220,2,PAL.w0));
+  for(let x=24;x<225;x+=24)px.push(...fillPixels(x,33,2,5,PAL.w2));
+  for(let x=71;x<183;x+=17) {
+    px.push(...fillPixels(x,29,1,4,PAL.moss),...fillPixels(x-2,30,5,2,PAL.grass));
+    px.push(...disc(x,27,1.4,x%2?PAL.gp:PAL.C,PAL.leaf));
+  }
+  for(const [x,len]of[[28,27],[60,41],[158,23],[203,32]]) {
+    for(let y=45;y<45+len;y++){px.push([x,y,PAL.moss]);if(y%6===0)px.push(...fillPixels(x-2,y,4,2,PAL.leaf));}
+  }
+  const shrub=(x,y,r)=> {
+    px.push(...disc(x,y,r,PAL.moss,PAL.K));
+    px.push(...disc(x-r*.45,y-r*.3,r*.65,PAL.leaf,PAL.leaf));
+    px.push(...disc(x+r*.25,y-r*.55,r*.55,PAL.grass,PAL.grass));
+  };
+  if(delivery){shrub(28,23,11);shrub(49,28,7);}else{shrub(209,21,12);shrub(186,28,7);}
+  for(let x=20;x<226;x+=17) {
+    px.push(...fillPixels(x,40,1,5,PAL.moss));
+    px.push(...disc(x,40,1.5,x%2?PAL.gp:PAL.paper,PAL.leaf));
+  }
+  if(delivery) {
+    for(let y=47;y<118;y++) {
+      const left=215-Math.floor((y-47)/10);
+      px.push(...fillPixels(left,y,11,1,PAL.water));
+      px.push([left+1,y,PAL.foam],[left+7,y,PAL.C]);
+    }
+    px.push(...disc(211,118,7,PAL.cl,PAL.cl),...disc(206,116,5,PAL.C,PAL.C));
+  }
+  return px;
+}
+
+function house(pink=true) {
+  const px=obox(89,16,13,39,PAL.w2,PAL.K);
+  px.push(...fillPixels(90,17,4,34,PAL.w1));
+  px.push(...obox(23,54,80,71,PAL.paperWarm,PAL.K),...fillPixels(25,56,18,65,PAL.paper));
+  px.push(...fillPixels(25,60,2,63,PAL.wd),...fillPixels(98,60,3,63,PAL.w2));
+  px.push(...polygon([[8,59],[63,12],[119,59]],(x,y)=>pink?(x>79?PAL.gR:y<34?PAL.gp:PAL.gP):(x>79?PAL.w2:PAL.w1)));
+  px.push(...obox(9,58,109,5,PAL.wd,PAL.K));
+  for(let y=30;y<57;y+=9)px.push(...fillPixels(45-(y-30)/2,y,42+(y-30),1,pink?PAL.gR:PAL.w2));
+  px.push(...disc(63,44,9,PAL.paper,PAL.K),...disc(63,44,6,PAL.cs,PAL.w2));
+  px.push(...fillPixels(62,38,2,13,PAL.w2),...fillPixels(57,43,13,2,PAL.w2));
+  for(const x of [31,82]) {
+    px.push(...obox(x,76,16,21,PAL.f1,PAL.w2),...fillPixels(x+2,78,4,16,PAL.paper));
+    px.push(...fillPixels(x+7,76,2,21,PAL.w2),...fillPixels(x,86,16,2,PAL.w2));
+    px.push(...fillPixels(x-3,97,22,4,PAL.w0));
+  }
+  px.push(...disc(64,97,11,PAL.bark,PAL.K),...obox(53,97,22,27,PAL.bark,PAL.K));
+  for(let x=56;x<75;x+=5)px.push(...fillPixels(x,98,1,25,PAL.w2));
+  px.push(...disc(70,111,1.5,PAL.brass,PAL.K));
+  px.push(...obox(81,103,8,12,PAL.f1,PAL.K),...fillPixels(83,105,2,8,PAL.paper));
+  px.push(...fillPixels(79,101,12,2,PAL.w2));
+  px.push(...obox(45,125,40,3,PAL.w0,PAL.K),...fillPixels(40,129,50,3,PAL.w2));
+  px.push(...ascii([".hh.hh.","hhhhhhh","hhhhhhh",".hhhhh.","..hhh..","...h..."],60,68,{h:pink?"gP":"leaf"}));
+  return px;
+}
+
+function recipient(happy=false) {
+  const px=obox(7,3,5,21,PAL.C,PAL.K);
+  px.push(...obox(21,2,5,22,PAL.C,PAL.K),...fillPixels(8,6,3,13,PAL.gp),...fillPixels(22,5,3,14,PAL.gp));
+  px.push(...polygon([[10,32],[22,32],[29,49],[3,49]],PAL.cs));
+  px.push(...disc(16,27,9,PAL.C,PAL.K));
+  if(happy)for(const x of[10,20])px.push(...fillPixels(x,24,3,1,PAL.K),...fillPixels(x-1,25,1,1,PAL.K),...fillPixels(x+3,25,1,1,PAL.K));
+  else for(const x of[10,21])px.push(...fillPixels(x,24,2,4,PAL.K));
+  px.push(...fillPixels(15,29,3,2,PAL.gP),...fillPixels(8,29,3,1,PAL.gp),...fillPixels(23,29,3,1,PAL.gp));
+  px.push(...disc(6,happy?33:40,3,PAL.C,PAL.K),...disc(26,happy?33:40,3,PAL.C,PAL.K));
+  px.push(...fillPixels(7,49,6,2,PAL.C),...fillPixels(20,49,6,2,PAL.C));
+  return px;
+}
+
+function teddy() {
+  const px=disc(12,21,6,PAL.w0,PAL.K);
+  for(const x of[5,19])px.push(...disc(x,21,3,PAL.w0,PAL.K),...disc(x,26,3,PAL.wd,PAL.K));
+  for(const x of[6,18])px.push(...disc(x,5,3,PAL.w0,PAL.K),...disc(x,5,1.4,PAL.sand,PAL.wd));
+  px.push(...disc(12,11,7,PAL.w0,PAL.K),...disc(12,14,3.4,PAL.sand,PAL.wd));
+  px.push(...fillPixels(8,9,2,3,PAL.K),...fillPixels(15,9,2,3,PAL.K),...fillPixels(11,12,2,2,PAL.K));
+  px.push(...disc(12,22,3,PAL.sand,PAL.wd));
+  return px;
+}
+function bottle() {
+  const px=obox(4,13,14,19,PAL.C,PAL.K);
+  px.push(...fillPixels(6,20,10,10,PAL.paperWarm),...obox(5,8,12,5,PAL.cs,PAL.K));
+  px.push(...disc(11,5,3,PAL.sand,PAL.K));
+  for(let y=20;y<30;y+=4)px.push(...fillPixels(14,y,3,1,PAL.wd));
+  return px;
+}
+function letter() {
+  const px=obox(2,2,25,17,PAL.paper,PAL.K);
+  for(let i=0;i<12;i++)px.push([3+i,3+Math.floor(i*.55),PAL.wd],[26-i,3+Math.floor(i*.55),PAL.wd]);
+  px.push(...ascii([".hh.hh.","hhhhhhh","hhhhhhh",".hhhhh.","..hhh..","...h..."],11,9,{h:"gP"}));
+  return px;
+}
+function perch() {
+  const px=polygon([[0,12],[12,38],[43,51],[72,63],[104,47],[143,12]],(x,y)=>x+y>105?PAL.rockD:PAL.rock);
+  px.push(...fillPixels(0,12,144,4,PAL.leaf),...obox(1,6,141,6,PAL.w1,PAL.K),...fillPixels(2,6,139,2,PAL.w0));
+  for(let x=16;x<140;x+=20)px.push(...fillPixels(x,8,1,4,PAL.w2));
+  for(let x=8;x<140;x+=17)px.push(...fillPixels(x,15,4,4,PAL.moss));
+  return px;
+}
+
 function x2(px) {
   const out = [];
   for (const [x, y, hex] of px) out.push([2 * x, 2 * y, hex], [2 * x + 1, 2 * y, hex], [2 * x, 2 * y + 1, hex], [2 * x + 1, 2 * y + 1, hex]);
@@ -628,6 +647,13 @@ function stormCloud() {
 }
 
 const SPRITES = {
+  "nursery-house": {w:128,h:134,frames:[house(true)]},
+  "cottage": {w:128,h:134,frames:[house(false)]},
+  "recipient": {w:32,h:52,frames:[recipient(false),recipient(true)]},
+  "parcel-teddy": {w:24,h:31,frames:[teddy()]},
+  "parcel-bottle": {w:22,h:34,frames:[bottle()]},
+  "parcel-letter": {w:30,h:22,frames:[letter()]},
+  "island-perch": {w:144,h:64,frames:[perch()]},
   "balloon":      { w: 120, h: 150, frames: [0, 1, 2].map(f => balloonFrame(f)) },
   "balloon-happy": { w: 120, h: 150, frames: [0,1,2].map(f=>balloonFrame(f,"happy")) },
   "balloon-worried": { w: 120, h: 150, frames: [0,1,2].map(f=>balloonFrame(f,"worried")) },

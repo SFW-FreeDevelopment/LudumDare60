@@ -21,6 +21,8 @@ namespace Balloonatic.Rendering
         static Texture2D? _sheet;
 
         public static bool Ready => _sheet != null;
+        public static int Count => Tables.Count;
+        public static bool Has(string name) => Tables.ContainsKey(name);
 
         /// <summary>Design-pixel size of a sprite; callers use it to centre or anchor.</summary>
         public static Vector2 Size(string name)

@@ -314,8 +314,7 @@ namespace Balloonatic.Screens
             foreach (RestDeck deck in level.Platforms)
             {
                 float x = ScreenX(deck.X, camX), y = ScreenY(deck.Altitude, camAlt);
-                Kit.Island(canvas, x - deck.HalfWidth, y + 4, (int)deck.HalfWidth * 2, 24);
-                Kit.Platform(canvas, new Rectangle(Round(x - deck.HalfWidth), Round(y), (int)deck.HalfWidth * 2, 5));
+                Sprites.Draw(canvas, "island-perch", x - deck.HalfWidth, y - 3);
                 WindBand wind = level.BandAt(deck.Altitude + 1f);
                 Kit.Windsock(canvas, x + 20, y, wind.Direction, wind.Strength);
                 Kit.Tag(canvas, Round(x)-30, Round(y)+10, "BREEZE PERCH");
@@ -335,6 +334,8 @@ namespace Balloonatic.Screens
             // bunting and a waterfall. The deck line sits 16 design px below the sprite's top edge,
             // so the draw offset puts it where it always was: groundY - 38.
             Sprites.Draw(canvas, launch ? "island-launch" : "island-delivery", x - 60f, groundY - 54f);
+            // Buildings sit on the rear edge; the clear timber deck in front is the landing surface.
+            Sprites.Draw(canvas, WorldArt.Landmark(level, launch), x - 6f, groundY - 105f);
 
             // A sign on the deck: what this island is for, in the paper-and-ink language of the sheet.
             // The board glides with the island; its lettering holds the coarse grid (Round) — text that
@@ -347,10 +348,11 @@ namespace Balloonatic.Screens
             canvas.Fill(x - signWidth / 2 + 1, signY - 1, signWidth - 2, 12, Theme.TagCream);
             PixelFont.Draw(canvas, name, xi - name.Length * 3 + 1, Round(signY) + 2, Theme.Ink);
             if (launch && state.CargoStatus == "waiting")
-                Sprites.Draw(canvas, "gift", x + 34, groundY - 51);
+                Sprites.Draw(canvas, WorldArt.Parcel(level.Package), x - 36, groundY - 53);
             if (!launch)
             {
-                Sprites.Draw(canvas, "heart-hud", x + 35, groundY - 54);
+                Sprites.Draw(canvas, "recipient", state.Delivered ? 1 : 0, x + 37, groundY - 64);
+                if (state.Delivered) Sprites.Draw(canvas, WorldArt.Parcel(level.Package), x + 22, groundY - 53);
                 Kit.Tag(canvas, xi + 10, Round(groundY) - 78, state.Delivered ? "THANK YOU!" : level.RequestLabel);
             }
 
@@ -492,7 +494,7 @@ namespace Balloonatic.Screens
             for(int bag=0;bag<state.BallastHeld;bag++)
                 Sprites.Draw(canvas, "bag-falling", x + (bag == 0 ? -22 : 16), foot - 12);
             if (state.Cargo != CargoKind.None)
-                Sprites.Draw(canvas, "gift", x + 25, foot - 12);
+                Sprites.Draw(canvas, WorldArt.Parcel(state.Cargo), x + 25, foot - 14);
 
             // I12 burner puffs: while heat is on, three small puffs vent from the envelope crown on a
             // rolling 30-tick cycle — pure from the decoration clock, palette clouds, and gone the
