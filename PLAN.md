@@ -78,8 +78,11 @@ complete; implementation is proceeding in the order below.
   Replace dominant ground slab with cloud depth, authored scenery and a clear arrival; calm parallax.
   Verified: 76 unit tests, 96 browser tests; reviewed all `23-sky-*` poses at both sizes. Shared
   menu/world cloudscape, distant Aseprite islands, seconds-based drift and Reduced Motion coverage.
-- [ ] **I24 — Type, HUD and narrow readability** (~90m)
+- [x] **I24 — Type, HUD and narrow readability** (~90m)
   Shared readable type/layout and cargo HUD; real focus/hit targets and both viewport reviews.
+  Verified: 76 unit tests, 98 browser tests; reviewed `24-readable-flight-*` and
+  `24-delivery-action-*`. Essential text grows from scale 2 to 3 at narrow widths; cargo leads,
+  results have a shared 272×36 hit target, keyboard Enter and pointer input both reach the map.
 - [ ] **I25 — Title and menu composition** (~90m)
   Illustrated title/logo, clear Start Adventure/dedication, short teaching copy and illustrated courses.
 - [ ] **I26 — Voyage and closure** (~60m)

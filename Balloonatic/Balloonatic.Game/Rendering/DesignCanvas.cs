@@ -109,12 +109,12 @@ namespace Balloonatic.Rendering
         /// source rectangle lands 1:1 on the 2x target at any snapped design position, so sprites
         /// ride the half-pixel camera without ever sampling between their own pixels.
         /// </summary>
-        public void DrawSprite(Texture2D texture, Rectangle source, float x, float y, bool flip, Color? tint = null)
+        public void DrawSprite(Texture2D texture, Rectangle source, float x, float y, bool flip, Color? tint = null, int scale = 1)
         {
             x = Snap(x);
             y = Snap(y);
             _spriteBatch.Draw(texture, new Vector2(x, y), source, tint ?? Color.White, 0f, Vector2.Zero,
-                              new Vector2(1f / Px), flip ? SpriteEffects.FlipHorizontally : SpriteEffects.None, 0f);
+                              new Vector2(scale / Px), flip ? SpriteEffects.FlipHorizontally : SpriteEffects.None, 0f);
         }
 
         /// <summary>One design-pixel border, and the frame that proves the letterbox is honest.</summary>

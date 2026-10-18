@@ -326,6 +326,8 @@ namespace Balloonatic
 
         // ---- UiHost: everything a screen may ask for, and the one sync a settings change owes ----
 
+        SimState UiHost.Flight => Harness.State;
+
         void UiHost.GoTo(string target) => Harness.State.RequestedScreen = target;
 
         void UiHost.FlyLevel(string levelId)
@@ -392,6 +394,7 @@ namespace Balloonatic
         /// <summary>Renderer-side audio readout for the bridge (<c>__GAME.audio()</c>).</summary>
         public string AudioStatus() => Audio.Sound.Status();
         public string AudioMixStatus() => Audio.Sound.MixStatus();
+        public string UiStatus() => UiLayout.Describe(canvas, Harness.State.Screen, Harness.State.Complete);
         public string BackdropStatus() => SkyBackdrop.Describe(Harness.State);
         public string ArtStatus() => WorldArt.Describe(Harness.State);
 

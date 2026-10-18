@@ -12,19 +12,21 @@ namespace Balloonatic.Rendering
     /// </summary>
     static class Kit
     {
+        public static int Body(DesignCanvas canvas) => canvas.Scale < 1f ? 3 : 2;
+        public static int Heading(DesignCanvas canvas) => Body(canvas) + 1;
+
         public static void WindLadder(DesignCanvas canvas, SimState state, LevelDef level)
         {
-            Panel(canvas, new Rectangle(490, 8, 126, 112));
-            PixelFont.DrawCenteredShadowed(canvas, "WIND", 553, 12, Theme.TagCream, 2);
-            int current = FlightGuidance.BandIndex(state, level);
-            for(int i=level.Bands.Length-1;i>=0;i--)
-            {
-                int y = 36 + (level.Bands.Length-1-i)*18;
-                Color tint = i == 0 ? Theme.WindLowBand : i == 1 ? Theme.WindMidBand : Theme.WindHighBand;
-                if(i==current)canvas.Outline(new Rectangle(498,y-2,110,17),Theme.TagCream);
-                PixelFont.DrawShadowed(canvas, i==level.Bands.Length-1 ? "HIGH" : i==0 ? "LOW" : "MID",502,y,Theme.TagCream,2);
-                WindChevrons(canvas,558,y+3,level.Bands[i].Direction,level.Bands[i].Strength,tint,2);
-                if(i==current)canvas.Fill(600,y+1,4,4,Theme.Cream);
+            int font=Body(canvas), current=FlightGuidance.BandIndex(state,level);
+            Panel(canvas,new Rectangle(470,8,120,32+level.Bands.Length*24));
+            PixelFont.DrawCenteredShadowed(canvas,"WIND",530,14,Theme.TagCream,font);
+            for(int i=level.Bands.Length-1;i>=0;i--) {
+                int y=40+(level.Bands.Length-1-i)*24;
+                Color tint=i==0?Theme.WindLowBand:i==1?Theme.WindMidBand:Theme.WindHighBand;
+                if(i==current)canvas.Outline(new Rectangle(476,y-2,108,24),2,Theme.TagCream);
+                string name=i==level.Bands.Length-1?"HI":i==0?"LO":"MID";
+                PixelFont.DrawShadowed(canvas,name,480,y,Theme.TagCream,font);
+                WindChevrons(canvas,540,y+6,level.Bands[i].Direction,level.Bands[i].Strength,tint,2);
             }
         }
         public const int PanelPadding = 8;
@@ -104,8 +106,9 @@ namespace Balloonatic.Rendering
             canvas.Fill(rect.X + 3, rect.Bottom - 3, rect.Width - 6, 1, Theme.WoodDark);
             canvas.Fill(rect.Right - 3, rect.Y + 3, 1, rect.Height - 6, Theme.WoodDark);
 
+            int font = bounds.Height >= 28 ? Body(canvas) : 1;
             PixelFont.DrawCenteredShadowed(canvas, label, rect.X + rect.Width / 2,
-                rect.Y + (rect.Height - PixelFont.CellHeight) / 2, text);
+                rect.Y + (rect.Height - PixelFont.CellHeight * font) / 2, text, font);
 
             if (state == UiState.Hover)
                 PixelFont.Draw(canvas, ">", rect.X + 4, rect.Y + (rect.Height - PixelFont.CellHeight) / 2, Theme.TagCream);

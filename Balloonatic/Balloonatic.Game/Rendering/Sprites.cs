@@ -59,16 +59,16 @@ namespace Balloonatic.Rendering
         /// ("balloon-0", "balloon-1", …) — the caller picks the frame from sim state, so a still
         /// state always renders the same frame and screenshots stay byte-stable.
         /// </summary>
-        public static void Draw(DesignCanvas canvas, string name, float x, float y, bool flip = false, Color? tint = null)
+        public static void Draw(DesignCanvas canvas, string name, float x, float y, bool flip = false, Color? tint = null, int scale = 1)
         {
             if (_sheet == null || !Tables.TryGetValue(name, out Rectangle r))
                 return;
-            canvas.DrawSprite(_sheet, r, x, y, flip, tint);
+            canvas.DrawSprite(_sheet, r, x, y, flip, tint, scale);
         }
 
         /// <summary>Frame-picked draw for animated sprites: picks "name-frameIndex".</summary>
-        public static void Draw(DesignCanvas canvas, string name, int frame, float x, float y, bool flip = false, Color? tint = null) =>
-            Draw(canvas, $"{name}-{frame}", x, y, flip, tint);
+        public static void Draw(DesignCanvas canvas, string name, int frame, float x, float y, bool flip = false, Color? tint = null, int scale = 1) =>
+            Draw(canvas, $"{name}-{frame}", x, y, flip, tint, scale);
 
         static Stream OpenResource(Assembly asm, string suffix)
         {

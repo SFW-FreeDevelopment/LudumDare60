@@ -333,3 +333,10 @@ collidable world. `raw('backdrop')` reports `floor=clouds`, `atmosphere=day` and
 design pixels. Drift is 0.6 pixels per second (ticks divided by 60); Reduced Motion stops it. Wind
 streaks use seconds too. Drawing leaves the simulation hash unchanged. Sky evidence covers low,
 middle, ceiling and arrival views at both required sizes in `23-sky-*`.
+# I24 UI contract
+
+`raw('ui')` exposes the actual shared pause/result rectangles and current essential type scale.
+Body text uses scale 2 at the design width and scale 3 when the canvas is reduced below it. The
+world HUD shows cargo and destination; rating is reserved for the result panel. A 272×36 result
+button supports pointer input and Enter. Screenshot evidence: `24-readable-flight-*` and
+`24-delivery-action-*`. Menu layouts receive the same type treatment in I25.

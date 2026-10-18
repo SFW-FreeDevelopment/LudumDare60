@@ -21,15 +21,23 @@ namespace Balloonatic.Screens
 
         // Corner pause tab: the mouse-only player's way out of the sky, and the only button that lives
         // on the flight screen (everything else the flight says, the HUD already says).
-        static readonly Rectangle PauseTab = new Rectangle(Sim.DesignWidth - 16, 8, 12, 14);
+        static readonly Rectangle PauseTab = UiLayout.Pause;
 
         readonly UiHost _host;
         bool _pauseHover;
+        bool _resultHover;
 
         public WorldScreen(UiHost host) => _host = host;
 
         public void Tick(UiFrame f)
         {
+            Rectangle result=UiLayout.Result;
+            _resultHover=f.PointIsIn(result.X,result.Y,result.Width,result.Height);
+            if (_host.Flight.Complete && (f.Enter || f.Click && _resultHover)) {
+                if (_host.Flight.Delivered) _host.GoTo(SimState.ScreenWorldMap);
+                else _host.RestartFlight();
+                return;
+            }
             _pauseHover = f.PointIsIn(PauseTab.X, PauseTab.Y, PauseTab.Width, PauseTab.Height);
             if (f.Back || (f.Click && _pauseHover))
                 _host.GoTo(SimState.ScreenPause);
@@ -65,8 +73,8 @@ namespace Balloonatic.Screens
             canvas.CutRectangle(PauseTab.X, PauseTab.Y, PauseTab.Width, PauseTab.Height, 2, Theme.Ink);
             canvas.CutRectangle(PauseTab.X + 1, PauseTab.Y + 1, PauseTab.Width - 2, PauseTab.Height - 2, 1,
                 _pauseHover ? Theme.WoodLight : Theme.WoodMid);
-            canvas.Fill(PauseTab.X + 3, PauseTab.Y + 3, 2, 8, Theme.TagCream);
-            canvas.Fill(PauseTab.X + 7, PauseTab.Y + 3, 2, 8, Theme.TagCream);
+            canvas.Fill(PauseTab.X + 8, PauseTab.Y + 6, 4, 16, Theme.TagCream);
+            canvas.Fill(PauseTab.X + 18, PauseTab.Y + 6, 4, 16, Theme.TagCream);
         }
 
         /// <summary>
@@ -74,68 +82,34 @@ namespace Balloonatic.Screens
         /// and a delivery stops the world behind a panel with the three stars it earned (PLAN I5 — the
         /// reason the player failed or what they won, always on screen).
         /// </summary>
-        static void DrawLandingFeedback(DesignCanvas canvas, LevelDef level, SimState state, float camX, float camAlt)
+        void DrawLandingFeedback(DesignCanvas canvas, LevelDef level, SimState state, float camX, float camAlt)
         {
-            if (!state.Complete && state.Recoveries > 0 && state.Tick - state.RecoveryTick < 180)
-            {
-                Kit.Panel(canvas, new Rectangle(166, 292, 308, 28));
-                PixelFont.DrawCenteredShadowed(canvas, "TRY ANOTHER APPROACH", 320, 300, Theme.TagCream, 2);
-            }
-            else if (!state.Complete && FlightGuidance.Approach(state, level) != "travel")
-            {
-                string approach = FlightGuidance.Approach(state, level);
-                Kit.Panel(canvas, new Rectangle(166, 292, 308, 28));
-                string message = approach == "fast" ? "TAP HEAT TO SLOW DESCENT" : approach == "rising" ? "RELEASE EARLY TO SETTLE" : "GENTLE APPROACH";
-                PixelFont.DrawCenteredShadowed(canvas, message, 320, 300,
-                    approach == "gentle" ? Theme.GrassLight : Theme.TagCream, 2);
-            }
-            if (state.Bounces > 0 && !state.Complete
-                && state.Tick - state.BounceTick < SimTuning.BounceReasonSteps)
-            {
-                int bx = Round(ScreenX(state.X, camX));
-                int by = Round(ScreenY(state.Altitude, camAlt)) - 66;
-                PixelFont.DrawCentered(canvas, "TOO FAST!", bx, by, Theme.FlameRed);
-            }
-
-            if (!state.Complete)
-                return;
-
-            if (!state.Delivered)
-            {
-                // The other ending (I9): hearts spent where she stands. Same crate, gentler words —
-                // losing is not a scold, and the run is one R away from being a flight again.
-                int ow = 210;
-                int oh = 78;
-                int ox = (Sim.DesignWidth - ow) / 2;
-                Kit.Panel(canvas, new Rectangle(ox, 92, ow, oh), "OUT OF HEARTS");
-                PixelFont.DrawCentered(canvas, "CHARLOTTE NEEDS A REST", ox + ow / 2, 92 + 26, Theme.TagCream);
-                for (int s = 0; s < 3; s++)
-                    Sprites.Draw(canvas, "star-off", ox + ow / 2 - 11 + s * 8, 92 + 42);
-                PixelFont.DrawCentered(canvas, "PRESS R TO FLY AGAIN", ox + ow / 2, 92 + 62, Theme.WoodLight);
+            int font=Kit.Body(canvas);
+            if (!state.Complete) {
+                string approach=FlightGuidance.Approach(state,level);
+                string message=state.Recoveries>0 && state.Tick-state.RecoveryTick<180 ? "TRY ANOTHER APPROACH"
+                    : approach=="fast" ? "TAP HEAT TO BRAKE" : approach=="rising" ? "RELEASE EARLY TO SETTLE" : approach=="gentle" ? "GENTLE APPROACH" : "";
+                if(message.Length>0) {
+                    Kit.Panel(canvas,new Rectangle(96,282,448,40));
+                    PixelFont.DrawCenteredShadowed(canvas,message,320,290,approach=="gentle"?Theme.GrassLight:Theme.TagCream,font);
+                }
+                if(state.Bounces>0 && state.Tick-state.BounceTick<SimTuning.BounceReasonSteps)
+                    PixelFont.DrawCenteredShadowed(canvas,"TOO FAST!",Round(ScreenX(state.X,camX)),Round(ScreenY(state.Altitude,camAlt))-100,Theme.FlameRed,font);
                 return;
             }
-
-            int w = 210;
-            int h = 96;
-            int x = (Sim.DesignWidth - w) / 2;
-            int y = 76;
-            Kit.Panel(canvas, new Rectangle(x, y, w, h), "DELIVERY");
-            PixelFont.DrawCentered(canvas, level.DeliveredMessage, x + w / 2, y + 26, Theme.TagCream);
-
-            // Frozen clock: the delivered time, not a live count — a score that keeps climbing is not a score.
-            int seconds = state.CompletedAtTick / Sim.StepHz;
-            string timeLine = "TIME " + seconds + "S   PAR " + level.ParSeconds + "S";
-            PixelFont.DrawCentered(canvas, timeLine, x + w / 2, y + 42, seconds <= level.ParSeconds ? Theme.GrassLight : Theme.SignCream);
-            for (int s = 0; s < 3; s++)
-                Sprites.Draw(canvas, s < state.Stars ? "star-on" : "star-off", x + w / 2 - 11 + s * 8, y + 55);
-
-            // Tell the player exactly what R will do, because R does different things after a delivery
-            // than it does mid-crash: the next course, or one more flight when there are no more courses.
-            bool lastCourse = LevelCatalog.Levels[LevelCatalog.Levels.Length - 1].Id == state.LevelId;
-            PixelFont.DrawCentered(
-                canvas,
-                lastCourse ? "PRESS R TO FLY AGAIN" : "PRESS R FOR NEXT LEVEL",
-                x + w / 2, y + 80, Theme.WoodLight);
+            canvas.Fill(0,0,640,360,Theme.PauseVeil);
+            Kit.Panel(canvas,new Rectangle(96,72,448,232));
+            PixelFont.DrawCenteredShadowed(canvas,state.Delivered?"DELIVERY!":"TAKE A BREATHER",320,88,Theme.TagCream,Kit.Heading(canvas));
+            PixelFont.DrawCenteredShadowed(canvas,state.Delivered?level.DeliveredMessage:"CHARLOTTE NEEDS A REST",320,128,Theme.TagCream,font);
+            if(state.Delivered) {
+                int seconds=state.CompletedAtTick/Sim.StepHz;
+                PixelFont.DrawCenteredShadowed(canvas,"TIME "+seconds+"S / PAR "+level.ParSeconds+"S",320,164,Theme.SignCream,font);
+                for(int i=0;i<3;i++) Sprites.Draw(canvas,i<state.Stars?"star-on":"star-off",268+i*40,200,scale:4);
+            } else {
+                Sprites.Draw(canvas,"balloon-worried-0",290,154);
+            }
+            Kit.Button(canvas,UiLayout.Result,state.Delivered?"NEXT SKY >":"TRY AGAIN",
+                _resultHover?Kit.UiState.Hover:Kit.UiState.Rest,focused:true);
         }
 
         /// <summary>
@@ -480,19 +454,13 @@ namespace Balloonatic.Screens
             canvas.CutRectangle(39, 10, 68, 32, 1, Theme.Dim);              // inner well behind the counters
             for (int i = 0; i < HeartsTotal; i++)
                 Sprites.Draw(canvas, i < state.Hearts ? "heart-hud" : "heart-hud-off", 42 + i * 16, 12);
-            Sprites.Draw(canvas, "star-hud", 42, 28);
-            PixelFont.DrawShadowed(canvas, "x" + state.Stars, 58, 31, Theme.TagCream);
-            Sprites.Draw(canvas, "gift", 78, 27);
-            PixelFont.DrawShadowed(canvas, DeliveriesDone(state) + "/" + LevelCatalog.Levels.Length, 94, 31, Theme.TagCream);
-
-            // ---- steering readout, top centre: the wind of the band the balloon is actually inside.
-            // This is the HUD's only real job — the sole steering the player has.
-            Kit.WindLadder(canvas, state, level);
-            string heat = FlightGuidance.HeatTrend(state);
-            PixelFont.DrawShadowed(canvas, state.Delivered ? level.DeliveredMessage : state.Cargo == CargoKind.None ? level.CollectObjective : level.CarryObjective,
-                146, 12, Theme.TagCream, 2);
-            PixelFont.DrawShadowed(canvas, state.Altitude >= level.WorldHeight - .5f ? "TOP BREEZE - LET GO" : heat == "heating" ? "HEATING - HOLD SPACE" : heat == "cooling" ? "COOLING - LET GO EARLY" : "HOLD SPACE TO RISE", 146, 32, Theme.TagCream, 2);
-            PixelFont.DrawShadowed(canvas, state.PickupTick >= 0 && state.Tick - state.PickupTick < 150 ? "PARCEL SAFELY ABOARD" : "RELEASE EARLY TO SETTLE", 146, 50, Theme.TagCream, 2);
+            int font=Kit.Body(canvas);
+            Sprites.Draw(canvas, WorldArt.Parcel(level.Package), 104, 28);
+            Kit.WindLadder(canvas,state,level);
+            string heat=FlightGuidance.HeatTrend(state);
+            PixelFont.DrawShadowed(canvas,state.Delivered?level.DeliveredMessage:state.Cargo==CargoKind.None?level.CollectObjective:level.CarryObjective,
+                146,12,Theme.TagCream,font);
+            if(!state.Complete) PixelFont.DrawShadowed(canvas,state.Altitude>=level.WorldHeight-.5f?"LET GO TO DESCEND":heat=="heating"?"SPACE: HEATING":heat=="cooling"?"COOLING...":"SPACE: RISE",146,42,Theme.TagCream,font);
 
             // ---- heat gauge, right edge: a brass instrument capped with a live flame, the way the
             // sheet draws the burner's own thermometer ----
@@ -528,40 +496,20 @@ namespace Balloonatic.Screens
             // Reduced Motion holds it to the still frame — flicker is motion too.
             int flameFrame = state.Heating && !AppSettings.ReducedMotion && clock % 12 >= 6 ? 1 : 0;
             Sprites.Draw(canvas, "flame-hud", flameFrame, gauge.X + 1, gauge.Y - 12);
-            Kit.Tag(canvas, Sim.DesignWidth - 33, 222, "HEAT");
+            PixelFont.DrawShadowed(canvas, "HEAT", 582, 224, Theme.TagCream, 2);
 
             // ---- ballast, bottom left: the actual sandbags aboard, in things you could touch. The
             // dropped slots keep their shape — an empty bag is still a bag on the rope. ----
-            for (int i = 0; i < SimTuning.BagCapacity; i++)
-            {
-                bool held = i < state.BallastHeld;
-                Sprites.Draw(canvas, "bag-falling", 12 + i * 7, Sim.DesignHeight - 33, false, held ? (Color?)null : Theme.WoodMid);
-            }
-            Kit.Tag(canvas, 12, Sim.DesignHeight - 44, "BALLAST");
-
-            // ---- course ruler bottom: travelled vs the delivery column, with the goal as a gold notch ----
-            int left = 150;
-            int width = 340;
-            int y = Sim.DesignHeight - 14;
-            canvas.Fill(left, y + 3, width, 1, Theme.WoodDark);
-            int goalX = left + width - 2;
-            canvas.Fill(goalX, y - 3, 3, 7, Theme.StarGold);
-            int markX = left + (int)(Clamp(state.X, 0f, level.CourseLength) / level.CourseLength * (width - 4));
-            canvas.Fill(markX, y, 3, 7, Theme.Cream);
-            Kit.Tag(canvas, left, y - 14, level.NameUpper);
+            for(int i=0;i<SimTuning.BagCapacity;i++)
+                Sprites.Draw(canvas,"bag-falling",12+i*16,324,scale:2,tint:i<state.BallastHeld?(Color?)null:Theme.WoodDark);
+            PixelFont.DrawShadowed(canvas,"B: LIFT",52,330,Theme.Ink,font);
+            const int left=220,width=350,y=344;
+            canvas.Fill(left,y+3,width,2,Theme.RockDark);
+            canvas.Fill(left+width-2,y-3,3,10,Theme.StarGold);
+            int mark=left+(int)(Clamp(state.X,0,level.CourseLength)/level.CourseLength*(width-4));
+            canvas.Fill(mark,y,4,8,Theme.Cream);
         }
 
-        /// <summary>
-        /// Deliveries completed on this flight: the courses flown before this one, plus this one the
-        /// moment its package lands. Mirrored by state.level + state.delivered.
-        /// </summary>
-        static int DeliveriesDone(SimState state)
-        {
-            for (int i = 0; i < LevelCatalog.Levels.Length; i++)
-                if (string.Equals(LevelCatalog.Levels[i].Id, state.LevelId, StringComparison.OrdinalIgnoreCase))
-                    return i + (state.Delivered ? 1 : 0);
-            return 0;
-        }
 
         static int Index(LevelDef level, WindBand band)
         {

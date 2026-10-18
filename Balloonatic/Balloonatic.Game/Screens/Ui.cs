@@ -32,6 +32,7 @@ namespace Balloonatic.Screens
     /// <summary>What a UI screen may ask the game to do — the only verbs a screen has.</summary>
     interface UiHost
     {
+        Balloonatic.Core.SimState Flight { get; }
         void GoTo(string screen);
 
         /// <summary>Choose a course and launch it: the level-select row's whole job.</summary>
