@@ -424,17 +424,18 @@ namespace Balloonatic
             bool onWorld = s.Screen == SimState.ScreenWorld;
             Audio.Sound.SetMusic(s.Screen is not (SimState.ScreenPause or SimState.ScreenScaffold or SimState.ScreenStyle));
             Audio.Sound.SetBurner(onWorld && s.Heating && !s.Complete);
+            Audio.Sound.SetWind(onWorld && !s.Complete);
+            if(prevDelivered && (!s.Delivered || !onWorld))Audio.Sound.ClearQueue();
 
             if (s.PickupTick >= 0 && prevPickupTick < 0 && !s.Delivered) Audio.Sound.Play("chime");
             if (s.Bounces > prevBounces) Audio.Sound.Play("creak");
-            if (s.Hearts < prevHearts) Audio.Sound.Play("giggle");         // she laughs it off — losing is not a scold
+            if (s.Hearts < prevHearts) Audio.Sound.Play("creak");          // concern on a bump; joy belongs to delivery
             if (s.DropsSeen > prevDrops) Audio.Sound.Play("thump");
             if (s.Delivered && !prevDelivered)
             {
                 Audio.Sound.Play("jingle");
-                Audio.Sound.PlaySoon("chime", 42);                          // the stars ring in one after another
-                Audio.Sound.PlaySoon("chime", 74);
-                Audio.Sound.PlaySoon("chime", 106);
+                Audio.Sound.PlaySoon("giggle",120);
+                for(int star=0;star<s.Stars;star++)Audio.Sound.PlaySoon("chime",168+star*24);
             }
 
             prevBounces = s.Bounces;

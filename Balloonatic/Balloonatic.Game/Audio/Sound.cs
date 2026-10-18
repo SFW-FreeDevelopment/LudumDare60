@@ -14,7 +14,7 @@ namespace Balloonatic.Audio
     /// a missing clip, a headless head, or a browser that simply will not play must never throw,
     /// and any failure retires the whole kit rather than spamming a broken call every frame.
     ///
-    /// <b>Old-tech instruments.</b> The clips are the square/triangle/noise kit from
+    /// <b>Old-tech instruments.</b> The clips are the ElevenLabs music-box and balloon kit mastered by
     /// <c>audio/.audio/generate.js</c>, embedded like the sprite sheet so both heads read the same
     /// bytes from the same stream.
     ///
@@ -23,13 +23,16 @@ namespace Balloonatic.Audio
     /// </summary>
     static class Sound
     {
-        static readonly string[] ClipNames = { "burner", "creak", "chime", "giggle", "jingle", "music", "thump" };
+        static readonly string[] ClipNames = { "burner", "creak", "chime", "giggle", "jingle", "music", "thump", "wind" };
 
         static readonly Dictionary<string, SoundEffect> Clips = new();
         static readonly Queue<(string Name, int FramesLeft)> Queued = new();
 
         static SoundEffectInstance? _music;
         static SoundEffectInstance? _burner;
+        static SoundEffectInstance? _wind;
+        static string _lastCue="none";
+        static int _giggles, _jingles;
         static bool _unlocked;      // a real gesture happened — audio may exist
         static bool _broken;        // any audio failure retires the kit for the session
         static bool _musicWanted;   // remembered across pause (screen) and volume (settings) changes
@@ -57,6 +60,8 @@ namespace Balloonatic.Audio
                 _music.IsLooped = true;
                 _burner = Clips["burner"].CreateInstance();
                 _burner.IsLooped = true;
+                _wind=Clips["wind"].CreateInstance();
+                _wind.IsLooped=true;
                 ApplyVolumes();
                 if (_musicWanted) _music.Play();
             }
@@ -79,6 +84,7 @@ namespace Balloonatic.Audio
             {
                 if (_music != null) _music.Volume = music;
                 if (_burner != null) _burner.Volume = effects * 0.6f;
+                if (_wind != null) _wind.Volume = effects * .08f;
                 _musicLevel = AppSettings.MusicVolume;
                 _soundLevel = AppSettings.SoundVolume;
             }
@@ -111,14 +117,25 @@ namespace Balloonatic.Audio
             catch (System.Exception) { _broken = true; }
         }
 
+        public static void SetWind(bool on) {
+            if(_broken||!_unlocked||_wind==null)return;
+            try {
+                if(on&&AppSettings.SoundVolume>0) {if(_wind.State!=SoundState.Playing)_wind.Play();}
+                else _wind.Stop();
+            }catch(System.Exception){_broken=true;}
+        }
+        public static void ClearQueue()=>Queued.Clear();
+
         /// <summary>One-shot, sfx-gated. Silent before unlock or with the sfx slider at rest.</summary>
         public static void Play(string clip)
         {
             if (_broken || !_unlocked || AppSettings.SoundVolume == 0) return;
             try
             {
-                if (Clips.TryGetValue(clip, out SoundEffect? fx))
+                if (Clips.TryGetValue(clip, out SoundEffect? fx)) {
                     fx.Play(AppSettings.SoundVolume / (float)AppSettings.VolumeMax, 0f, 0f);
+                    _lastCue=clip;if(clip=="giggle")_giggles++;if(clip=="jingle")_jingles++;
+                }
             }
             catch (System.Exception) { _broken = true; }
         }
@@ -134,13 +151,16 @@ namespace Balloonatic.Audio
             return "unlocked=" + (_unlocked ? 1 : 0)
                 + ";broken=" + (_broken ? 1 : 0)
                 + ";music=" + music
-                + ";burner=" + burner;
+                + ";burner=" + burner
+                + ";wind="+(_wind?.State.ToString().ToLowerInvariant()??"none")
+                + ";cue="+_lastCue+";giggles="+_giggles+";jingles="+_jingles+";clips="+Clips.Count+";queued="+Queued.Count;
         }
 
         public static string MixStatus() =>
             "music=" + (_music?.Volume ?? 0f).ToString("0.00", System.Globalization.CultureInfo.InvariantCulture)
             + ";sfx=" + (AppSettings.SoundVolume / (float)AppSettings.VolumeMax).ToString("0.00", System.Globalization.CultureInfo.InvariantCulture)
-            + ";burner=" + (_burner?.Volume ?? 0f).ToString("0.00", System.Globalization.CultureInfo.InvariantCulture);
+            + ";burner=" + (_burner?.Volume ?? 0f).ToString("0.00", System.Globalization.CultureInfo.InvariantCulture)
+            + ";wind=" + (_wind?.Volume ?? 0f).ToString("0.000", System.Globalization.CultureInfo.InvariantCulture);
 
         /// <summary>Advance the small delayed queue; called once per Update.</summary>
         public static void Tick()

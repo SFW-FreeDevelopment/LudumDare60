@@ -1,0 +1,23 @@
+const {test,expect}=require('@playwright/test');
+const path=require('path');
+const {bootGame,act,clickDesign,clickUi,reviewShot,SHOTS_DIR,watchForErrors}=require('./support');
+const audio=async page=>Object.fromEntries((await act(page,'audio')).split(';').map(x=>x.split('=')));
+test('the soundscape keeps breeze on the effects bus and reserves Charlotte joy for delivery',async({page},info)=>{
+ const errors=watchForErrors(page);await bootGame(page);await clickDesign(page,60,340);
+ await expect.poll(async()=>(await audio(page)).clips).toBe('8');
+ await act(page,'settings=motion=1');await act(page,'reset=2929');await page.evaluate(()=>window.__GAME.raw('warp','300=286'));
+ await act(page,'screen=world');await expect.poll(()=>act(page,'screen')).toBe('world');await act(page,'step=1');
+ await expect.poll(async()=>(await audio(page)).cue).toBe('creak');expect((await audio(page)).giggles).toBe('0');
+ expect((await page.evaluate(()=>window.__GAME.state())).hearts).toBe(2);
+ await expect.poll(async()=>(await audio(page)).wind).toBe('playing');
+ await reviewShot(page,{path:path.join(SHOTS_DIR,`29-concern-${info.project.name}.png`)});
+ await act(page,'settings=sfx=0');await expect.poll(async()=>(await audio(page)).wind).toBe('stopped');expect((await audio(page)).music).toBe('playing');
+ await act(page,'settings=sfx=8');await act(page,'screen=pause');await expect.poll(()=>act(page,'screen')).toBe('pause');
+ await expect.poll(async()=>(await audio(page)).wind).toBe('stopped');expect((await audio(page)).music).toBe('stopped');
+ await act(page,'reset=2929');await act(page,'screen=world');await expect.poll(()=>act(page,'screen')).toBe('world');expect(await page.evaluate(()=>window.__GAME.raw('fly','120'))).toBe('ok:delivered');
+ await act(page,'screen=world');await expect.poll(()=>act(page,'screen')).toBe('world');
+ await expect.poll(async()=>(await audio(page)).jingles).toBe('1');
+ await expect.poll(async()=>(await audio(page)).giggles,{timeout:10_000}).toBe('1');
+ expect((await audio(page)).wind).toBe('stopped');expect((await audio(page)).broken).toBe('0');
+ await reviewShot(page,{path:path.join(SHOTS_DIR,`29-joy-${info.project.name}.png`)});await clickUi(page,'result');await expect.poll(()=>act(page,'screen')).toBe('worldmap');await expect.poll(async()=>(await audio(page)).queued).toBe('0');expect(errors).toEqual([]);
+});

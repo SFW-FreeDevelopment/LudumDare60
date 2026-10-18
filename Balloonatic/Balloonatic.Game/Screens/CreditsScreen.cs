@@ -32,7 +32,7 @@ namespace Balloonatic.Screens
             Kit.MenuBackdrop(canvas);Kit.Panel(canvas,new Rectangle(48,16,544,336));
             int font=Kit.Body(canvas);
             PixelFont.DrawCenteredShadowed(canvas,"FOR CHARLOTTE ♥",320,32,Theme.HeartPink,Kit.Heading(canvas));
-            string[] lines={"A BRAVE GIRL. A BIG SKY.","BY GIGABITE GAMES","ENGINE: KNI / WEBGL","ART: ASEPRITE + SCRIPTS","SOUND: ORIGINAL SYNTHESIS","LD60 / OLD TECH"};
+            string[] lines={"A BRAVE GIRL. A BIG SKY.","BY GIGABITE GAMES","ENGINE: KNI / WEBGL","ART: ASEPRITE + SCRIPTS","SOUND: ELEVENLABS","LD60 / OLD TECH"};
             for(int i=0;i<lines.Length;i++)PixelFont.DrawCenteredShadowed(canvas,lines[i],320,92+i*32,Theme.TagCream,font);
             Kit.Button(canvas,UiLayout.Back,"BACK",_hover?Kit.UiState.Hover:Kit.UiState.Rest,focused:true);
         }

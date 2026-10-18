@@ -222,7 +222,7 @@ namespace Balloonatic.Core
             Platforms = platforms ?? Array.Empty<RestDeck>();
             PackageName = package == CargoKind.Bottle ? "BOTTLE" : package == CargoKind.Letter ? "LETTER" : "TEDDY";
             DestinationName = id == "nursery-skies" ? "NURSERY" : id == "winding-trail" ? "TOY ROOM" : id == "night-crossing" ? "GARDEN" : "COTTAGE";
-            CollectObjective = "COLLECT THE " + PackageName;
+            CollectObjective = "PICK UP " + PackageName;
             CarryObjective = PackageName + " > " + DestinationName;
             DeliveredMessage = package==CargoKind.Bottle ? "MILK HAS ARRIVED!" : package==CargoKind.Letter ? "LETTER DELIVERED!" : "TEDDY IS HOME!";
             RequestLabel = PackageName + "?";

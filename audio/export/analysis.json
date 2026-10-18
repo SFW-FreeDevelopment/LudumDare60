@@ -1,0 +1,74 @@
+[
+  {
+    "clip": "music",
+    "seconds": 35.984,
+    "rate": 22050,
+    "rms": 0.0326,
+    "peak": 0.32,
+    "loop": true,
+    "sourceSha256": "c68619341668f13316e921ff2ee3b66ce83e408f9694293eda00697a054d2906"
+  },
+  {
+    "clip": "burner",
+    "seconds": 2.1,
+    "rate": 22050,
+    "rms": 0.055,
+    "peak": 0.2366,
+    "loop": true,
+    "sourceSha256": "5aff6cc6a3aa0c4f35fe3079bc26b8142e4544681b368e922a859adb797c34a0"
+  },
+  {
+    "clip": "wind",
+    "seconds": 3.8,
+    "rate": 22050,
+    "rms": 0.101,
+    "peak": 0.35,
+    "loop": true,
+    "sourceSha256": "10475404777cf4cb5329ae6a9dac41e8413463034f952476f9a5614192e40585"
+  },
+  {
+    "clip": "creak",
+    "seconds": 0.68,
+    "rate": 22050,
+    "rms": 0.0219,
+    "peak": 0.25,
+    "loop": false,
+    "sourceSha256": "1c57118b4879181e862c5443bc70248a164411a1349f11da67e9a2986ddd555c"
+  },
+  {
+    "clip": "chime",
+    "seconds": 0.8,
+    "rate": 22050,
+    "rms": 0.0232,
+    "peak": 0.25,
+    "loop": false,
+    "sourceSha256": "5201f8a3e1906351b32b66493c09c76737c7cbb2bdf43a632996a6530b4a2fab"
+  },
+  {
+    "clip": "giggle",
+    "seconds": 1,
+    "rate": 22050,
+    "rms": 0.0307,
+    "peak": 0.22,
+    "loop": false,
+    "sourceSha256": "7720ee2d09cb182806ca18a4b369d4b0761451c0e2cfd8db19f0a96ca1553cb2"
+  },
+  {
+    "clip": "jingle",
+    "seconds": 1.76,
+    "rate": 22050,
+    "rms": 0.0309,
+    "peak": 0.3,
+    "loop": false,
+    "sourceSha256": "84cb1f162ec41329d4ed659ec1bd167c08a2b10855764c84433cbfb7bf8ebbae"
+  },
+  {
+    "clip": "thump",
+    "seconds": 0.48,
+    "rate": 22050,
+    "rms": 0.0299,
+    "peak": 0.3,
+    "loop": false,
+    "sourceSha256": "3b153abf28133bc2c7fcb90d033ccd890676c8cc57a5d251ff4dbfc9ebdb7c23"
+  }
+]

@@ -125,7 +125,7 @@ test('a gesture wakes the audio kit and it never breaks @smoke', async ({ page }
   // without retiring itself. Console errors are asserted on top, as everywhere else.
   const errors = watchForErrors(page);
   await bootGame(page);
-  expect(await act(page, 'audio')).toBe('unlocked=0;broken=0;music=none;burner=none');
+  expect(await act(page, 'audio')).toContain('unlocked=0;broken=0;music=none;burner=none;wind=none');
 
   await clickDesign(page, 60, 340);   // empty corner of the title — a press, not a slat
 

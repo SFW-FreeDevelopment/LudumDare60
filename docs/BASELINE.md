@@ -378,3 +378,12 @@ entry, `state.stormWind` reports the effective gust and becomes zero with Wind A
 normal-collision recordings prove the flight actually meets the bank and still lands; replay hashes
 match. The mill has two Aseprite frames and freezes under Reduced Motion. Recipient messages sit above
 the buildings rather than over their defining details. Evidence: `28-garden-*` at both sizes.
+# I29 audio contract
+
+Eight current clips come from archived ElevenLabs renders and prompts. `npm run audio` masters them
+offline into mono 22.05 kHz WAVs; repeated exports match byte-for-byte with the installed ffmpeg.
+`audio/export/analysis.json` records measured levels and source hashes. Music, burner and breeze loop
+independently; breeze shares the SFX bus and pauses with the world. `raw('audio')` reports clip count,
+loop states, last cue, giggle/jingle counts and queued cues. Damage requests creak, delivery requests
+jingle and delayed giggle; leaving a completed flight clears delayed sounds. Endpoint/mute tests
+remain in place. Technical playback checks cannot replace Steven's listening judgment.

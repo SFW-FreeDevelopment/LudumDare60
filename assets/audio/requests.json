@@ -1,0 +1,78 @@
+{
+  "provider": "ElevenLabs",
+  "generated_utc": "2026-10-18T01:55:00Z",
+  "records": [
+    {
+      "name": "music",
+      "prompt": "Original gentle music-box lullaby for a cozy pixel-art hot-air-balloon delivery game dedicated to a little girl. Warm celesta and wooden toy piano, soft acoustic plucks, a little airy sustained harmony, 80 bpm lilting three-quarter time in C major. Simple tender repeating melody, light and hopeful, spacious quiet mix. No vocals, no speech, no drums, no chip-wave or arcade bleeps, no loud accents. Begin immediately with the established motif, no intro or outro; return to the same calm tonic harmony for a looping game background. Approximately sixteen short waltz bars.",
+      "duration_seconds": 36,
+      "loop": true,
+      "model": "music_v2",
+      "source": "music.mp3",
+      "provider_file": "music__20261017_215558.mp3"
+    },
+    {
+      "name": "burner",
+      "duration_seconds": 2,
+      "loop": true,
+      "text": "Gentle steady hot-air balloon burner flame, soft warm gas whoosh, close but restrained and smooth, seamless loop, no explosive ignition, no crackling distortion, no music or voices.",
+      "model": "provider SFX default (not reported)",
+      "source": "burner.mp3",
+      "provider_file": "sfx_Gentl_20261017_215555.mp3"
+    },
+    {
+      "name": "wind",
+      "duration_seconds": 4,
+      "loop": true,
+      "text": "Very gentle airy breeze high above the clouds, soft smooth natural wind with distant open sky, a seamless quiet ambient loop, no whistling, no storm, no birds, no voices or music.",
+      "model": "provider SFX default (not reported)",
+      "source": "wind.mp3",
+      "provider_file": "sfx_Very__20261017_215603.mp3"
+    },
+    {
+      "name": "creak",
+      "duration_seconds": 0.7,
+      "loop": false,
+      "text": "One short soft wicker basket and rope creak under a small shift of weight, warm wooden fibers flex gently, a cozy small sound, no loud impact, no music.",
+      "model": "provider SFX default (not reported)",
+      "source": "creak.mp3",
+      "provider_file": "sfx_One_s_20261017_215605.mp3"
+    },
+    {
+      "name": "chime",
+      "duration_seconds": 0.8,
+      "loop": false,
+      "text": "One delicate two-note ascending celesta chime for picking up a special parcel in a cozy game, soft rounded music-box bells, cheerful and tiny, no harsh high frequencies, dry isolated sound, no background music.",
+      "model": "provider SFX default (not reported)",
+      "source": "chime.mp3",
+      "provider_file": "sfx_One_d_20261017_215607.mp3"
+    },
+    {
+      "name": "giggle",
+      "duration_seconds": 1,
+      "loop": false,
+      "text": "One small happy soft childlike giggle, a brief innocent joyful laugh after a lovely surprise, no spoken words, no other voices or music, quiet and natural, isolated.",
+      "model": "provider SFX default (not reported)",
+      "source": "giggle.mp3",
+      "provider_file": "sfx_One_s_20261017_215608.mp3"
+    },
+    {
+      "name": "jingle",
+      "duration_seconds": 1.8,
+      "loop": false,
+      "text": "A tiny gentle five-note wooden music-box delivery-success melody resolving warmly in C major. Sweet toy-piano and celesta, tender and cheerful, no drums, no brass, no vocals, isolated short game reward sound with a soft ringing tail.",
+      "model": "provider SFX default (not reported)",
+      "source": "jingle.mp3",
+      "provider_file": "sfx_A_tin_20261017_215609.mp3"
+    },
+    {
+      "name": "thump",
+      "duration_seconds": 0.5,
+      "loop": false,
+      "text": "A small cloth sandbag being let go, a soft little sand rustle and muted plop, quiet close fabric and grains, cozy balloon game sound, no metallic or loud impact, no music.",
+      "model": "provider SFX default (not reported)",
+      "source": "thump.mp3",
+      "provider_file": "sfx_A_sma_20261017_215611.mp3"
+    }
+  ]
+}

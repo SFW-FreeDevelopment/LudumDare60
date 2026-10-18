@@ -108,6 +108,14 @@ complete; implementation is proceeding in the order below.
   Shared pre-entry/inside/assist guidance mirrors the actual gust; Reduced Motion freezes mill sails.
 - [ ] **I29 — Dream-world sound** (~60m)
   Gentle music-box character, restrained mix and appropriate Charlotte reactions; provenance and listening gate.
+  Engineering verified: 82 unit tests, 110 browser tests; eight ElevenLabs renders with committed
+  prompts/sources, byte-reproducible offline mastering, independent music/effects/ambience routing.
+  Reviewed `29-concern-*` and `29-joy-*`; payload ~4.21 MiB, local frame cadence ~16.67 ms.
+  **Pending: Steven's listening review** of music, loop joins, effects and mix. The box remains open.
+- [ ] **I30a — Close browser interaction and motion edges** (~60m)
+  Final audit follow-up: pause safely on focus loss, return from pause settings to the flight,
+  freeze remaining decorative frames under Reduced Motion, and prove the full voyage with collisions.
+  Split from submission revalidation so fixes can be committed before a clean-clone package check.
 - [ ] **I30 — Submission revalidation** (~90m)
   Full gates, real-collision voyage, settings/reload/focus-loss coverage, both viewport reviews and
   fresh WebGL/archive smoke. Reconcile STYLE/credits/completion claims and finish I13's ship requirements.
