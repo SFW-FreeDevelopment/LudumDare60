@@ -98,7 +98,18 @@ namespace Balloonatic.Screens
         static void DrawLandingFeedback(DesignCanvas canvas, LevelDef level, SimState state, float camX, float camAlt)
         {
             if (!state.Complete && state.Recoveries > 0 && state.Tick - state.RecoveryTick < 180)
-                Kit.Tag(canvas, 170, 64, "A KIND BREEZE - TRY ANOTHER APPROACH");
+            {
+                Kit.Panel(canvas, new Rectangle(166, 292, 308, 28));
+                PixelFont.DrawCenteredShadowed(canvas, "TRY ANOTHER APPROACH", 320, 300, Theme.TagCream, 2);
+            }
+            else if (!state.Complete && FlightGuidance.Approach(state, level) != "travel")
+            {
+                string approach = FlightGuidance.Approach(state, level);
+                Kit.Panel(canvas, new Rectangle(166, 292, 308, 28));
+                string message = approach == "fast" ? "TAP HEAT TO SLOW DESCENT" : approach == "rising" ? "RELEASE EARLY TO SETTLE" : "GENTLE APPROACH";
+                PixelFont.DrawCenteredShadowed(canvas, message, 320, 300,
+                    approach == "gentle" ? Theme.GrassLight : Theme.TagCream, 2);
+            }
             if (state.Bounces > 0 && !state.Complete
                 && state.Tick - state.BounceTick < SimTuning.BounceReasonSteps)
             {
@@ -161,10 +172,10 @@ namespace Balloonatic.Screens
             float worldRight = level.CourseLength + WorldMargin;
             float targetX = state.X + state.VelocityX * look;
 
-            // Framing: the balloon rides the upper third (a 40 px lift) so the ground stays in frame
-            // through launch, cruise, and landing up to ~220 px of altitude, and the view stops climbing
-            // at the world roof. Pure state again — no render memory, byte-stable screenshots.
-            float camAlt = Clamp(state.Altitude + state.VelocityY * look * 0.5f - 40f, 0f, level.WorldHeight);
+            // Reserve the instrument strip above the envelope, including on a fast approach.
+            // Bounded look-ahead keeps the camera calm and never hides the passenger behind HUD.
+            float verticalLead = Clamp(state.VelocityY * look * 0.5f, -6f, 6f);
+            float camAlt = Clamp(state.Altitude + verticalLead + 24f, 0f, level.WorldHeight);
 
             // Framing bias toward the goal: until the delivery is behind the balloon, the camera leans
             // downwind, so the course ahead stays in frame and the islands are visible from launch.
@@ -548,17 +559,12 @@ namespace Balloonatic.Screens
 
             // ---- steering readout, top centre: the wind of the band the balloon is actually inside.
             // This is the HUD's only real job — the sole steering the player has.
-            WindBand here = level.BandAt(state.Altitude);
-            int band = Index(level, here);
-            Kit.WindChevrons(canvas, 216, 10, here.Direction, here.Strength, BandTint(band), 3);
-            Kit.Tag(canvas, 220, 30, "WIND");
-            for (int i = 0; i < level.Bands.Length; i++)                    // band pips: the ladder of air
-            {
-                Color pip = i == band ? BandTint(i) : Color.Lerp(BandTint(i), Theme.Ink, 0.72f);
-                canvas.Fill(226 + i * 6, 44, 4, 4, pip);
-                if (i == band)
-                    canvas.Outline(new Rectangle(225 + i * 6, 43, 6, 6), Theme.Cream);
-            }
+            Kit.WindLadder(canvas, state, level);
+            string heat = FlightGuidance.HeatTrend(state);
+            PixelFont.DrawShadowed(canvas, heat == "heating" ? "HEATING" : heat == "cooling" ? "COOLING" : "COOL AIR",
+                146, 12, heat == "heating" ? Theme.FlameYellow : Theme.TagCream, 2);
+            PixelFont.DrawShadowed(canvas, "HOLD SPACE TO RISE", 146, 32, Theme.TagCream, 2);
+            PixelFont.DrawShadowed(canvas, "RELEASE EARLY TO SETTLE", 146, 50, Theme.TagCream, 2);
 
             // ---- heat gauge, right edge: a brass instrument capped with a live flame, the way the
             // sheet draws the burner's own thermometer ----
@@ -582,6 +588,9 @@ namespace Balloonatic.Screens
 
             for (int tick = 0; tick <= 4; tick++)
                 canvas.Fill(gauge.X + 2, gauge.Bottom - 2 - inner * tick / 4, 2, 1, Theme.Cream);
+            float neutral = (SimTuning.Gravity + state.BallastHeld * SimTuning.BallastPerBag) / SimTuning.LiftGain;
+            int neutralY = gauge.Bottom - 2 - (int)((neutral - SimTuning.TempAmbient) / (SimTuning.TempMax - SimTuning.TempAmbient) * inner);
+            canvas.Fill(gauge.X - 3, neutralY, gauge.Width + 6, 1, Theme.Cream);
 
             canvas.Fill(gauge.X + 5, gauge.Bottom, 6, 2, Theme.RockSlate);   // burner nozzle under the well
             canvas.Fill(gauge.X + 6, gauge.Bottom + 2, 4, 1, Theme.RockDark);

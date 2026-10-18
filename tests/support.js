@@ -5,6 +5,29 @@ const path = require('path');
 
 const SHOTS_DIR = path.join(__dirname, '..', 'docs', 'screenshots');
 
+// Windows can briefly deny an image open while the app's preview/indexer holds it.
+// Retry only file access errors; pixel differences and gameplay failures still fail immediately.
+async function retryImageFile(action) {
+  for (let attempt = 0; ; attempt++) {
+    try { return await action(); }
+    catch (error) {
+      if (attempt >= 4 || !/UNKNOWN: unknown error, open|EBUSY|EPERM|EACCES/.test(String(error))) throw error;
+      await new Promise(resolve => setTimeout(resolve, 100 * (attempt + 1)));
+    }
+  }
+}
+
+async function matchShot(page, name) {
+  const {expect} = require('@playwright/test');
+  await retryImageFile(() => expect(page).toHaveScreenshot(name, {timeout:60_000}));
+}
+
+async function reviewShot(page, options) {
+  const frame = await page.evaluate(() => window.__GAME.frames());
+  await page.waitForFunction(async start => Number(await window.__GAME.frames()) >= Number(start) + 8, frame);
+  return retryImageFile(() => page.screenshot(options));
+}
+
 /** Collects console errors and uncaught exceptions; a WebGL failure shows up here first. */
 function watchForErrors(page) {
   const errors = [];
@@ -81,4 +104,4 @@ async function clickDesign(page, designX, designY, { delay = 120 } = {}) {
   await page.mouse.click(geo.left + ox + designX * geo.scale, geo.top + oy + designY * geo.scale, { delay });
 }
 
-module.exports = { bootGame, watchForErrors, runScript, act, clickDesign, megabytes, SHOTS_DIR };
+module.exports = { bootGame, watchForErrors, runScript, act, clickDesign, megabytes, SHOTS_DIR, matchShot, reviewShot };

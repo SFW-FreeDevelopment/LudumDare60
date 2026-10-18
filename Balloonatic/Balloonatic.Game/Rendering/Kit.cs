@@ -1,4 +1,5 @@
 using System;
+using Balloonatic.Core;
 using Microsoft.Xna.Framework;
 
 namespace Balloonatic.Rendering
@@ -11,6 +12,21 @@ namespace Balloonatic.Rendering
     /// </summary>
     static class Kit
     {
+        public static void WindLadder(DesignCanvas canvas, SimState state, LevelDef level)
+        {
+            Panel(canvas, new Rectangle(490, 8, 126, 112));
+            PixelFont.DrawCenteredShadowed(canvas, "WIND", 553, 12, Theme.TagCream, 2);
+            int current = FlightGuidance.BandIndex(state, level);
+            for(int i=level.Bands.Length-1;i>=0;i--)
+            {
+                int y = 36 + (level.Bands.Length-1-i)*18;
+                Color tint = i == 0 ? Theme.WindLowBand : i == 1 ? Theme.WindMidBand : Theme.WindHighBand;
+                if(i==current)canvas.Outline(new Rectangle(498,y-2,110,17),Theme.TagCream);
+                PixelFont.DrawShadowed(canvas, i==level.Bands.Length-1 ? "HIGH" : i==0 ? "LOW" : "MID",502,y,Theme.TagCream,2);
+                WindChevrons(canvas,558,y+3,level.Bands[i].Direction,level.Bands[i].Strength,tint,2);
+                if(i==current)canvas.Fill(600,y+1,4,4,Theme.Cream);
+            }
+        }
         public const int PanelPadding = 8;
         public const int ButtonHeight = 16;
         public const int TagHeight = 11;

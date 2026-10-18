@@ -1,6 +1,7 @@
 const { test, expect } = require('@playwright/test');
 const path = require('path');
 const {bootGame, act, SHOTS_DIR, watchForErrors} = require('./support');
+const {matchShot,reviewShot}=require('./support');
 test('every ballast loadout can land and a missed course returns safely',async({page},info)=>{
  const errors=watchForErrors(page); await bootGame(page);
  for(const bags of [2,1,0]){
@@ -16,6 +17,6 @@ test('every ballast loadout can land and a missed course returns safely',async({
  await act(page,'step=1');let state=await page.evaluate(()=>window.__GAME.state());
  expect(state.recoveries).toBe(1);expect(state.hearts).toBe(3);expect(state.x).toBeLessThan(600);
  await act(page,'screen=world');await expect.poll(()=>act(page,'screen')).toBe('world');
- await page.screenshot({path:path.join(SHOTS_DIR,`17-flight-recovery-${info.project.name}.png`)});
+ await reviewShot(page, {path:path.join(SHOTS_DIR,`17-flight-recovery-${info.project.name}.png`)});
  expect(errors).toEqual([]);
 });

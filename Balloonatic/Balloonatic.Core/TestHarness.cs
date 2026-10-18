@@ -383,6 +383,7 @@ namespace Balloonatic.Core
 
         string StateJson()
         {
+            LevelDef level = LevelCatalog.Get(_state.LevelId);
             StringBuilder sb = new StringBuilder(128);
             sb.Append('{')
               .Append("\"version\":\"").Append(Sim.ProtocolVersion).Append("\",")
@@ -407,6 +408,10 @@ namespace Balloonatic.Core
               .Append("\"bounces\":").Append(_state.Bounces.ToString(CultureInfo.InvariantCulture)).Append(',')
               .Append("\"hearts\":").Append(_state.Hearts.ToString(CultureInfo.InvariantCulture)).Append(',')
               .Append("\"recoveries\":").Append(_state.Recoveries.ToString(CultureInfo.InvariantCulture)).Append(',')
+              .Append("\"band\":").Append(FlightGuidance.BandIndex(_state, level)).Append(',')
+              .Append("\"windDirection\":").Append(level.BandAt(_state.Altitude).Direction).Append(',')
+              .Append("\"approach\":\"").Append(FlightGuidance.Approach(_state, level)).Append("\",")
+              .Append("\"heatTrend\":\"").Append(FlightGuidance.HeatTrend(_state)).Append("\",")
               .Append("\"windAssist\":").Append(_state.WindAssist ? "true" : "false").Append(',')
               .Append("\"settings\":\"").Append(AppSettings.Describe()).Append("\",")
               .Append("\"hash\":\"").Append(SimRules.HashHex(_state)).Append('"')

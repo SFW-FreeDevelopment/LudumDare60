@@ -1,6 +1,7 @@
 const { test, expect } = require('@playwright/test');
 const path = require('path');
 const { bootGame, act, clickDesign, watchForErrors, SHOTS_DIR } = require('./support');
+const {matchShot,reviewShot}=require('./support');
 const pairs = text => Object.fromEntries(text.split(';').map(p => p.split('=')));
 const audio = async page => pairs(await act(page, 'audio'));
 const mix = page => page.evaluate(async () => Object.fromEntries((await window.__GAME.raw('audioMix')).split(';').map(p => p.split('='))));
@@ -25,7 +26,7 @@ test('all volume endpoints keep independent audio buses healthy', async ({page},
   await page.keyboard.press('ArrowRight', {delay:100});
   await expect.poll(() => act(page, 'settings')).toContain('music=10;');
   expect((await audio(page)).broken).toBe('0');
-  await page.screenshot({path:path.join(SHOTS_DIR, `16-audio-settings-${info.project.name}.png`)});
+  await reviewShot(page, {path:path.join(SHOTS_DIR, `16-audio-settings-${info.project.name}.png`)});
 
   await act(page, 'settings=music=0');
   await act(page, 'settings=sfx=10');

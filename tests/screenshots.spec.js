@@ -3,6 +3,7 @@ const { test, expect } = require('@playwright/test');
 const fs = require('fs');
 const path = require('path');
 const { bootGame, watchForErrors, SHOTS_DIR } = require('./support');
+const {matchShot,reviewShot}=require('./support');
 
 /**
  * Visual evidence for the I0 harness. The harness is reset to a fixed seed and stepped to a fixed
@@ -33,10 +34,10 @@ test('the start screen shows the controls @shot @screens', async ({ page }, test
   await expect.poll(() => page.evaluate(() => window.__GAME.screen()), { timeout: 10_000 }).toBe('menu');
 
   const name = `04-menu`;
-  await expect(page).toHaveScreenshot(`${name}.png`, { timeout: 60_000 });
+  await matchShot(page, `${name}.png`);
 
   fs.mkdirSync(SHOTS_DIR, { recursive: true });
-  const buffer = await page.screenshot({ path: path.join(SHOTS_DIR, `${name}-${testInfo.project.name}.png`) });
+  const buffer = await reviewShot(page, { path: path.join(SHOTS_DIR, `${name}-${testInfo.project.name}.png`) });
   expect(buffer.length).toBeGreaterThan(1000);
   expect(errors, `console/JS errors while rendering: ${errors.join(' | ')}`).toEqual([]);
 });
@@ -47,10 +48,10 @@ test('scaffold frame matches its snapshot @shot @screens', async ({ page }, test
   await poseForScreenshot(page);
 
   const name = `00-scaffold`;
-  await expect(page).toHaveScreenshot(`${name}.png`, { timeout: 60_000 });
+  await matchShot(page, `${name}.png`);
 
   fs.mkdirSync(SHOTS_DIR, { recursive: true });
-  const buffer = await page.screenshot({ path: path.join(SHOTS_DIR, `${name}-${testInfo.project.name}.png`) });
+  const buffer = await reviewShot(page, { path: path.join(SHOTS_DIR, `${name}-${testInfo.project.name}.png`) });
   expect(buffer.length).toBeGreaterThan(1000);
   expect(errors, `console/JS errors while rendering: ${errors.join(' | ')}`).toEqual([]);
 });
@@ -71,10 +72,10 @@ test('style sheet matches its snapshot @shot @screens', async ({ page }, testInf
   await expect.poll(() => page.evaluate(() => window.__GAME.screen()), { timeout: 10_000 }).toBe('style');
 
   const name = `01-style`;
-  await expect(page).toHaveScreenshot(`${name}.png`, { timeout: 60_000 });
+  await matchShot(page, `${name}.png`);
 
   fs.mkdirSync(SHOTS_DIR, { recursive: true });
-  const buffer = await page.screenshot({ path: path.join(SHOTS_DIR, `${name}-${testInfo.project.name}.png`) });
+  const buffer = await reviewShot(page, { path: path.join(SHOTS_DIR, `${name}-${testInfo.project.name}.png`) });
   expect(buffer.length).toBeGreaterThan(1000);
   expect(errors, `console/JS errors while rendering: ${errors.join(' | ')}`).toEqual([]);
 });
@@ -102,10 +103,10 @@ test('world screen renders the scrolling world, and drawing it never writes stat
   expect(await page.evaluate(() => window.__GAME.hash())).toBe(hashBefore);
 
   const name = `02-world`;
-  await expect(page).toHaveScreenshot(`${name}.png`, { timeout: 60_000 });
+  await matchShot(page, `${name}.png`);
 
   fs.mkdirSync(SHOTS_DIR, { recursive: true });
-  const buffer = await page.screenshot({ path: path.join(SHOTS_DIR, `${name}-${testInfo.project.name}.png`) });
+  const buffer = await reviewShot(page, { path: path.join(SHOTS_DIR, `${name}-${testInfo.project.name}.png`) });
   expect(buffer.length).toBeGreaterThan(1000);
 });
 
@@ -125,10 +126,10 @@ test('a delivered run shows its banner — the win screen at a glance @shot @scr
   await page.waitForTimeout(300);
 
   const name = `03-delivery`;
-  await expect(page).toHaveScreenshot(`${name}.png`, { timeout: 60_000 });
+  await matchShot(page, `${name}.png`);
 
   fs.mkdirSync(SHOTS_DIR, { recursive: true });
-  const buffer = await page.screenshot({ path: path.join(SHOTS_DIR, `${name}-${testInfo.project.name}.png`) });
+  const buffer = await reviewShot(page, { path: path.join(SHOTS_DIR, `${name}-${testInfo.project.name}.png`) });
   expect(buffer.length).toBeGreaterThan(1000);
 });
 
@@ -151,9 +152,9 @@ async function poseHazards(page, levelId) {
 
 function shootPath(page, testInfo, name) {
   return (async () => {
-    await expect(page).toHaveScreenshot(`${name}.png`, { timeout: 60_000 });
+    await matchShot(page, `${name}.png`);
     fs.mkdirSync(SHOTS_DIR, { recursive: true });
-    const buffer = await page.screenshot({ path: path.join(SHOTS_DIR, `${name}-${testInfo.project.name}.png`) });
+    const buffer = await reviewShot(page, { path: path.join(SHOTS_DIR, `${name}-${testInfo.project.name}.png`) });
     expect(buffer.length).toBeGreaterThan(1000);
   })();
 }
@@ -271,9 +272,9 @@ async function shootUi(page, testInfo, name, id) {
   await bootGame(page);
   await poseUiScreen(page, id);
 
-  await expect(page).toHaveScreenshot(`${name}.png`, { timeout: 60_000 });
+  await matchShot(page, `${name}.png`);
   fs.mkdirSync(SHOTS_DIR, { recursive: true });
-  const buffer = await page.screenshot({ path: path.join(SHOTS_DIR, `${name}-${testInfo.project.name}.png`) });
+  const buffer = await reviewShot(page, { path: path.join(SHOTS_DIR, `${name}-${testInfo.project.name}.png`) });
   expect(buffer.length).toBeGreaterThan(1000);
   expect(errors, `console/JS errors on ${id}: ${errors.join(' | ')}`).toEqual([]);
 }
@@ -307,9 +308,9 @@ test('the pause screen matches its snapshot @shot @screens', async ({ page }, te
   await poseUiScreen(page, 'pause');
 
   const name = '08-pause';
-  await expect(page).toHaveScreenshot(`${name}.png`, { timeout: 60_000 });
+  await matchShot(page, `${name}.png`);
   fs.mkdirSync(SHOTS_DIR, { recursive: true });
-  const buffer = await page.screenshot({ path: path.join(SHOTS_DIR, `${name}-${testInfo.project.name}.png`) });
+  const buffer = await reviewShot(page, { path: path.join(SHOTS_DIR, `${name}-${testInfo.project.name}.png`) });
   expect(buffer.length).toBeGreaterThan(1000);
   expect(errors, `console/JS errors while paused: ${errors.join(' | ')}`).toEqual([]);
 });
@@ -327,7 +328,7 @@ test('heat visibly drives the balloon and the meter @shot @screens', async ({ pa
       await window.__GAME.step(n);
     }, ticks);
     await expect.poll(() => page.evaluate(() => window.__GAME.screen()), { timeout: 10_000 }).toBe('scaffold');
-    frames[ticks] = await page.screenshot({
+    frames[ticks] = await reviewShot(page, {
       path: path.join(SHOTS_DIR, `00-scaffold-heat-${String(ticks).padStart(3, '0')}-${testInfo.project.name}.png`),
     });
   }

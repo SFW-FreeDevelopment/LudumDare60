@@ -44,8 +44,11 @@ complete; implementation is proceeding in the order below.
   The tested mechanical fix is committed; the box stays open until the human gate is satisfied.
   Independent readability/content work may proceed while that report is pending; no feel approval
   is inferred from automated solvability.
-- [ ] **I18 — Readable wind and approach** (~90m)
+- [x] **I18 — Readable wind and approach** (~90m)
   Wind ladder/neighbor preview, matching world cues, and gentle/fast approach feedback.
+  Verified: 66 unit tests, 84 browser tests; reviewed `18-wind-approach-*` at both sizes.
+  Instrument space is reserved above the envelope; heat gauge marks load-dependent hover temperature.
+  Screenshot exports retry only transient file access errors and settle screen transitions.
 - [ ] **I19 — Real delivery state** (~90m)
   One visible teddy pickup, carried cargo, matching nursery recipient, and grateful completion.
 - [ ] **I20 — Nursery tutorial route** (~90m)
