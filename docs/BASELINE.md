@@ -326,3 +326,10 @@ bags. Cargo goes from waiting to carried to delivered and is consumed only at th
 wind-only diagnostic. Core tests record actual heat/ballast inputs and replay them with normal
 collisions, requiring matching full state hashes on every course. Nursery's active route loses no hearts.
 The measured human feel gate remains open until Steven reports on the desktop build.
+# I23 scenery contract
+
+The shared `SkyBackdrop` draws daytime sky, distant Aseprite islands and a cloud sea behind the
+collidable world. `raw('backdrop')` reports `floor=clouds`, `atmosphere=day` and decorative drift in
+design pixels. Drift is 0.6 pixels per second (ticks divided by 60); Reduced Motion stops it. Wind
+streaks use seconds too. Drawing leaves the simulation hash unchanged. Sky evidence covers low,
+middle, ceiling and arrival views at both required sizes in `23-sky-*`.

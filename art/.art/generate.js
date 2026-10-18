@@ -646,7 +646,16 @@ function stormCloud() {
   return px;
 }
 
+function farIsle() {
+  const px=[];
+  const remap = c => c===PAL.K ? PAL.rockD : [PAL.w0,PAL.w1,PAL.w2,PAL.wd,PAL.bark].includes(c) ? PAL.rock : c===PAL.leaf||c===PAL.moss ? PAL.foam : c===PAL.gold ? PAL.paper : c;
+  for(const [x,y,c] of island(true))px.push([Math.floor(x*.6),70+Math.floor(y*.6),remap(c)]);
+  for(const [x,y,c] of house(false))px.push([44+Math.floor(x*.5),35+Math.floor(y*.5),remap(c)]);
+  return px;
+}
+
 const SPRITES = {
+  "far-isle": {w:144,h:150,frames:[farIsle()]},
   "nursery-house": {w:128,h:134,frames:[house(true)]},
   "cottage": {w:128,h:134,frames:[house(false)]},
   "recipient": {w:32,h:52,frames:[recipient(false),recipient(true)]},
@@ -701,3 +710,4 @@ if (typeof require !== "undefined" && typeof module !== "undefined" && require.m
   const p = pack(768);
   console.log(JSON.stringify({ width: p.width, height: p.height, sprites: p.rects.map(r => ({ name: r.name, x: r.x, y: r.y, w: r.w, h: r.h, frames: r.frames.length })) }, null, 1));
 }
+

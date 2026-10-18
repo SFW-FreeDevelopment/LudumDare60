@@ -74,8 +74,10 @@ complete; implementation is proceeding in the order below.
   Verified: 73 unit tests, 92 browser tests; Aseprite palette/slice audit, 45 slices; reviewed
   `22-nursery-arrival-*` and `22-nursery-thanks-*`. Nursery/cottage, bunny recipient, teddy/bottle/letter,
   perch and cliff/plant/waterfall/cloud assets replace their temporary markers through shared selectors.
-- [ ] **I23 — Compose the sky** (~90m)
+- [x] **I23 — Compose the sky** (~90m)
   Replace dominant ground slab with cloud depth, authored scenery and a clear arrival; calm parallax.
+  Verified: 76 unit tests, 96 browser tests; reviewed all `23-sky-*` poses at both sizes. Shared
+  menu/world cloudscape, distant Aseprite islands, seconds-based drift and Reduced Motion coverage.
 - [ ] **I24 — Type, HUD and narrow readability** (~90m)
   Shared readable type/layout and cargo HUD; real focus/hit targets and both viewport reviews.
 - [ ] **I25 — Title and menu composition** (~90m)

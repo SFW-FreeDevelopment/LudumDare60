@@ -273,13 +273,7 @@ namespace Balloonatic.Rendering
         /// </summary>
         public static void MenuBackdrop(DesignCanvas canvas)
         {
-            canvas.Fill(0, 0, canvas.Width, 210, Theme.SkyMid);
-            canvas.Fill(0, 210, canvas.Width, 120, Theme.SkyLow);
-            canvas.Fill(0, 330, canvas.Width, 30, Theme.MossGreen);
-            canvas.Fill(0, 330, canvas.Width, 2, Theme.GrassLight);
-            canvas.Fill(0, 348, canvas.Width, 12, Theme.WoodDark);
-            Sprites.Draw(canvas, "cloud-mid", 36f, 60f);
-            Sprites.Draw(canvas, "cloud-small", 506f, 96f);
+            SkyBackdrop.Draw(canvas, 0, 180, 0);
         }
 
         static readonly int[] EnvelopeWidths = { 12, 20, 26, 30, 32, 32, 32, 30, 26, 20, 14 };

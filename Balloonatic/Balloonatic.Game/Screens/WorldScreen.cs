@@ -38,24 +38,6 @@ namespace Balloonatic.Screens
         // World margins either side of the course, so launch and delivery islands sit inside the frame.
         const int WorldMargin = 120;
 
-        // Parallax factors per layer: 1.0 is locked to the world, lower values sit further away.
-        // Deliberately far below the camera speed: the world itself already sweeps past at wind speed,
-        // and background layers that ride along at near-world speed make the sky feel like it is flying
-        // at the player (playtest: motion sickness at 2x scale). Distance should read as slowness.
-        const float StarsParallax = 0.15f;
-        const float FarCloudParallax = 0.25f;
-        const float MidCloudParallax = 0.40f;
-
-        // Stepped sky ramp by altitude: the higher the balloon, the older and darker the air gets.
-        static readonly (float Altitude, Color Color)[] SkyRamp =
-        {
-            (0f, Theme.SkyLow),
-            (140f, Theme.SkyMid),
-            (280f, Theme.SkyHigh),
-            (420f, Theme.NightBlue),
-            (560f, Theme.NightIndigo),
-        };
-
         public string Id => SimState.ScreenWorld;
 
         public void Draw(DesignCanvas canvas, SimState state)
@@ -63,10 +45,7 @@ namespace Balloonatic.Screens
             LevelDef level = LevelCatalog.Get(state.LevelId);
             (float camX, float camAlt) = Camera(state, level);
 
-            DrawSky(canvas, camAlt);
-            DrawStars(canvas, camX, camAlt, state);
-            DrawCloudLayer(canvas, level, state, camX, camAlt, far: true);
-            DrawCloudLayer(canvas, level, state, camX, camAlt, far: false);
+            SkyBackdrop.Draw(canvas, camX, camAlt, Clock(state));
             DrawStormBanks(canvas, level, state, camX, camAlt);       // I9: angry cloud banks at mid-cloud depth
             DrawWindStreaks(canvas, level, state, camX, camAlt);
             DrawIslands(canvas, level, state, camX, camAlt);
@@ -200,74 +179,6 @@ namespace Balloonatic.Screens
         /// <summary>Text and only text keeps the coarse grid: type must not wobble by half a pixel.</summary>
         static int Round(float v) => (int)MathF.Round(v);
 
-        static void DrawSky(DesignCanvas canvas, float camAlt)
-        {
-            // Quantised to 4 px rows: a stepped ramp reads as pixel art rather than a gradient, and the
-            // 4 px quantum is cheap enough to repaint every frame on WebGL.
-            for (int y = 0; y < Sim.DesignHeight; y += 4)
-            {
-                float altitude = camAlt + (Sim.DesignHeight / 2 - y);
-                canvas.Fill(0, y, Sim.DesignWidth, 4, SkyColor(altitude));
-            }
-        }
-
-        static Color SkyColor(float altitude)
-        {
-            for (int i = SkyRamp.Length - 1; i >= 0; i--)
-                if (altitude >= SkyRamp[i].Altitude)
-                    return SkyRamp[i].Color;
-            return SkyRamp[0].Color;
-        }
-
-        static void DrawStars(DesignCanvas canvas, float camX, float camAlt, SimState state)
-        {
-            for (int i = 0; i < 40; i++)
-            {
-                int wx = Wrap(Hash(i, 7) % (Sim.DesignWidth * 2), Sim.DesignWidth * 2);
-                float alt = 380f + Hash(i, 13) % 400f;
-                float x = WrapF(wx - camX * StarsParallax, Sim.DesignWidth * 2);
-                float y = ScreenY(alt, camAlt * StarsParallax);
-                if (x < -2 || x > Sim.DesignWidth + 2 || y < 0 || y > Sim.DesignHeight)
-                    continue;
-                int twinkle = (Clock(state) / 20 + i) % 7 == 0 ? 0 : 1;
-                canvas.Fill(WrapF(x, Sim.DesignWidth), y, twinkle, twinkle, i % 3 == 0 ? Theme.Cream : Theme.CloudLavender);
-            }
-        }
-
-        static void DrawCloudLayer(DesignCanvas canvas, LevelDef level, SimState state, float camX, float camAlt, bool far)
-        {
-            float parallax = far ? FarCloudParallax : MidCloudParallax;
-            int seedSalt = far ? 101 : 202;
-            int count = far ? 7 : 5;
-            int span = Sim.DesignWidth * 2;
-
-            for (int i = 0; i < count; i++)
-            {
-                int wx = Hash(i, seedSalt) % span;
-                float altitude = 20f + Hash(i, seedSalt + 1) % (int)level.WorldHeight;
-                WindBand band = level.BandAt(altitude);
-
-                // Clouds are objects in the sky: they drift with the band they live in, which is the
-                // player's ambient wind read — and the drift is state-derived (tick), so frames are stable.
-                // A slow suggestion of drift, not the band's full speed: big pale shapes crossing fast
-                // are exactly what the eye cannot ignore and the stomach cannot forgive.
-                float drift = Clock(state) * band.Direction * LevelDef.WindSpeed(band.Strength) * (far ? 0.06f : 0.10f);
-
-                float x = WrapF(wx + drift - camX * parallax, span) - span / 4f;
-                float y = ScreenY(altitude - camAlt * (1f - parallax), camAlt);
-                if (x < -160 || x > Sim.DesignWidth + 40 || y < -24 || y > Sim.DesignHeight + 20)
-                    continue;
-
-                // Three sheet clouds, mirrored and depth-tinted: the far layer sits behind a
-                // lavender veil so parity between the two reads as distance, not duplication.
-                string[] tiers = { "cloud-small", "cloud-mid", "cloud-large" };
-                string tier = tiers[Hash(i, seedSalt + 2) % 3];
-                Vector2 size = Sprites.Size(tier);
-                Sprites.Draw(canvas, tier, x - size.X / 2, y, (i & 1) == 1,
-                             far ? Theme.CloudShade : (Color?)null);
-            }
-        }
-
         static void DrawWindStreaks(DesignCanvas canvas, LevelDef level, SimState state, float camX, float camAlt)
         {
             // One chevron train per band, locked to the world grid: count reads strength, the point
@@ -284,7 +195,7 @@ namespace Balloonatic.Screens
                 // Signed slow drift, wrapped into one 160 px cell: the trains repeat every 160 px of
                 // world, so wrapping the phase never visibly jumps — and it carries the band's sign,
                 // so each train slides the way its air blows at its own crawl.
-                float travel = Clock(state) * LevelDef.WindSpeed(band.Strength) * 0.04f * band.Direction;
+                float travel = (AppSettings.ReducedMotion ? 0 : Clock(state)) / (float)Sim.StepHz * LevelDef.WindSpeed(band.Strength) * 0.04f * band.Direction;
                 float phase = WrapF(travel, 160f);
                 for (int wx = -640; wx <= (int)level.CourseLength + 640; wx += 160)
                 {
@@ -299,15 +210,6 @@ namespace Balloonatic.Screens
         static void DrawIslands(DesignCanvas canvas, LevelDef level, SimState state, float camX, float camAlt)
         {
             float groundY = ScreenY(0f, camAlt);
-
-            // The ground plane: a grass line with a soil skirt, only while the camera is near the floor.
-            if (groundY < Sim.DesignHeight)
-            {
-                canvas.Fill(0, groundY, Sim.DesignWidth, Sim.DesignHeight - groundY, Theme.MossGreen);
-                canvas.Fill(0, groundY, Sim.DesignWidth, 2, Theme.GrassLight);
-                float soilTop = groundY + 18;
-                canvas.Fill(0, soilTop, Sim.DesignWidth, Sim.DesignHeight - soilTop, Theme.WoodDark);
-            }
 
             DrawIsland(canvas, level, state, camX, groundY, worldX: 0, name: "HOME", launch: true);
             DrawIsland(canvas, level, state, camX, groundY, worldX: (int)level.CourseLength, name: level.DestinationName, launch: false);
