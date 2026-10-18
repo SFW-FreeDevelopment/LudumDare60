@@ -246,12 +246,13 @@ recoverable flight, one meaningful beautiful delivery, readable UI and WebGL val
   *Done when:* three levels completable start-to-finish in WebGL, each with reviewed screenshots.
 
 ### Ship
-- [ ] **I11 — Audio (ElevenLabs + KNI WebAudio)** (~60m)
+- [x] **I11 — Audio (ElevenLabs + KNI WebAudio)** (~60m)
   Music loop + burner, basket creak, star chime, giggle, delivery jingle; provenance in
   `assets/audio/SOURCES.md`; volumes live in settings; every call behind a mute check so a missing clip
   can never throw in the browser.
   *Done when:* the WebGL build boots and plays with zero console errors, and Steven has listened.
-  *Status:* replaced and technically verified under I29; human listening remains open after a muted playtest.
+  *Status:* replaced and technically verified under I29. Steven's listening report on October 18,
+  2026: *"Sounds are good"*. The playback and human listening gates are both satisfied.
 - [x] **I12 — Juice + performance** (~90m)
   Burner puffs, star sparkles, sand puffs, basket sway, delivery celebration, screen shake behind the
   reduced-motion setting, screen transitions; then a budget pass: boot time, payload size, 60 fps in a
