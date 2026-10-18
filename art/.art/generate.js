@@ -424,9 +424,9 @@ function letter() {
   return px;
 }
 function perch() {
-  const px=polygon([[0,12],[12,38],[43,51],[72,63],[104,47],[143,12]],(x,y)=>x+y>105?PAL.rockD:PAL.rock);
-  px.push(...fillPixels(0,12,144,4,PAL.leaf),...obox(1,6,141,6,PAL.w1,PAL.K),...fillPixels(2,6,139,2,PAL.w0));
-  for(let x=16;x<140;x+=20)px.push(...fillPixels(x,8,1,4,PAL.w2));
+  const px=polygon([[0,12],[20,38],[67,51],[112,63],[162,47],[223,12]],(x,y)=>x+y>150?PAL.rockD:PAL.rock);
+  px.push(...fillPixels(0,12,224,4,PAL.leaf),...obox(1,6,221,6,PAL.w1,PAL.K),...fillPixels(2,6,219,2,PAL.w0));
+  for(let x=16;x<220;x+=20)px.push(...fillPixels(x,8,1,4,PAL.w2));
   for(let x=8;x<140;x+=17)px.push(...fillPixels(x,15,4,4,PAL.moss));
   return px;
 }
@@ -701,7 +701,7 @@ function gardenMill(frame) {
 }
 function gardenPerch() {
   const px=perch();
-  for(let x=8;x<140;x+=15) {
+  for(let x=8;x<220;x+=15) {
     px.push(...fillPixels(x,4,2,10,PAL.moss),...disc(x,4,3,PAL.dress,PAL.gP),...disc(x,4,1,PAL.gold));
   }
   return px;
@@ -709,7 +709,7 @@ function gardenPerch() {
 
 const SPRITES = {
   "garden-mill": {w:128,h:134,frames:[gardenMill(0),gardenMill(1)]},
-  "garden-perch": {w:144,h:64,frames:[gardenPerch()]},
+  "garden-perch": {w:224,h:64,frames:[gardenPerch()]},
   "toy-blocks": {w:128,h:134,frames:[toyBlocks()]},
   "title-logo": {w:700,h:176,frames:[titleLogo()]},
   "far-isle": {w:144,h:150,frames:[farIsle()]},
@@ -719,7 +719,7 @@ const SPRITES = {
   "parcel-teddy": {w:24,h:31,frames:[teddy()]},
   "parcel-bottle": {w:22,h:34,frames:[bottle()]},
   "parcel-letter": {w:30,h:22,frames:[letter()]},
-  "island-perch": {w:144,h:64,frames:[perch()]},
+  "island-perch": {w:224,h:64,frames:[perch()]},
   "balloon":      { w: 120, h: 150, frames: [0, 1, 2].map(f => balloonFrame(f)) },
   "balloon-happy": { w: 120, h: 150, frames: [0,1,2].map(f=>balloonFrame(f,"happy")) },
   "balloon-worried": { w: 120, h: 150, frames: [0,1,2].map(f=>balloonFrame(f,"worried")) },

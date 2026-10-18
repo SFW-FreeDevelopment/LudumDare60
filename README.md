@@ -48,6 +48,8 @@ the planks into the recipient area. Heating lifts off again. A missed course ret
 approach, preserving cargo and spent bags. All ballast loadouts can descend and land.
 
 Nursery Skies teaches burner/cooling and a breeze perch. Toy Isles needs a climb out of homeward air.
+Approach a breeze perch from above and release heat to land. It parks the basket for a rest and a
+look at the wind ladder; hold Space to warm the burner and lift off again. Destination decks allow sliding.
 Cloud Garden adds a marked gust bank and resting flower perches. Wind Assist removes gust buffeting;
 Reduced Motion stills decorative frames, drift, shake and transitions. Music and effects have separate
 0–10 controls. Play requires a keyboard or mouse; the narrow layout is verified at 420×760.

@@ -428,6 +428,7 @@ namespace Balloonatic.Core
               .Append("\"recipient\":\"").Append(level.DestinationName).Append("\",")
               .Append("\"platforms\":").Append(level.Platforms.Length).Append(',')
               .Append("\"support\":\"").Append(PlatformContact.Support(_state,level)).Append("\",")
+              .Append("\"parked\":").Append(PlatformContact.Support(_state,level)=="perch"&&!_state.Heating&&_state.VelocityX==0?"true":"false").Append(',')
               .Append("\"expression\":\"").Append(FlightGuidance.Expression(_state)).Append("\",")
               .Append("\"atCeiling\":").Append(_state.Altitude >= level.WorldHeight - .5f ? "true" : "false").Append(',')
               .Append("\"windAssist\":").Append(_state.WindAssist ? "true" : "false").Append(',')

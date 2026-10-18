@@ -55,11 +55,11 @@ public class PlatformContactTests
         state.Altitude.Should().Be(38);state.CompletedAtTick.Should().BeGreaterThan(60);
     }
     [Fact]
-    public void A_resting_perch_uses_the_wind_at_its_surface_not_the_layer_under_the_planks()
+    public void A_heating_perch_uses_the_surface_wind_while_unmooring()
     {
         LevelDef level=LevelCatalog.Get(LevelCatalog.DefaultId);
         SimState state=new(){X=220,Altitude=120,VelocityX=level.WindAt(120)};
-        SimRules.Step(state,SimInput.None,level,hazards:false);
+        SimRules.Step(state,new SimInput{Heat=true},level,hazards:false);
         state.VelocityX.Should().Be(level.WindAt(120));state.Altitude.Should().Be(120);
     }
     [Fact]
@@ -89,7 +89,7 @@ public class PlatformContactTests
             float wind=level.WindAt(deck.Altitude);
             SimState leaving=new(){LevelId=id,X=deck.X+Math.Sign(wind)*(deck.HalfWidth+SimTuning.BasketFootHalfWidth-.05f),
                 Altitude=deck.Altitude,VelocityX=wind};
-            for(int i=0;i<10;i++)SimRules.Step(leaving,SimInput.None,level,hazards:false);
+            for(int i=0;i<10;i++)SimRules.Step(leaving,new SimInput{Heat=true},level,hazards:false);
             leaving.Altitude.Should().BeLessThan(deck.Altitude);leaving.Delivered.Should().BeFalse();
             SimState below=new(){LevelId=id,X=deck.X,Altitude=deck.Altitude-1};
             SimRules.Step(below,SimInput.None,level,hazards:false);

@@ -1,7 +1,7 @@
 using System;
 namespace Balloonatic.Core;
 
-/// <summary>One-way timber surfaces support the basket footprint; wind still moves a landed craft.</summary>
+/// <summary>One-way timber surfaces support the basket footprint; rest perches park an unheated craft.</summary>
 public static class PlatformContact
 {
     static bool Overlaps(float x,float centre,float halfWidth)=>
@@ -25,18 +25,19 @@ public static class PlatformContact
         if(state.VelocityY>=0f)return;
         float surface=float.NegativeInfinity;
         bool recipient=false;
-        void Check(float centre,float height,float halfWidth,bool delivery)
+        bool perch=false;float stopX=state.X;
+        void Check(float centre,float height,float halfWidth,bool delivery,bool restingPerch=false)
         {
             if(height<=surface||previousAltitude<height||state.Altitude>height)return;
             float fall=previousAltitude-state.Altitude;
             float time=fall>0f?(previousAltitude-height)/fall:0f;
             float contactX=previousX+(state.X-previousX)*time;
             if(!Overlaps(contactX,centre,halfWidth))return;
-            surface=height;recipient=delivery;
+            surface=height;recipient=delivery;perch=restingPerch;stopX=contactX;
         }
         Check(0,SimTuning.DeckTopAltitude,SimTuning.DeckHalfWidth,false);
         Check(level.CourseLength,SimTuning.DeckTopAltitude,SimTuning.DeckHalfWidth,true);
-        foreach(RestDeck deck in level.Platforms)Check(deck.X,deck.Altitude,deck.HalfWidth,false);
+        foreach(RestDeck deck in level.Platforms)Check(deck.X,deck.Altitude,deck.HalfWidth,false,true);
         if(float.IsNegativeInfinity(surface))return;
         state.Altitude=surface;
         if(-state.VelocityY>SimTuning.SoftLandingVy) {
@@ -44,6 +45,7 @@ public static class PlatformContact
             state.Bounces++;state.BounceTick=state.Tick;return;
         }
         state.VelocityY=0f;
+        if(perch&&!state.Heating) {state.X=stopX;state.VelocityX=0f;}
         if(!recipient||state.Cargo!=level.Package||Math.Abs(state.X-level.CourseLength)>SimTuning.RecipientHalfWidth)return;
         state.Cargo=CargoKind.None;state.Delivered=true;state.Complete=true;state.CompletedAtTick=state.Tick;
         state.Stars=1+(state.Tick<=level.ParSeconds*Sim.StepHz?1:0)+(state.Bounces==0?1:0);

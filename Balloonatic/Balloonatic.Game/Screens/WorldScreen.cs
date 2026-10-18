@@ -87,6 +87,12 @@ namespace Balloonatic.Screens
             int font=Kit.Body(canvas);
             if (!state.Complete) {
                 string approach=FlightGuidance.Approach(state,level);
+                if(approach=="perched") {
+                    Kit.Panel(canvas,new Rectangle(96,258,448,64));
+                    PixelFont.DrawCenteredShadowed(canvas,"REST + READ WIND",320,268,Theme.GrassLight,font);
+                    PixelFont.DrawCenteredShadowed(canvas,state.Heating?"BURNER WARMING...":"HOLD SPACE TO LIFT",320,296,Theme.TagCream,font);
+                    return;
+                }
                 string message=state.Recoveries>0 && state.Tick-state.RecoveryTick<180 ? "TRY ANOTHER APPROACH"
                     : approach=="landed" ? "LANDED: DRIFT IN" : approach=="fast" ? "TAP HEAT TO BRAKE" : approach=="rising" ? "RELEASE EARLY TO SETTLE" : approach=="gentle" ? "GENTLE APPROACH" : "";
                 if(message.Length>0) {

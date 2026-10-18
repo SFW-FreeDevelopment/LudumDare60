@@ -339,7 +339,7 @@ namespace Balloonatic.Core
                     new RockDef(300f, 320f, 8f, 240, 0),
                     new RockDef(540f, 340f, 8f, 300, 90),
                     new RockDef(200f, 345f, 4f, 240, 40),
-                }, package: CargoKind.Bottle, platforms: new[] { new RestDeck(220f, 120f, 36f) }),
+                }, package: CargoKind.Bottle, platforms: new[] { new RestDeck(220f, 120f, 56f) }),
 
             // Toy Isles, a zigzag: the middle air sprints, the upper air rebukes you, and the low air —
             // the air a landing is made from — carries gently home. The bird works the mid sprint and
@@ -365,7 +365,7 @@ namespace Balloonatic.Core
                 birds: new[]
                 {
                     new BirdDef(new[] { 440f, 520f }, new[] { 280f, 240f }, 40f),
-                }, platforms: new[] { new RestDeck(200f,165f,36f) }),
+                }, platforms: new[] { new RestDeck(200f,165f,56f) }),
 
             // Cloud Garden, the long haul: a fast ceiling over a calm floor. The middle air barely
             // carries and the air at the ceiling is the only real pace — go up to cross, come down to
@@ -396,7 +396,7 @@ namespace Balloonatic.Core
                 storms: new[]
                 {
                     new StormZone(380f, 500f, 210f, 236f, 12f),
-                }, package: CargoKind.Letter, platforms: new[] {new RestDeck(280f,170f,36f),new RestDeck(650f,170f,36f)}),
+                }, package: CargoKind.Letter, platforms: new[] {new RestDeck(280f,170f,56f),new RestDeck(650f,170f,56f)}),
         };
 
         public static bool TryGet(string? id, out LevelDef level)

@@ -164,6 +164,14 @@ recoverable flight, one meaningful beautiful delivery, readable UI and WebGL val
   Takeoff, edge departure, hard bounces, both wind directions and surface-band sampling are covered.
   `state.support` / `raw('decks')` expose real contact state/data. Reviewed all `33-*` at both sizes;
   the full normal-collision voyage and spent-ballast recovery remain green.
+- [x] **I35 — Give the breeze perch a clear purpose** (~60m)
+  Steven confirms jitter is fixed, but cannot tell how to land on or use the perch. Widen its timber
+  surface, park the basket on a gentle unheated touchdown, explain resting/wind reading and holding
+  Space to lift off. Keep delivery-deck sliding. Verify stable rest and takeoff in both heads.
+  Verified: zero compiler warnings, 182 unit tests and 124 browser tests. All four perches hold an
+  unheated basket for ten simulated seconds and release it on heat; normal-collision routes and
+  delivery sliding still pass. The Aseprite deck is now 112px wide, matching its surface. Reviewed
+  `35-perch-{rest,takeoff}-*` at both sizes and refreshed the desktop preview for Steven.
 - [ ] **I34 — Refresh the corrected review package** (~45m)
   Fresh-clone and extracted-archive checks for the playtest fixes; refresh candidate evidence and ZIP.
 

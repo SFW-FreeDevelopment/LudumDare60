@@ -421,8 +421,8 @@ shared font masks. `raw('worldsigns')` reports those actual placements; fraction
 retain fixed sign-to-platform offsets on the half-design-pixel world grid.
 
 Deck contacts sweep horizontal and vertical movement together. The 33px basket base can overhang
-the edge of any timber deck; soft contact zeroes vertical velocity and keeps wind-driven horizontal
-motion. The recipient occupies the inner 72px of the 112px destination deck. Landing outside that
+the edge of any timber deck; soft contact zeroes vertical velocity. Launch and delivery decks keep
+wind-driven horizontal motion. The recipient occupies the inner 72px of the 112px destination deck. Landing outside that
 area permits sliding into it; contact inside delivers immediately with the right parcel. Heating
 can lift off again; leaving an edge falls, and a deck cannot catch a basket from below. Hard arrivals
 still bounce. A resting craft samples wind at its surface rather than through the planks.
@@ -431,3 +431,9 @@ still bounce. A resting craft samples wind at its surface rather than through th
 the physical state (`air`, `ground`, `launch`, `delivery`, `perch`), never stored by rendering.
 Landed approach feedback says `DECK: DRIFT IN` / `LANDED: DRIFT IN`. Evidence: `31-credits-*`,
 `32-signs-phase*-*` and `33-{perch-edge,slide-contact,slide-travel,slide-home}-*` at both sizes.
+
+Follow-up perch purpose: foreground rest decks are 112px wide. A gentle unheated touchdown parks the
+basket at its contact point, with zero horizontal velocity; holding heat unmoors it while the burner
+warms for takeoff. Delivery decks retain their sliding rule. Nearby HUD hints teach rising above the
+deck and releasing heat; a parked basket displays `REST + READ WIND` and `HOLD SPACE TO LIFT`.
+`state.parked` is derived from perch contact, heat and velocity. Evidence: `35-perch-{rest,takeoff}-*`.
