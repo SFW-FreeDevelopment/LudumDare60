@@ -106,14 +106,14 @@ complete; implementation is proceeding in the order below.
   at both sizes. Letter, animated mill, flowered resting perches and a dark marked bank in carrying air.
   Three legal seeded replays meet the bank and land with collisions on; example 68s against 80s par.
   Shared pre-entry/inside/assist guidance mirrors the actual gust; Reduced Motion freezes mill sails.
-- [ ] **I29 — Dream-world sound** (~60m)
+- [x] **I29 — Dream-world sound** (~60m)
   Gentle music-box character, restrained mix and appropriate Charlotte reactions; provenance and listening gate.
   Engineering verified: 82 unit tests, 110 browser tests; eight ElevenLabs renders with committed
   prompts/sources, byte-reproducible offline mastering, independent music/effects/ambience routing.
   Reviewed `29-concern-*` and `29-joy-*`; payload ~4.21 MiB, local frame cadence ~16.67 ms.
-  **Pending: Steven's listening review** of music, loop joins, effects and mix. The box remains open.
-  Steven clarified: *"I had played with audio off because I didn't know you did that yet"*.
-  Playback/level measurements establish technical health; they do not substitute for listening.
+  **Human listening gate passed October 18, 2026:** Steven replied *"Sounds are good"* to the
+  music, burner/breeze balance, effects and loop-join review request after his earlier muted playtest.
+  Final regression gate: zero compiler warnings, 83 unit tests and 118 browser tests.
 - [x] **I30a — Close browser interaction and motion edges** (~60m)
   Final audit follow-up: pause safely on focus loss, return from pause settings to the flight,
   freeze remaining decorative frames under Reduced Motion, and prove the full voyage with collisions.
@@ -134,8 +134,8 @@ complete; implementation is proceeding in the order below.
   normal-collision voyage, active WebAudio, replay and storage reload at both sizes, with zero errors.
   Compressed transfer 4.15 MiB; active-audio frame cadence ~16.67 ms; raw-host boot also passes.
   Opened and judged all final `30-package-*` desktop/narrow views; entry/style/provenance reconciled.
-  Archive, SHA-256 and review tag are recorded in `docs/SUBMISSION.md`. I29/I11 listening and I13's
-  public submission remain explicit human gates; this is a verified local review candidate.
+  Archive, SHA-256 and review tag are recorded in `docs/SUBMISSION.md`. I29/I11 listening was approved
+  October 18; I13's public submission remains open. This is a verified local review candidate.
 
 **Budget:** I16–I25 ~14.5 focused hours; the rest ~6.5 hours, plus 2–3 hours contingency.
 Judge controls after I20 and the full first slice after I25 before extending it.
@@ -266,8 +266,8 @@ recoverable flight, one meaningful beautiful delivery, readable UI and WebGL val
   *Done when:* the submission checklist is run end to end and the last screenshot is one Steven would
   put on the entry page.
   *Status:* improved review archive, fresh clone, HTTP ZIP checks and entry copy verified under I30.
-  `ld60-review-v2` identifies this candidate; the earlier `ld60-submit` tag is preserved. Listening,
-  public hosting and the actual final jam-entry upload remain open; see `docs/SUBMISSION.md`.
+  `ld60-review-v2` identifies this candidate; the earlier `ld60-submit` tag is preserved. Listening is
+  approved; public hosting and the actual final jam-entry upload remain open; see `docs/SUBMISSION.md`.
 
 ### Stretch (in order, only when I13 is safe)
 Level 4 Moonlight Bay · Level 5 Star Observatory · ending crib scene ("Sweet dreams, Charlotte.

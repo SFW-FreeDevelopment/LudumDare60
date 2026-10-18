@@ -45,9 +45,9 @@ Windows desktop head for iteration and a Blazor WebGL head that is the actual su
 
 ## Current submission status
 The three-course concept and improvement queue are implemented; current technical verification and
-archive details live in `docs/SUBMISSION.md`. Steven approved the initial flight feel; the listening
-review remains open in `PLAN.md` because his playtest was muted. Public hosting and the final
-jam-entry upload remain Steven's submission steps.
+archive details live in `docs/SUBMISSION.md`. Steven approved the initial flight feel and completed
+the listening review on October 18, 2026: *"Sounds are good"*. Public hosting and the final jam-entry
+upload remain Steven's submission steps.
 
 ## References
 - KNI engine: https://github.com/kniEngine/kni (templates: `nkast.Kni.Templates`)

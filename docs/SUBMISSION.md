@@ -2,8 +2,8 @@
 
 This is the improved local review build, prepared October 17, 2026. Public hosting and the jam-entry
 upload have not been performed. Steven's initial flight verdict is **"Seems to feel fine at first play"**;
-he delegated the remaining visual/reference judgment to the agent. The audio listening gate stays open:
-his previous playtest was muted.
+he delegated the remaining visual/reference judgment to the agent. On October 18, 2026, he completed
+the listening check with **"Sounds are good"**, closing I29 and original I11 after his earlier muted playtest.
 
 ## Artifact and source
 
@@ -13,6 +13,8 @@ his previous playtest was muted.
 - Runtime and generated assets: `88d6ee2` (I30b), including all I16–I30a changes.
 - Review tag: `ld60-review-v2`, including the final verification record. The original `ld60-submit`
   tag is preserved and identifies the earlier scaffold build; it is not this improved candidate.
+- Listening approval was recorded after the review tag. This documentation sign-off does not change
+  the tagged runtime, audio assets or archive checksum.
 
 ## Verification
 
@@ -58,8 +60,6 @@ the detailed route, HUD, recipient, settings, focus and motion checks.
 
 ## Remaining human/submission work
 
-- Listen to the music, loop joins, burner/breeze balance and delivery effects. I29 and original I11
-  remain unticked until Steven reports that review; technical audio playback is already verified.
 - Choose the public browser-game host, upload the archive and add its playable URL to the jam entry.
   Review copy and generated-content credits are in `docs/LD_ENTRY.md`.
 - Original I13 remains the final public submission gate. This review package does not claim an upload.
