@@ -3,6 +3,13 @@
 Review copy for the Ludum Dare 60 **Jam** entry, theme **Old Tech**. The WebGL archive has index.html
 at its root. Playable URL: https://stevengarberg.itch.io/charlottes-balloonatic
 
+Saved on October 18 as an **unpublished** draft at
+https://ldjam.com/events/ludum-dare/60/$434120/edit. The exact saved Markdown, cover/image references,
+HTML5 link and verification record are in `art/ldjam/entry.json`. Three gameplay images are uploaded.
+The site currently filters inline description links during its account-trust evaluation; the
+dedicated HTML5 link works, so the description directs players there. Format selection, category
+opt-outs and submission acknowledgements remain unchanged for Steven's review before publication.
+
 ## Blurb
 
 Charlotte and her bunny have dreams to deliver. Take their pink hot-air balloon through floating

@@ -144,6 +144,17 @@ recoverable flight, one meaningful beautiful delivery, readable UI and WebGL val
 
 ## Playtest corrections — October 18
 
+- [x] **I38 — Prepare the Ludum Dare entry draft** (~60m)
+  Populate the existing unpublished entry with title, concise copy, controls, theme explanation,
+  playable web link, cover and gameplay images. Review the saved preview and record outstanding
+  eligibility/checklist decisions. Keep final publication for Steven's review.
+  Verified: saved/reloaded title, cover, illustrated Markdown and HTML5 link in Steven's existing
+  entry `434120`. All three uploaded game images load; native Chrome preview/controls/link reviewed.
+  LD filters description links, so the working dedicated HTML5 link is used. Zero compiler warnings,
+  182 unit tests and 126 browser tests; anonymous hosted-game checks pass both sizes/all routes.
+  Exact entry data and proof are in `art/ldjam/entry.json`, evidence in `38-*`. Format/checklist/opt-outs
+  are untouched and the draft remains unpublished. I13 remains the final publication gate.
+
 - [x] **I37 — Fill the itch.io game frame** (~60m)
   Replace whole-number-only presentation scaling with aspect-preserving fit. Assert 960×540 and
   other non-integer sizes, letterboxing only for aspect differences, and pointer alignment after

@@ -81,8 +81,16 @@ individual playtest-correction evidence. The refreshed desktop preview is open f
   `37-itch-flight-*`; the hosted geometry/route report is `art/itch/verification.json`.
 - Page copy has no tool/provider branding. itch.io's mandatory generation disclosure is completed
   accurately; the asset source records remain in the repository.
-- Original I13 still needs the Ludum Dare page, playable URL and final entry submission. Steven
-  explicitly deferred that workflow until after itch.io setup; no Ludum Dare edits were made.
+- I38 populated and saved the existing Ludum Dare entry at
+  https://ldjam.com/events/ludum-dare/60/$434120/edit: title, cover, three captioned gameplay images,
+  description, controls, theme note and an HTML5 play link. A reload verifies the saved values;
+  all three uploaded images load and the dedicated play link renders. The description points to
+  that link because LD currently filters inline links while evaluating account trust. Reviewed the
+  native Chrome preview, controls and theme/link screenshots (`38-ld-*.jpg`). The exact draft and
+  linked-game browser proof are recorded in `art/ldjam/entry.json`.
+- Original I13 remains open: the entry is unpublished, no event format is selected, and category
+  opt-outs and submission acknowledgements are unchanged/unchecked. Those require review before
+  selecting Jam and publishing. No final submission is claimed.
 
 ## Repeat the artifact check
 

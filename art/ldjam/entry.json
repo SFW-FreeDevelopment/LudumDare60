@@ -1,0 +1,117 @@
+{
+  "entryId": 434120,
+  "title": "Charlotte's Balloonatic",
+  "editUrl": "https://ldjam.com/events/ludum-dare/60/$434120/edit",
+  "entryUrl": "https://ldjam.com/events/ludum-dare/60/$434120",
+  "status": "unpublished",
+  "prepared": "2026-10-18",
+  "author": "Steven Garberg",
+  "targetFormat": "Jam",
+  "selectedFormat": null,
+  "submissionAcknowledgements": "Untouched; unchecked",
+  "categoryOptOuts": "Untouched; unchecked; requires review",
+  "playLink": {
+    "platform": "HTML5 (web)",
+    "description": "Play in browser on itch.io",
+    "url": "https://stevengarberg.itch.io/charlottes-balloonatic"
+  },
+  "cover": {
+    "source": "art/itch/cover.png",
+    "asset": "///content/210/b/z/737e9.png"
+  },
+  "screenshots": [
+    {
+      "source": "docs/screenshots/38-ld-game-nursery.png",
+      "asset": "///raw/210/b/z/737ea.png"
+    },
+    {
+      "source": "docs/screenshots/38-ld-game-toy.png",
+      "asset": "///raw/210/b/z/737eb.png"
+    },
+    {
+      "source": "docs/screenshots/38-ld-game-garden.png",
+      "asset": "///raw/210/b/z/737ec.png"
+    }
+  ],
+  "descriptionMarkdown": "**A brave girl. A big sky. Three little dreams to deliver.**\n\n**🎈 Play in your browser using the HTML5 link below.**\n\nKeyboard and mouse; fullscreen recommended.\n\nJoin Charlotte and her bunny in a pink hot-air balloon above a sea of clouds. Bring a bottle to the nursery, a lost teddy to the Toy Isles, and a letter to the Cloud Garden.\n\nThere is no rudder. Warm the balloon to rise, let it cool to settle, and find the breeze that carries you home. Two sandbags can help with a difficult approach. Three short flights, a little wind reading, and a gentle landing lead to a moonlit journey home.\n\n![Charlotte and her bunny taking off from the Breeze Perch](///raw/210/b/z/737ea.png)\n\n*Nursery Skies — a bottle for the nursery.*\n\n## How to fly\n\n- **Hold Space / left mouse:** heat the balloon and rise. Release early to cool and descend.\n- **B / right mouse:** drop one of your two sandbags for extra lift.\n- **Choose altitude to choose wind:** read the wind ladder and windsocks.\n- **Land gently on the destination deck:** you can slide along the planks into the recipient area.\n- **Breeze Perches:** descend onto one with heat released to rest; hold Space to lift off.\n- **Escape:** pause. **R:** restart. **Enter:** continue after a delivery.\n\nSettings include separate music/effects volume, Wind Assist and Reduced Motion. Your best deliveries are saved in this browser. Missing an island is recoverable, even after both sandbags are gone.\n\n## Toy Isles & Cloud Garden\n\n![Bringing a lost teddy to the Toy Isles](///raw/210/b/z/737eb.png)\n\n*A lost teddy, almost home.*\n\n![Delivering a letter to the Cloud Garden windmill](///raw/210/b/z/737ec.png)\n\n*A letter for the Cloud Garden.*\n\n## Old Tech, warm hearts\n\nA hand-fired burner, temperature gauge, rope and wicker, sandbags, wooden docks and windsocks: old-fashioned balloon machinery makes the theme part of every flight. Horizontal movement belongs to the wind; choosing altitude is the steering.\n\n*For Charlotte ♥*\n\n**Gigabite Games** · Built with KNI\n",
+  "verification": {
+    "savedAndReloaded": true,
+    "imagesLoaded": 3,
+    "inlineLinks": "Filtered by LD account-trust evaluation; dedicated HTML5 link works",
+    "hostedGame": [
+      {
+        "viewport": "desktop",
+        "mode": "desktop",
+        "url": "https://stevengarberg.itch.io/charlottes-balloonatic",
+        "gameUrl": "https://html-classic.itch.zone/html/19840864/index.html?v=1792307186",
+        "ready": true,
+        "public": true,
+        "fit": {
+          "width": 960,
+          "height": 540,
+          "scale": 1.5,
+          "backbuffer": "960x540"
+        },
+        "realHeatInput": true,
+        "creditsClean": true,
+        "perchParked": true,
+        "voyage": [
+          {
+            "level": "nursery-skies",
+            "hearts": 3,
+            "stars": 3
+          },
+          {
+            "level": "winding-trail",
+            "hearts": 3,
+            "stars": 3
+          },
+          {
+            "level": "night-crossing",
+            "hearts": 2,
+            "stars": 3
+          }
+        ],
+        "errors": [],
+        "failures": []
+      },
+      {
+        "viewport": "narrow",
+        "mode": "mobile browser; keyboard/mouse required",
+        "url": "https://stevengarberg.itch.io/charlottes-balloonatic",
+        "gameUrl": "https://html-classic.itch.zone/html/19840864/index.html?v=1792307186",
+        "ready": true,
+        "public": true,
+        "fit": {
+          "width": 420,
+          "height": 760,
+          "scale": 0.656,
+          "backbuffer": "420x760"
+        },
+        "realHeatInput": true,
+        "creditsClean": true,
+        "perchParked": true,
+        "voyage": [
+          {
+            "level": "nursery-skies",
+            "hearts": 3,
+            "stars": 3
+          },
+          {
+            "level": "winding-trail",
+            "hearts": 3,
+            "stars": 3
+          },
+          {
+            "level": "night-crossing",
+            "hearts": 2,
+            "stars": 3
+          }
+        ],
+        "errors": [],
+        "failures": []
+      }
+    ]
+  },
+  "rulesReference": "https://ldjam.com/events/ludum-dare/rules"
+}
