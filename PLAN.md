@@ -155,10 +155,15 @@ recoverable flight, one meaningful beautiful delivery, readable UI and WebGL val
   Verified: Aseprite palette audit (61 slices), zero compiler warnings, 83 unit tests and 120 browser
   tests. World signs/recipient tags are single atlas quads; `worldsigns` reports their actual placement.
   Fractional camera phases retain fixed parent offsets and unchanged sim hashes; reviewed `32-signs-*`.
-- [ ] **I33 — Platform contact and sliding** (~90m)
+- [x] **I33 — Platform contact and sliding** (~90m)
   Align deck artwork and collision surfaces, support ordinary landings across each full deck,
   and allow a landed basket to slide across to the delivery area. Prove edge approaches, takeoff,
   hard contacts, both drift directions and the full voyage in WebGL.
+  Verified: zero compiler warnings, 178 unit tests and 122 browser tests. Swept basket-foot contacts
+  support every foreground deck and loadout; the inner recipient area accepts touchdown or sliding.
+  Takeoff, edge departure, hard bounces, both wind directions and surface-band sampling are covered.
+  `state.support` / `raw('decks')` expose real contact state/data. Reviewed all `33-*` at both sizes;
+  the full normal-collision voyage and spent-ballast recovery remain green.
 - [ ] **I34 — Refresh the corrected review package** (~45m)
   Fresh-clone and extracted-archive checks for the playtest fixes; refresh candidate evidence and ZIP.
 

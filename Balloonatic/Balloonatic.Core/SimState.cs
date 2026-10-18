@@ -59,13 +59,13 @@ namespace Balloonatic.Core
         /// <summary>Which authored level this run is on. Bands, gusts and the course length come from it.</summary>
         public string LevelId = LevelCatalog.DefaultId;
 
-        /// <summary>True once the basket has come down soft on the delivery deck. The level's whole point.</summary>
+        /// <summary>True once a supported basket reaches the recipient with the right parcel.</summary>
         public bool Delivered;
         public CargoKind Cargo;
         public int PickupTick = -1;
         public string CargoStatus => Delivered ? "delivered" : Cargo == CargoKind.None ? "waiting" : "carried";
 
-        /// <summary>Run is over — a soft landing (any outcome that ends the flight) freezes input.</summary>
+        /// <summary>Run is over — delivery or exhausted hearts freezes flight input.</summary>
         public bool Complete;
 
         /// <summary>Too-fast deck contacts this run. Zero bounces is one of the three rating stars.</summary>
@@ -244,6 +244,8 @@ namespace Balloonatic.Core
             float drag = state.VelocityY * SimTuning.Drag;
 
             float prevAltitude = state.Altitude;
+            float prevX = state.X;
+            bool wasSupported = PlatformContact.Support(state, level) != "air";
             state.VelocityY += (lift - weight - drag) * dt;
             state.Altitude += state.VelocityY * dt;
             // The authored sky has a visible top breeze. Keep the envelope inside its camera
@@ -254,55 +256,29 @@ namespace Balloonatic.Core
                 state.VelocityY = Math.Min(0f, state.VelocityY);
             }
 
-            // Deck contact: the basket plane crossed a deck surface downward with the basket over it.
-            // Soft enough, it sticks — and on the delivery deck, that is the whole level won. Too fast,
-            // the deck throws it back up with a counted bounce and a reason tag (docs/PLAN.md I5).
-            if (state.VelocityY < 0f
-                && prevAltitude >= SimTuning.DeckTopAltitude
-                && state.Altitude <= SimTuning.DeckTopAltitude)
+            // Horizontal: the air decides, with inertia. The balloon's velocity chases the wind of the
+            // band it is currently inside; entering a new band is a settle over ~1 s, never a snap. This
+            // is why altitude is the only steering — the player chooses which air to be in, not where to go.
+            // Wind Assist keeps the bands and drops the gusts: gentler air, same navigation.
+            float windAltitude = Math.Max(SimTuning.GroundAltitude,
+                wasSupported && state.Altitude < prevAltitude ? prevAltitude : state.Altitude);
+            float wind = level.WindAt(windAltitude);
+            if (state.WindAssist)
             {
-                bool overLaunch = level.OverLaunchDeck(state.X);
-                bool overDelivery = level.OverDeliveryDeck(state.X);
-                if (overLaunch || overDelivery)
-                {
-                    state.Altitude = SimTuning.DeckTopAltitude;
-                    if (-state.VelocityY <= SimTuning.SoftLandingVy)
-                    {
-                        state.VelocityY = 0f;
-                        if (overDelivery && state.Cargo == level.Package)
-                        {
-                            state.Cargo = CargoKind.None;
-                            state.Delivered = true;
-                            state.Complete = true;
-                            state.CompletedAtTick = state.Tick;
-                            // Three stars: the delivery itself, beating par, and doing it clean.
-                            state.Stars = 1
-                                + (state.Tick <= level.ParSeconds * Sim.StepHz ? 1 : 0)
-                                + (state.Bounces == 0 ? 1 : 0);
-                        }
-                    }
-                    else
-                    {
-                        state.VelocityY = -state.VelocityY * SimTuning.BounceRestitution;
-                        state.Bounces++;
-                        state.BounceTick = state.Tick;
-                    }
-                }
+                WindBand calm = level.BandAt(windAltitude);
+                wind = calm.Direction * LevelDef.WindSpeed(calm.Strength);
             }
+            else
+            {
+                // Storm buffet rides on top of the band's air — and Wind Assist drops it exactly like
+                // the gust zones: banks of angry cloud become scenery, the navigation stays the same.
+                wind += level.StormWindAt(state.X, windAltitude, state.Tick);
+            }
+            state.VelocityX += (wind - state.VelocityX) * SimTuning.WindFollowRate * dt;
+            state.X += state.VelocityX * dt;
 
-            foreach (RestDeck deck in level.Platforms)
-            {
-                if (state.VelocityY >= 0f || prevAltitude < deck.Altitude || state.Altitude > deck.Altitude
-                    || Math.Abs(state.X - deck.X) > deck.HalfWidth) continue;
-                state.Altitude = deck.Altitude;
-                if (-state.VelocityY <= SimTuning.SoftLandingVy) state.VelocityY = 0f;
-                else
-                {
-                    state.VelocityY = -state.VelocityY * SimTuning.BounceRestitution;
-                    state.Bounces++; state.BounceTick = state.Tick;
-                }
-                break;
-            }
+            // Sweep the basket through the same step that moved it horizontally.
+            PlatformContact.Resolve(state, level, prevX, prevAltitude);
 
             if (state.Altitude <= SimTuning.GroundAltitude)
             {
@@ -312,25 +288,6 @@ namespace Balloonatic.Core
                 if (state.VelocityY < 0f)
                     state.VelocityY = 0f;
             }
-
-            // Horizontal: the air decides, with inertia. The balloon's velocity chases the wind of the
-            // band it is currently inside; entering a new band is a settle over ~1 s, never a snap. This
-            // is why altitude is the only steering — the player chooses which air to be in, not where to go.
-            // Wind Assist keeps the bands and drops the gusts: gentler air, same navigation.
-            float wind = level.WindAt(state.Altitude);
-            if (state.WindAssist)
-            {
-                WindBand calm = level.BandAt(state.Altitude);
-                wind = calm.Direction * LevelDef.WindSpeed(calm.Strength);
-            }
-            else
-            {
-                // Storm buffet rides on top of the band's air — and Wind Assist drops it exactly like
-                // the gust zones: banks of angry cloud become scenery, the navigation stays the same.
-                wind += level.StormWindAt(state.X, state.Altitude, state.Tick);
-            }
-            state.VelocityX += (wind - state.VelocityX) * SimTuning.WindFollowRate * dt;
-            state.X += state.VelocityX * dt;
 
             // Preserve cargo, health, and spent ballast. A missed island is another approach,
             // not an invisible wall or a run stranded outside the camera's bounds.

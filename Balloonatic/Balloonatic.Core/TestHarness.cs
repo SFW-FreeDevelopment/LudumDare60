@@ -128,6 +128,7 @@ namespace Balloonatic.Core
                     return _state.Hearts.ToString(CultureInfo.InvariantCulture);
                 case "hazards":
                     return DescribeHazards();
+                case "decks":return DescribeDecks();
 
                 case "warp":
                 {
@@ -377,6 +378,17 @@ namespace Balloonatic.Core
               .Append(altitude.ToString("0.0", CultureInfo.InvariantCulture));
         }
 
+        string DescribeDecks()
+        {
+            LevelDef level=LevelCatalog.Get(_state.LevelId);
+            string Deck(string kind,float x,float y,float half)=>FormattableString.Invariant($"{{\"kind\":\"{kind}\",\"x\":{x},\"altitude\":{y},\"halfWidth\":{half}}}");
+            StringBuilder result=new StringBuilder("[");
+            result.Append(Deck("launch",0,SimTuning.DeckTopAltitude,SimTuning.DeckHalfWidth)).Append(',');
+            result.Append(Deck("delivery",level.CourseLength,SimTuning.DeckTopAltitude,SimTuning.DeckHalfWidth));
+            foreach(RestDeck deck in level.Platforms)result.Append(',').Append(Deck("perch",deck.X,deck.Altitude,deck.HalfWidth));
+            return result.Append(']').ToString();
+        }
+
         string StateJson()
         {
             LevelDef level = LevelCatalog.Get(_state.LevelId);
@@ -415,6 +427,7 @@ namespace Balloonatic.Core
               .Append("\"pickupTick\":").Append(_state.PickupTick).Append(',')
               .Append("\"recipient\":\"").Append(level.DestinationName).Append("\",")
               .Append("\"platforms\":").Append(level.Platforms.Length).Append(',')
+              .Append("\"support\":\"").Append(PlatformContact.Support(_state,level)).Append("\",")
               .Append("\"expression\":\"").Append(FlightGuidance.Expression(_state)).Append("\",")
               .Append("\"atCeiling\":").Append(_state.Altitude >= level.WorldHeight - .5f ? "true" : "false").Append(',')
               .Append("\"windAssist\":").Append(_state.WindAssist ? "true" : "false").Append(',')

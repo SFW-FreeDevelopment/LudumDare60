@@ -412,3 +412,22 @@ crops, palette CSS and SVG labels from the game's own glyph masks. `#boot-shell`
 the first rendered frame, surface setup and saved settings are ready, then is removed. The cold-boot
 test holds the framework manifest request, verifies the shell while `__GAME.ready` is false, releases
 it and asserts the ready menu through the bridge. Evidence: `30-branded-{boot,ready}-*` at both sizes.
+
+## October 18 playtest corrections
+
+`raw('creditstext')` reports the same short rows drawn by the credits menu. Moving world signs and
+recipient labels are now Aseprite atlas quads, with board and glyphs exported together from the
+shared font masks. `raw('worldsigns')` reports those actual placements; fractional camera phases
+retain fixed sign-to-platform offsets on the half-design-pixel world grid.
+
+Deck contacts sweep horizontal and vertical movement together. The 33px basket base can overhang
+the edge of any timber deck; soft contact zeroes vertical velocity and keeps wind-driven horizontal
+motion. The recipient occupies the inner 72px of the 112px destination deck. Landing outside that
+area permits sliding into it; contact inside delivers immediately with the right parcel. Heating
+can lift off again; leaving an edge falls, and a deck cannot catch a basket from below. Hard arrivals
+still bounce. A resting craft samples wind at its surface rather than through the planks.
+
+`raw('decks')` returns the authored launch/delivery/perch surfaces. `state.support` is derived from
+the physical state (`air`, `ground`, `launch`, `delivery`, `perch`), never stored by rendering.
+Landed approach feedback says `DECK: DRIFT IN` / `LANDED: DRIFT IN`. Evidence: `31-credits-*`,
+`32-signs-phase*-*` and `33-{perch-edge,slide-contact,slide-travel,slide-home}-*` at both sizes.

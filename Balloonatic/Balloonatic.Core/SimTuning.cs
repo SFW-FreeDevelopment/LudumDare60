@@ -64,13 +64,20 @@ namespace Balloonatic.Core
         public const float DeckTopAltitude = 38f;
 
         /// <summary>
-        /// Half-width of a landing deck; the basket must come down inside it. Sized against a landing
+        /// Half-width of the visible timber deck. The basket footprint may overhang its edge.
+        /// Sized against a landing
         /// read: a settled approach drifts up to ~40 px while the last 50 px of altitude bleed away, so
         /// a narrower deck punishes arrivals that are flown correctly and only miss by physics the
         /// player cannot see. 56 is "wide road, small prize" — the deck reads at design scale and a
         /// human (and the autopilot) can actually land on it.
         /// </summary>
         public const float DeckHalfWidth = 56f;
+
+        /// <summary>The visible 33px basket base can overlap a deck edge before its centre is over it.</summary>
+        public const float BasketFootHalfWidth = 16.5f;
+
+        /// <summary>Inner recipient area; the rest of the deck supports touchdown and sliding.</summary>
+        public const float RecipientHalfWidth = 36f;
 
         /// <summary>Share of descent speed returned as bounce when a landing is too fast.</summary>
         public const float BounceRestitution = 0.4f;

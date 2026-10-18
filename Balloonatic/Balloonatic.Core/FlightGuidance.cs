@@ -18,6 +18,7 @@ public static class FlightGuidance
         state.Temperature > SimTuning.TempAmbient + .01f ? "cooling" : "cool";
 
     public static string ControlHint(SimState state, LevelDef level) {
+        if(!state.Complete&&PlatformContact.Support(state,level)=="delivery")return "DECK: DRIFT IN";
         foreach(StormZone zone in level.Storms) {
             if(Math.Abs(state.Altitude-(zone.FromAltitude+zone.ToAltitude)/2)<70 && state.X>=zone.FromX-120 && state.X<=zone.ToX)
                 return state.WindAssist?"ASSIST: CALM AIR":state.X<zone.FromX?"GUST AHEAD":"GUST: WATCH WIND";
@@ -30,6 +31,7 @@ public static class FlightGuidance
     public static string Approach(SimState state, LevelDef level)
     {
         if(state.Delivered)return "delivered";
+        if(PlatformContact.Support(state,level)=="delivery")return "landed";
         if(Math.Abs(state.X-level.CourseLength)>160f || state.Altitude>SimTuning.DeckTopAltitude+140f)return "travel";
         if(state.VelocityY < -SimTuning.SoftLandingVy)return "fast";
         return state.VelocityY > 3f ? "rising" : "gentle";

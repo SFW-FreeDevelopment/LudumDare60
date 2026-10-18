@@ -43,7 +43,8 @@ npm run audio    # archived ElevenLabs renders + ffmpeg; no provider request
 | Escape / pause button | Pause; resume deliberately after focus loss |
 
 The wind ladder previews neighboring bands. Chevrons show direction and strength; **altitude is the
-steering**. Land gently on the clear timber deck. A missed course returns Charlotte safely for another
+steering**. Land gently on the clear timber deck; the basket can overhang its edge and drift along
+the planks into the recipient area. Heating lifts off again. A missed course returns Charlotte safely for another
 approach, preserving cargo and spent bags. All ballast loadouts can descend and land.
 
 Nursery Skies teaches burner/cooling and a breeze perch. Toy Isles needs a climb out of homeward air.

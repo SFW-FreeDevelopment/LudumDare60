@@ -88,10 +88,10 @@ namespace Balloonatic.Screens
             if (!state.Complete) {
                 string approach=FlightGuidance.Approach(state,level);
                 string message=state.Recoveries>0 && state.Tick-state.RecoveryTick<180 ? "TRY ANOTHER APPROACH"
-                    : approach=="fast" ? "TAP HEAT TO BRAKE" : approach=="rising" ? "RELEASE EARLY TO SETTLE" : approach=="gentle" ? "GENTLE APPROACH" : "";
+                    : approach=="landed" ? "LANDED: DRIFT IN" : approach=="fast" ? "TAP HEAT TO BRAKE" : approach=="rising" ? "RELEASE EARLY TO SETTLE" : approach=="gentle" ? "GENTLE APPROACH" : "";
                 if(message.Length>0) {
                     Kit.Panel(canvas,new Rectangle(96,282,448,40));
-                    PixelFont.DrawCenteredShadowed(canvas,message,320,290,approach=="gentle"?Theme.GrassLight:Theme.TagCream,font);
+                    PixelFont.DrawCenteredShadowed(canvas,message,320,290,approach is "gentle" or "landed"?Theme.GrassLight:Theme.TagCream,font);
                 }
                 if(state.Bounces>0 && state.Tick-state.BounceTick<SimTuning.BounceReasonSteps)
                     PixelFont.DrawCenteredShadowed(canvas,"TOO FAST!",Round(ScreenX(state.X,camX)),Round(ScreenY(state.Altitude,camAlt))-100,Theme.FlameRed,font);

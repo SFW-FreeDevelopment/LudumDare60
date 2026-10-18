@@ -236,7 +236,7 @@ namespace Balloonatic.Core
             ParSeconds = parSeconds;
         }
 
-        /// <summary>Deck landing test: the basket centre over a deck of this level, launch or delivery.</summary>
+        /// <summary>Centre tests for pickup/authoring; physical surface contacts use the basket footprint.</summary>
         public bool OverLaunchDeck(float x) => Math.Abs(x) <= SimTuning.DeckHalfWidth;
         public bool OverDeliveryDeck(float x) => Math.Abs(x - CourseLength) <= SimTuning.DeckHalfWidth;
 
