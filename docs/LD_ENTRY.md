@@ -18,6 +18,7 @@ reading, and a gentle landing lead to a moonlit journey home. *For Charlotte ♥
 - Press **B** or right mouse to drop a sandbag for extra lift / gentler descent.
 - Choose altitude to choose wind. The ladder and windsocks show direction and strength.
 - Land gently on the recipient's timber deck; cargo is picked up at launch and carried visibly.
+- Breeze Perches let you rest: descend onto one with heat released, then hold Space to lift off.
 - **Enter** or the result button opens the voyage map; **R** restarts during flight.
 - **Escape** pauses. Losing focus pauses safely; resume when ready.
 
@@ -31,15 +32,11 @@ wooden docks and windsocks. Horizontal movement belongs to the wind; choosing al
 The visual style follows the supplied cozy pixel-art concept: rounded pink fabric, warm timber,
 Charlotte and her bunny, blue cloud depth, toy blocks, flowers and a windmill.
 
-## Credits and generated content
+## Credits
 
 Steven Garberg / Gigabite Games — game and direction. KNI 4.3 / C# / Blazor WebAssembly / WebGL.
-The pixel font is custom. Code assistance included Qwen and OpenAI Codex. Pixel art was made
-with committed generator scripts through Aseprite MCP; .aseprite sources and PNG exports are included.
-Music and all seven effects were generated with **ElevenLabs** and mastered offline from committed
-source renders. Prompts, reported model information and hashes are in assets/audio/SOURCES.md,
-assets/audio/requests.json and audio/export/analysis.json. The concept sheet is included as a design
-reference, not used as an in-game image.
+Custom pixel font and Aseprite artwork. Art sources, audio source records and reproducible exports
+are included with the project. The concept sheet is a design reference rather than an in-game image.
 
 ## Short caption
 

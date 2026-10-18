@@ -1,6 +1,6 @@
 # Build baseline and verification harness
 
-Current candidate contracts are I23–I30b below. Earlier sections record the scaffold history;
+Current candidate contracts include I23–I35 below. Earlier sections record the scaffold history;
 the final measured build and packaging audit is in [SUBMISSION.md](SUBMISSION.md).
 
 Numbers are recorded so later initiatives have something to compare against instead of a feeling.

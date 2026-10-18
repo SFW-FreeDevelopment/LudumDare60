@@ -48,6 +48,8 @@ The three-course concept and improvement queue are implemented; current technica
 archive details live in `docs/SUBMISSION.md`. Steven approved the initial flight feel and completed
 the listening review on October 18, 2026: *"Sounds are good"*. Public hosting and the final jam-entry
 upload remain Steven's submission steps.
+The I31–I35 playtest corrections and refreshed archive are verified under I34 (`ld60-review-v3`).
+Steven confirmed the world-sign jitter is fixed; the updated preview includes the clarified rest perch.
 
 ## References
 - KNI engine: https://github.com/kniEngine/kni (templates: `nkast.Kni.Templates`)

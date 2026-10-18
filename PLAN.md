@@ -172,8 +172,13 @@ recoverable flight, one meaningful beautiful delivery, readable UI and WebGL val
   unheated basket for ten simulated seconds and release it on heat; normal-collision routes and
   delivery sliding still pass. The Aseprite deck is now 112px wide, matching its surface. Reviewed
   `35-perch-{rest,takeoff}-*` at both sizes and refreshed the desktop preview for Steven.
-- [ ] **I34 — Refresh the corrected review package** (~45m)
+- [x] **I34 — Refresh the corrected review package** (~45m)
   Fresh-clone and extracted-archive checks for the playtest fixes; refresh candidate evidence and ZIP.
+  Verified: final-runtime isolated clone passes the complete 182-unit/124-browser gate with zero
+  compiler warnings. All 18 re-exported assets match. A fresh publish/ZIP passes active audio, all
+  three collision-enabled routes, dedication/replay/save checks at both sizes; eight archive fix
+  checks and two raw HTTP boots pass. Reviewed all `34-package-*` screenshots. Refreshed entry copy
+  and `docs/SUBMISSION.md`; candidate tag `ld60-review-v3`, older tags preserved.
 
 ## Design decisions (answers to `docs/CONCEPT.md` §16)
 1. **Burner:** hold-to-heat with a temperature integrator. No intensity slider — one verb, and the
@@ -298,8 +303,8 @@ recoverable flight, one meaningful beautiful delivery, readable UI and WebGL val
   archive; `ld60-submit` tag.
   *Done when:* the submission checklist is run end to end and the last screenshot is one Steven would
   put on the entry page.
-  *Status:* improved review archive, fresh clone, HTTP ZIP checks and entry copy verified under I30.
-  `ld60-review-v2` identifies this candidate; the earlier `ld60-submit` tag is preserved. Listening is
+  *Status:* corrected review archive, isolated clone, HTTP ZIP checks and entry copy verified under I34.
+  `ld60-review-v3` identifies this candidate; earlier review/submission tags are preserved. Listening is
   approved; public hosting and the actual final jam-entry upload remain open; see `docs/SUBMISSION.md`.
 
 ### Stretch (in order, only when I13 is safe)
