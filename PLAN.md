@@ -83,8 +83,11 @@ complete; implementation is proceeding in the order below.
   Verified: 76 unit tests, 98 browser tests; reviewed `24-readable-flight-*` and
   `24-delivery-action-*`. Essential text grows from scale 2 to 3 at narrow widths; cargo leads,
   results have a shared 272×36 hit target, keyboard Enter and pointer input both reach the map.
-- [ ] **I25 — Title and menu composition** (~90m)
+- [x] **I25 — Title and menu composition** (~90m)
   Illustrated title/logo, clear Start Adventure/dedication, short teaching copy and illustrated courses.
+  Verified: 76 unit tests, 100 browser tests; Aseprite audit (47 slices); opened all `25-*`
+  desktop/narrow menu shots. Shared 32+ pixel controls, readable settings/credits/pause, real pointer
+  and keyboard navigation. Stage-specific landmarks will distinguish the remaining thumbnails in I27–28.
 - [ ] **I26 — Voyage and closure** (~60m)
   Distinct destination thumbnails, truthful progress, remembered results/settings and a simple dedication.
 - [ ] **I27 — Toy Isles** (~90m)

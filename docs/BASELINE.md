@@ -340,3 +340,10 @@ Body text uses scale 2 at the design width and scale 3 when the canvas is reduce
 world HUD shows cargo and destination; rating is reserved for the result panel. A 272×36 result
 button supports pointer input and Enter. Screenshot evidence: `24-readable-flight-*` and
 `24-delivery-action-*`. Menu layouts receive the same type treatment in I25.
+# I25 menu contract
+
+The title logo is a generated Aseprite slice, with the same hero and bunny used in flight. All menu
+actions now use shared `UiLayout` bounds, exposed through `raw('ui')`; tests click the actual controls.
+Settings, pause, credits and illustrated course choices use the adaptive body/heading scale. Controls
+are at least 32 design pixels tall. `25-*` records every menu at desktop and narrow sizes. Screenshot
+review copies wait 16 rendered frames so the six-frame transition has settled before export.

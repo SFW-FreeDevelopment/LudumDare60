@@ -1,6 +1,6 @@
 // @ts-check
 const { test, expect } = require('@playwright/test');
-const { bootGame, watchForErrors, act, clickDesign } = require('./support');
+const { bootGame, watchForErrors, act, clickDesign, clickUi } = require('./support');
 
 /**
  * I7's flow gate: Playwright drives title → levels → pause → settings → credits (PLAN's "done when",
@@ -60,12 +60,12 @@ test('the title yields to a real pointer press on SETTINGS and walks back', asyn
   watchForErrors(page);
   await bootGame(page);
 
-  // SETTINGS slat: design rect x 220..420, y 164..180 → press its middle.
-  await clickDesign(page, 320, 172);
+  // Click the same shared rectangle the menu draws.
+  await clickUi(page, 'settings');
   await expect.poll(() => screenOf(page), { timeout: 10_000 }).toBe('settings');
 
-  // The BACK TO TITLE slat (last row: y = 92 + 5*26 = 222..238).
-  await clickDesign(page, 320, 230);
+  // The settings return action uses its own shared bounds.
+  await clickUi(page, 'back');
   await expect.poll(() => screenOf(page), { timeout: 10_000 }).toBe('menu');
 });
 

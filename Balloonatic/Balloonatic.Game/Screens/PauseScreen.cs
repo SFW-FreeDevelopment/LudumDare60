@@ -13,12 +13,6 @@ namespace Balloonatic.Screens
     {
         static readonly string[] Items = { "RESUME", "RESTART", "SETTINGS", "QUIT TO TITLE" };
 
-        const int StackX = 244;
-        const int StackY = 120;
-        const int StackW = 152;
-        const int StackH = 16;
-        const int StackGap = 24;
-
         readonly WorldScreen _world;
         readonly UiHost _host;
         int _focus;
@@ -58,7 +52,7 @@ namespace Balloonatic.Screens
         int HitTest(UiFrame f)
         {
             for (int i = 0; i < Items.Length; i++)
-                if (f.PointIsIn(StackX, StackY + i * StackGap, StackW, StackH))
+                if (UiLayout.PauseMenu(i) is Rectangle r && f.PointIsIn(r.X,r.Y,r.Width,r.Height))
                     return i;
             return -1;
         }
@@ -70,16 +64,9 @@ namespace Balloonatic.Screens
             _world.Draw(canvas, state);
             canvas.Fill(0, 0, Sim.DesignWidth, Sim.DesignHeight, Theme.PauseVeil);
 
-            int w = 196;
-            int x = (Sim.DesignWidth - w) / 2;
-            Kit.Panel(canvas, new Rectangle(x, 90, w, 124), null);
-            PixelFont.DrawCenteredShadowed(canvas, "PAUSED", x + w / 2, 102, Theme.TagCream);
-            for (int i = 0; i < Items.Length; i++)
-            {
-                var bounds = new Rectangle(StackX, StackY + i * StackGap, StackW, StackH);
-                Kit.Button(canvas, bounds, Items[i],
-                    i == _hover ? Kit.UiState.Hover : Kit.UiState.Rest, focused: i == _focus);
-            }
+            Kit.Panel(canvas,new Rectangle(144,48,352,268));
+            PixelFont.DrawCenteredShadowed(canvas,"PAUSED",320,64,Theme.TagCream,Kit.Heading(canvas));
+            for(int i=0;i<Items.Length;i++)Kit.Button(canvas,UiLayout.PauseMenu(i),Items[i],i==_hover?Kit.UiState.Hover:Kit.UiState.Rest,focused:i==_focus);
         }
     }
 }

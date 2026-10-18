@@ -13,19 +13,14 @@ namespace Balloonatic.Screens
     /// </summary>
     sealed class SettingsScreen : IUiScreen
     {
-        static readonly string[] RowLabels = { "MUSIC VOL", "SOUND VOL", "WIND ASSIST", "REDUCED MOTION" };
+        static readonly string[] RowLabels = { "MUSIC", "SOUND", "WIND ASSIST", "REDUCED MOTION" };
 
         const int ValueRows = 4;
         const int RestoreRow = 4;
         const int BackRow = 5;
         const int RowCount = 6;
 
-        const int PanelX = 150;
-        const int RowX = 176;
-        const int RowY = 92;
-        const int RowW = 288;
-        const int RowH = 16;
-        const int RowGap = 26;
+        const int RowX=96, RowY=80, RowW=448, RowH=32, RowGap=36;
 
         readonly UiHost _host;
         int _focus;
@@ -107,66 +102,23 @@ namespace Balloonatic.Screens
             return -1;
         }
 
-        public void Draw(DesignCanvas canvas, SimState state)
-        {
-            // Crate on calm sky, like the rest of the family; the rows ride inside it.
-            Kit.MenuBackdrop(canvas);
-            Kit.Panel(canvas, new Rectangle(150, 44, 340, 256), "SETTINGS");
-
-            for (int i = 0; i < ValueRows; i++)
-                DrawValueRow(canvas, i, RowY + i * RowGap, i == _focus, i == _hover);
-
-            var restore = new Rectangle(RowX, RowY + RestoreRow * RowGap, RowW, RowH);
-            var back = new Rectangle(RowX, RowY + BackRow * RowGap, RowW, RowH);
-            Kit.Button(canvas, restore, "RESTORE DEFAULTS",
-                _hover == RestoreRow ? Kit.UiState.Hover : Kit.UiState.Rest, focused: _focus == RestoreRow);
-            Kit.Button(canvas, back, "BACK TO TITLE",
-                _hover == BackRow ? Kit.UiState.Hover : Kit.UiState.Rest, focused: _focus == BackRow);
-
-            PixelFont.DrawCenteredShadowed(canvas, "CHANGES APPLY AT ONCE. SOUNDS PLAY WHEN THEY SHIP.",
-                Sim.DesignWidth / 2, 260, Theme.SignCream);
-            PixelFont.DrawCenteredShadowed(canvas, "REDUCED MOTION STILLS THE LOOKBACK AND THE FLICKER.",
-                Sim.DesignWidth / 2, 274, Theme.SignCream);
-            canvas.Outline(new Rectangle(0, 0, Sim.DesignWidth, Sim.DesignHeight), Theme.Ink);
-        }
-
-        void DrawValueRow(DesignCanvas canvas, int row, int y, bool focused, bool hovered)
-        {
-            var well = new Rectangle(RowX, y, RowW, RowH);
-            canvas.CutRectangle(well.X, well.Y, well.Width, well.Height, 1, hovered ? Theme.WoodDark : Theme.Dim);
-            if (focused)
-                canvas.Outline(new Rectangle(well.X - 2, well.Y - 2, well.Width + 4, well.Height + 4), Theme.Cream);
-
-            // Label starts clear of the left chevron — the arrow is a control, not an initial.
-            PixelFont.Draw(canvas, RowLabels[row], well.X + 18, y + 4, Theme.TagCream);
-
-            // Chevron ends: the same < > the wind readout uses, dimmed unless the row holds focus.
-            Color arrow = focused ? Theme.TagCream : Theme.WoodLight;
-            PixelFont.Draw(canvas, "<", well.X + 6, y + 4, arrow);
-            PixelFont.Draw(canvas, ">", well.Right - 12, y + 4, arrow);
-
-            switch (row)
-            {
-                case 0: DrawVolume(canvas, AppSettings.MusicVolume, well); break;
-                case 1: DrawVolume(canvas, AppSettings.SoundVolume, well); break;
-                case 2: DrawSwitch(canvas, AppSettings.WindAssist, well); break;
-                case 3: DrawSwitch(canvas, AppSettings.ReducedMotion, well); break;
+        public void Draw(DesignCanvas canvas,SimState state) {
+            Kit.MenuBackdrop(canvas);Kit.Panel(canvas,new Rectangle(64,16,512,328));
+            PixelFont.DrawCenteredShadowed(canvas,"SETTINGS",320,30,Theme.TagCream,Kit.Heading(canvas));
+            int font=Kit.Body(canvas);
+            for(int i=0;i<ValueRows;i++) {
+                Rectangle r=UiLayout.Setting(i);
+                canvas.CutRectangle(r.X,r.Y,r.Width,r.Height,2,i==_hover?Theme.WoodDark:Theme.Dim);
+                if(i==_focus)canvas.Outline(new Rectangle(r.X-2,r.Y-2,r.Width+4,r.Height+4),2,Theme.Cream);
+                PixelFont.Draw(canvas,RowLabels[i],r.X+32,r.Y+5,Theme.TagCream,font);
+                PixelFont.Draw(canvas,"<",r.X+5,r.Y+5,Theme.SignCream,font);
+                PixelFont.Draw(canvas,">",r.Right-21,r.Y+5,Theme.SignCream,font);
+                string value=i==0?AppSettings.MusicVolume+"/10":i==1?AppSettings.SoundVolume+"/10":(i==2?AppSettings.WindAssist:AppSettings.ReducedMotion)?"ON":"OFF";
+                PixelFont.DrawShadowed(canvas,value,r.Right-32-PixelFont.Width(value,font),r.Y+5,Theme.StarGold,font);
             }
-        }
-
-        /// <summary>Volume as a ten-notch strip: the number is for tests, the lit notches are for the eye.</summary>
-        static void DrawVolume(DesignCanvas canvas, int value, Rectangle well)
-        {
-            int stripX = well.X + 150;
-            for (int notch = 0; notch <= AppSettings.VolumeMax; notch++)
-                canvas.Fill(stripX + notch * 5, well.Y + 6, 4, 4, notch < value ? Theme.FlameYellow : Theme.WoodDark);
-            PixelFont.DrawShadowed(canvas, value + "/" + AppSettings.VolumeMax, well.Right - 52, well.Y + 4, Theme.TagCream);
-        }
-
-        static void DrawSwitch(DesignCanvas canvas, bool on, Rectangle well)
-        {
-            PixelFont.DrawShadowed(canvas, on ? "ON" : "OFF", well.X + 172, well.Y + 4,
-                on ? Theme.StarGold : Theme.SignCream);
+            Kit.Button(canvas,UiLayout.Setting(RestoreRow),"RESTORE DEFAULTS",_hover==RestoreRow?Kit.UiState.Hover:Kit.UiState.Rest,_focus==RestoreRow);
+            Kit.Button(canvas,UiLayout.Setting(BackRow),"BACK TO TITLE",_hover==BackRow?Kit.UiState.Hover:Kit.UiState.Rest,_focus==BackRow);
+            PixelFont.DrawCenteredShadowed(canvas,"ARROWS ADJUST / 0 MUTES",320,312,Theme.SignCream,font);
         }
     }
 }

@@ -14,7 +14,7 @@ test('the start screen hands the game over on a click @smoke', async ({ page }) 
   // The deliverable is played with a mouse in an iframe, so the hand-off verb is tested through
   // an actual pointer press on the FLY slat — the button the player sees, at the design
   // coordinates it is drawn at, not through the harness side door.
-  await require('./support').clickDesign(page, 320, 128);
+  await require('./support').clickUi(page, 'start');
   await expect.poll(() => page.evaluate(() => window.__GAME.screen()), { timeout: 10_000 }).toBe('world');
   expect(errors, `console/JS errors during hand-off: ${errors.join(' | ')}`).toEqual([]);
 });

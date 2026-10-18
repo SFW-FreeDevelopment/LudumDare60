@@ -111,7 +111,7 @@ namespace Balloonatic.Rendering
                 rect.Y + (rect.Height - PixelFont.CellHeight * font) / 2, text, font);
 
             if (state == UiState.Hover)
-                PixelFont.Draw(canvas, ">", rect.X + 4, rect.Y + (rect.Height - PixelFont.CellHeight) / 2, Theme.TagCream);
+                PixelFont.Draw(canvas, ">", rect.X + 5, rect.Y + (rect.Height - PixelFont.CellHeight * font) / 2, Theme.TagCream, font);
         }
 
         // ---------------------------------------------------------------- readouts

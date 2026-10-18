@@ -654,7 +654,24 @@ function farIsle() {
   return px;
 }
 
+function titleLogo() {
+  const glyph={A:".###.|#...#|#...#|#####|#...#|#...#|#...#",B:"####.|#...#|#...#|####.|#...#|#...#|####.",C:".###.|#...#|#....|#....|#....|#...#|.###.",H:"#...#|#...#|#...#|#####|#...#|#...#|#...#",I:"#####|..#..|..#..|..#..|..#..|..#..|#####",L:"#....|#....|#....|#....|#....|#....|#####",N:"#...#|##..#|#.#.#|#..##|#...#|#...#|#...#",O:".###.|#...#|#...#|#...#|#...#|#...#|.###.",R:"####.|#...#|#...#|####.|#.#..|#..#.|#...#",S:".####|#....|#....|.###.|....#|....#|####.",T:"#####|..#..|..#..|..#..|..#..|..#..|..#..",E:"#####|#....|#....|####.|#....|#....|#####","'":"..#..|..#..|.....|.....|.....|.....|....."};
+  const px=[];
+  const paint=(x,y,w,h,c)=>{const out=[];for(let yy=y;yy<y+h;yy++)for(let xx=x;xx<x+w;xx++)out.push([xx,yy,c]);return out;};
+  function text(word,y,scale,pink) {
+    const mask=[]; const ox=Math.floor((700-(word.length*6-1)*scale)/2);
+    [...word].forEach((c,i)=>glyph[c].split('|').forEach((row,yy)=>[...row].forEach((v,xx)=>{if(v==='#')mask.push([ox+(i*6+xx)*scale,y+yy*scale]);})));
+    for(const [radius,color] of [[pink?9:4,PAL.K],[pink?5:1,PAL.paper]])
+      for(const [x,y] of mask)px.push(...paint(x-radius,y-radius,scale+radius*2,scale+radius*2,color));
+    for(const [x,yy] of mask)px.push(...paint(x,yy,scale,scale,pink?(yy-y>scale*3?PAL.gP:PAL.gp):PAL.paper));
+    if(pink)for(const [x,yy] of mask)px.push(...paint(x,yy,scale,2,PAL.gp));
+  }
+  text("CHARLOTTE'S",12,4,false);text("BALLOONATIC",76,9,true);
+  return px;
+}
+
 const SPRITES = {
+  "title-logo": {w:700,h:176,frames:[titleLogo()]},
   "far-isle": {w:144,h:150,frames:[farIsle()]},
   "nursery-house": {w:128,h:134,frames:[house(true)]},
   "cottage": {w:128,h:134,frames:[house(false)]},

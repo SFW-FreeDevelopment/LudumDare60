@@ -24,7 +24,7 @@ async function matchShot(page, name) {
 
 async function reviewShot(page, options) {
   const frame = await page.evaluate(() => window.__GAME.frames());
-  await page.waitForFunction(async start => Number(await window.__GAME.frames()) >= Number(start) + 8, frame);
+  await page.waitForFunction(async start => Number(await window.__GAME.frames()) >= Number(start) + 16, frame);
   return retryImageFile(() => page.screenshot(options));
 }
 
@@ -104,4 +104,11 @@ async function clickDesign(page, designX, designY, { delay = 120 } = {}) {
   await page.mouse.click(geo.left + ox + designX * geo.scale, geo.top + oy + designY * geo.scale, { delay });
 }
 
-module.exports = { bootGame, watchForErrors, runScript, act, clickDesign, megabytes, SHOTS_DIR, matchShot, reviewShot };
+async function clickUi(page, id) {
+  const controls = await page.evaluate(async () => Object.fromEntries((await window.__GAME.raw('ui')).split(';').map(p=>p.split('='))));
+  if (!controls[id]) throw new Error(`No ${id} control on ${controls.screen}`);
+  const [x,y,w,h] = controls[id].split(',').map(Number);
+  await clickDesign(page,x+w/2,y+h/2);
+}
+
+module.exports = { bootGame, watchForErrors, runScript, act, clickDesign, clickUi, megabytes, SHOTS_DIR, matchShot, reviewShot };

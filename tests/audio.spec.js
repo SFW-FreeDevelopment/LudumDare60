@@ -1,6 +1,6 @@
 const { test, expect } = require('@playwright/test');
 const path = require('path');
-const { bootGame, act, clickDesign, watchForErrors, SHOTS_DIR } = require('./support');
+const { bootGame, act, clickDesign, clickUi, watchForErrors, SHOTS_DIR } = require('./support');
 const {matchShot,reviewShot}=require('./support');
 const pairs = text => Object.fromEntries(text.split(';').map(p => p.split('=')));
 const audio = async page => pairs(await act(page, 'audio'));
@@ -9,7 +9,7 @@ const mix = page => page.evaluate(async () => Object.fromEntries((await window._
 test('all volume endpoints keep independent audio buses healthy', async ({page}, info) => {
   const errors = watchForErrors(page);
   await bootGame(page);
-  await clickDesign(page, 320, 172);
+  await clickUi(page, 'settings');
   await expect.poll(() => act(page, 'screen')).toBe('settings');
   for (let volume = 0; volume <= 10; volume++) {
     await act(page, `settings=music=${volume}`);
