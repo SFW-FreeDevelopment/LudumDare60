@@ -66,49 +66,32 @@ namespace Balloonatic.Tests
         }
 
         [Fact]
-        public void Terminal_rise_stops_accelerating()
+        public void Terminal_rise_stops_accelerating_in_open_air()
         {
-            static float Velocity(TestHarness h) =>
-                float.Parse(h.Handle("velocity", ""), System.Globalization.CultureInfo.InvariantCulture);
-
-            TestHarness h = new TestHarness();
-            h.Handle("reset", "1234");
-            h.Handle("set", "heat=1");
-            h.Handle("step", "600");        // 10 s: temperature pegged long ago, so only drag is left
-            float earlier = Velocity(h);
-            h.Handle("step", "120");
-            float later = Velocity(h);
-
-            // Drag bounds the climb: another two seconds barely changes the velocity, and the cruise rate
-            // is the one the tuning predicts from lift, weight and drag — a computed ceiling, not a magic
-            // number. Dropping ballast moves it, which is the whole point of the sandbags.
-            float expected = (SimTuning.TempMax * SimTuning.LiftGain - SimTuning.Gravity
-                              - SimTuning.BagCapacity * SimTuning.BallastPerBag) / SimTuning.Drag;
-            (later - earlier).Should().BeApproximately(0f, 0.5f);
-            later.Should().BeApproximately(expected, 1.5f);
+            LevelDef sky = OpenSky();
+            SimState s = new SimState {Seed=1234, X=1000, Altitude=100};
+            for(int i=0;i<600;i++)SimRules.Step(s,new SimInput{Heat=true},sky);
+            float earlier=s.VelocityY;
+            for(int i=0;i<120;i++)SimRules.Step(s,new SimInput{Heat=true},sky);
+            float expected=(SimTuning.TempMax*SimTuning.LiftGain-SimTuning.Gravity-SimTuning.BagCapacity*SimTuning.BallastPerBag)/SimTuning.Drag;
+            (s.VelocityY-earlier).Should().BeApproximately(0f,.5f);
+            s.VelocityY.Should().BeApproximately(expected,1.5f);
         }
 
+        static LevelDef OpenSky() => new LevelDef("open-sky", "Open sky", 4000f,
+            new[]{new WindBand(0,4000,1,1)}, System.Array.Empty<GustZone>(), 10000, 120);
+
         [Fact]
-        public void Dropping_ballast_raises_the_ceiling()
+        public void Less_ballast_gains_altitude_sooner_in_open_air()
         {
-            float RiseWithBags(int dropNow)
+            float RiseWithBags(int bags)
             {
-                TestHarness h = new TestHarness();
-                h.Handle("reset", "1234");
-                for (int i = 0; i < dropNow; i++)
-                {
-                    h.Handle("set", "ballast=1");
-                    h.Handle("step", "1");
-                }
-                h.Handle("set", "heat=1");
-                h.Handle("step", "600");    // 10 s of the same burner effort
-                return float.Parse(h.Handle("altitude", ""), System.Globalization.CultureInfo.InvariantCulture);
+                SimState s=new SimState{Seed=1234,X=1000,Altitude=100,BallastHeld=bags};
+                LevelDef sky=OpenSky();
+                for(int i=0;i<600;i++)SimRules.Step(s,new SimInput{Heat=true},sky);
+                return s.Altitude;
             }
-
-            float withTwoBags = RiseWithBags(0);
-            float withNoBags = RiseWithBags(2);
-
-            withNoBags.Should().BeGreaterThan(withTwoBags);
+            RiseWithBags(0).Should().BeGreaterThan(RiseWithBags(2));
         }
 
         [Fact]

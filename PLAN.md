@@ -44,6 +44,9 @@ complete; implementation is proceeding in the order below.
   The tested mechanical fix is committed; the box stays open until the human gate is satisfied.
   Independent readability/content work may proceed while that report is pending; no feel approval
   is inferred from automated solvability.
+  Follow-up: clamp rising flight at the authored sky ceiling, keep the envelope clear of the HUD,
+  and allow cooling to descend again. Verified: 76 unit tests, 94 browser tests; reviewed
+  `17-flight-ceiling-*`. This does not close the human feel gate.
 - [x] **I18 — Readable wind and approach** (~90m)
   Wind ladder/neighbor preview, matching world cues, and gentle/fast approach feedback.
   Verified: 66 unit tests, 84 browser tests; reviewed `18-wind-approach-*` at both sizes.

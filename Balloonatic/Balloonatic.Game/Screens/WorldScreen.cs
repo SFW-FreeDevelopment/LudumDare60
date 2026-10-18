@@ -175,7 +175,7 @@ namespace Balloonatic.Screens
             // Reserve the instrument strip above the envelope, including on a fast approach.
             // Bounded look-ahead keeps the camera calm and never hides the passenger behind HUD.
             float verticalLead = Clamp(state.VelocityY * look * 0.5f, -6f, 6f);
-            float camAlt = Clamp(state.Altitude + verticalLead + 24f, 0f, level.WorldHeight);
+            float camAlt = Clamp(state.Altitude + verticalLead + 24f, 0f, level.WorldHeight + 32f);
 
             // Framing bias toward the goal: until the delivery is behind the balloon, the camera leans
             // downwind, so the course ahead stays in frame and the islands are visible from launch.
@@ -589,7 +589,7 @@ namespace Balloonatic.Screens
             string heat = FlightGuidance.HeatTrend(state);
             PixelFont.DrawShadowed(canvas, state.Delivered ? level.DeliveredMessage : state.Cargo == CargoKind.None ? level.CollectObjective : level.CarryObjective,
                 146, 12, Theme.TagCream, 2);
-            PixelFont.DrawShadowed(canvas, heat == "heating" ? "HEATING - HOLD SPACE" : heat == "cooling" ? "COOLING - LET GO EARLY" : "HOLD SPACE TO RISE", 146, 32, Theme.TagCream, 2);
+            PixelFont.DrawShadowed(canvas, state.Altitude >= level.WorldHeight - .5f ? "TOP BREEZE - LET GO" : heat == "heating" ? "HEATING - HOLD SPACE" : heat == "cooling" ? "COOLING - LET GO EARLY" : "HOLD SPACE TO RISE", 146, 32, Theme.TagCream, 2);
             PixelFont.DrawShadowed(canvas, state.PickupTick >= 0 && state.Tick - state.PickupTick < 150 ? "PARCEL SAFELY ABOARD" : "RELEASE EARLY TO SETTLE", 146, 50, Theme.TagCream, 2);
 
             // ---- heat gauge, right edge: a brass instrument capped with a live flame, the way the

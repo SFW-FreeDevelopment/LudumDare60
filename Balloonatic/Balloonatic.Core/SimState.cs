@@ -245,6 +245,13 @@ namespace Balloonatic.Core
             float prevAltitude = state.Altitude;
             state.VelocityY += (lift - weight - drag) * dt;
             state.Altitude += state.VelocityY * dt;
+            // The authored sky has a visible top breeze. Keep the envelope inside its camera
+            // range; releasing heat still cools and descends normally with every loadout.
+            if (state.Altitude > level.WorldHeight)
+            {
+                state.Altitude = level.WorldHeight;
+                state.VelocityY = Math.Min(0f, state.VelocityY);
+            }
 
             // Deck contact: the basket plane crossed a deck surface downward with the basket over it.
             // Soft enough, it sticks — and on the delivery deck, that is the whole level won. Too fast,

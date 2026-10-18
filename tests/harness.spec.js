@@ -133,7 +133,7 @@ test('the balloon flies the same model in the browser: heat climbs, coast descen
 
   expect(flown.hot.temp).toBeGreaterThan(0.99);
   expect(flown.hot.alt).toBeGreaterThan(300);
-  expect(flown.overshootVelocity).toBeGreaterThan(0);          // momentum carries past the closed burner
+  expect(flown.overshootVelocity).toBeLessThanOrEqual(0);      // the authored sky ceiling stops further rise
   expect(flown.cooled.alt).toBeLessThan(flown.hot.alt);        // and cold air brings it back down
   expect(flown.cooled.temp).toBeCloseTo(0.3, 1);               // toward what the air itself is
   expect(flown.ballast).toBe('1');                             // one sandbag, gone for the level
