@@ -202,13 +202,27 @@ namespace Balloonatic.Core
         /// <summary>HUD-drawn form of the name, upper-cased once at construction: the draw loop must
         /// not allocate, or the garbage collector introduces the frame spikes the playtest felt.</summary>
         public string NameUpper { get; }
+        public CargoKind Package { get; }
+        public string PackageName { get; }
+        public string DestinationName { get; }
+        public string CollectObjective { get; }
+        public string CarryObjective { get; }
+        public string DeliveredMessage { get; }
+        public string RequestLabel { get; }
 
         public LevelDef(string id, string name, float worldHeight, WindBand[] bands, GustZone[] gusts, float courseLength, int parSeconds,
-                        RockDef[]? rocks = null, BirdDef[]? birds = null, StormZone[]? storms = null)
+                        RockDef[]? rocks = null, BirdDef[]? birds = null, StormZone[]? storms = null, CargoKind package = CargoKind.Teddy)
         {
             Id = id;
             Name = name;
             NameUpper = name.ToUpperInvariant();
+            Package = package;
+            PackageName = package == CargoKind.Bottle ? "BOTTLE" : package == CargoKind.Letter ? "LETTER" : "TEDDY";
+            DestinationName = id == "nursery-skies" ? "NURSERY" : id == "winding-trail" ? "TOY ROOM" : "COTTAGE";
+            CollectObjective = "COLLECT THE " + PackageName;
+            CarryObjective = PackageName + " > " + DestinationName;
+            DeliveredMessage = PackageName + " IS HOME!";
+            RequestLabel = PackageName + "?";
             WorldHeight = worldHeight;
             Bands = bands;
             Gusts = gusts ?? Array.Empty<GustZone>();

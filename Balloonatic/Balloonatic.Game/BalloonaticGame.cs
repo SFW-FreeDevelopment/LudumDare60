@@ -52,6 +52,7 @@ namespace Balloonatic
         // I11 audio edge cache: the director turns state into sound by watching for edges here,
         // renderer side — it reads state, never writes it, like every other decoration.
         int prevBounces, prevHearts, prevDrops;
+        int prevPickupTick = -1;
         bool prevDelivered;
         bool mouseWasPressed;
 
@@ -406,6 +407,7 @@ namespace Balloonatic
             Audio.Sound.SetMusic(s.Screen is not (SimState.ScreenPause or SimState.ScreenScaffold or SimState.ScreenStyle));
             Audio.Sound.SetBurner(onWorld && s.Heating && !s.Complete);
 
+            if (s.PickupTick >= 0 && prevPickupTick < 0 && !s.Delivered) Audio.Sound.Play("chime");
             if (s.Bounces > prevBounces) Audio.Sound.Play("creak");
             if (s.Hearts < prevHearts) Audio.Sound.Play("giggle");         // she laughs it off — losing is not a scold
             if (s.DropsSeen > prevDrops) Audio.Sound.Play("thump");
@@ -421,6 +423,7 @@ namespace Balloonatic
             prevHearts = s.Hearts;
             prevDrops = s.DropsSeen;
             prevDelivered = s.Delivered;
+            prevPickupTick = s.PickupTick;
             Audio.Sound.Tick();
         }
 

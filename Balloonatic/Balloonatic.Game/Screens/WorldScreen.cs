@@ -141,7 +141,7 @@ namespace Balloonatic.Screens
             int x = (Sim.DesignWidth - w) / 2;
             int y = 76;
             Kit.Panel(canvas, new Rectangle(x, y, w, h), "DELIVERY");
-            PixelFont.DrawCentered(canvas, "CHARLOTTE IS SAFE", x + w / 2, y + 26, Theme.TagCream);
+            PixelFont.DrawCentered(canvas, level.DeliveredMessage, x + w / 2, y + 26, Theme.TagCream);
 
             // Frozen clock: the delivered time, not a live count — a score that keeps climbing is not a score.
             int seconds = state.CompletedAtTick / Sim.StepHz;
@@ -310,7 +310,7 @@ namespace Balloonatic.Screens
             }
 
             DrawIsland(canvas, level, state, camX, groundY, worldX: 0, name: "HOME", launch: true);
-            DrawIsland(canvas, level, state, camX, groundY, worldX: (int)level.CourseLength, name: "GO", launch: false);
+            DrawIsland(canvas, level, state, camX, groundY, worldX: (int)level.CourseLength, name: level.DestinationName, launch: false);
         }
 
         static void DrawIsland(
@@ -333,9 +333,17 @@ namespace Balloonatic.Screens
             float signY = groundY - 52;
             int xi = Round(x);
             canvas.Fill(x - 1, signY + 12, 2, 8, Theme.BarkBrown);
-            canvas.CutRectangle(x - 16, signY - 2, 32, 14, 1, Theme.Ink);
-            canvas.Fill(x - 15, signY - 1, 30, 12, Theme.TagCream);
+            int signWidth = Math.Max(32, PixelFont.Width(name) + 8);
+            canvas.CutRectangle(x - signWidth / 2, signY - 2, signWidth, 14, 1, Theme.Ink);
+            canvas.Fill(x - signWidth / 2 + 1, signY - 1, signWidth - 2, 12, Theme.TagCream);
             PixelFont.Draw(canvas, name, xi - name.Length * 3 + 1, Round(signY) + 2, Theme.Ink);
+            if (launch && state.CargoStatus == "waiting")
+                Sprites.Draw(canvas, "gift", x + 34, groundY - 51);
+            if (!launch)
+            {
+                Sprites.Draw(canvas, "heart-hud", x + 35, groundY - 54);
+                Kit.Tag(canvas, xi + 10, Round(groundY) - 78, state.Delivered ? "THANK YOU!" : level.RequestLabel);
+            }
 
             // The windsock flies off the windward post of the deck — the truth about this altitude,
             // in world. The sheet sock inflates from its post downwind; a band blowing left mirrors it.
@@ -470,6 +478,8 @@ namespace Balloonatic.Screens
             Color? tint = hurtWindow && AppSettings.ReducedMotion ? new Color(150, 150, 150) : null;
 
             Sprites.Draw(canvas, "balloon", frame, x - size.X / 2, foot - size.Y, tint: tint);
+            if (state.Cargo != CargoKind.None)
+                Sprites.Draw(canvas, "gift", x + 18, foot - 12);
 
             // I12 burner puffs: while heat is on, three small puffs vent from the envelope crown on a
             // rolling 30-tick cycle — pure from the decoration clock, palette clouds, and gone the
@@ -561,10 +571,10 @@ namespace Balloonatic.Screens
             // This is the HUD's only real job — the sole steering the player has.
             Kit.WindLadder(canvas, state, level);
             string heat = FlightGuidance.HeatTrend(state);
-            PixelFont.DrawShadowed(canvas, heat == "heating" ? "HEATING" : heat == "cooling" ? "COOLING" : "COOL AIR",
-                146, 12, heat == "heating" ? Theme.FlameYellow : Theme.TagCream, 2);
-            PixelFont.DrawShadowed(canvas, "HOLD SPACE TO RISE", 146, 32, Theme.TagCream, 2);
-            PixelFont.DrawShadowed(canvas, "RELEASE EARLY TO SETTLE", 146, 50, Theme.TagCream, 2);
+            PixelFont.DrawShadowed(canvas, state.Delivered ? level.DeliveredMessage : state.Cargo == CargoKind.None ? level.CollectObjective : level.CarryObjective,
+                146, 12, Theme.TagCream, 2);
+            PixelFont.DrawShadowed(canvas, heat == "heating" ? "HEATING - HOLD SPACE" : heat == "cooling" ? "COOLING - LET GO EARLY" : "HOLD SPACE TO RISE", 146, 32, Theme.TagCream, 2);
+            PixelFont.DrawShadowed(canvas, state.PickupTick >= 0 && state.Tick - state.PickupTick < 150 ? "PARCEL SAFELY ABOARD" : "RELEASE EARLY TO SETTLE", 146, 50, Theme.TagCream, 2);
 
             // ---- heat gauge, right edge: a brass instrument capped with a live flame, the way the
             // sheet draws the burner's own thermometer ----

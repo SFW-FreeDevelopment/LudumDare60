@@ -23,6 +23,7 @@ namespace Balloonatic.Tests
             s.Altitude = altitude;
             s.VelocityY = velocityY;
             s.LevelId = level.Id;
+            s.Cargo = level.Package; // fixtures on final approach have already collected their parcel
             return s;
         }
 

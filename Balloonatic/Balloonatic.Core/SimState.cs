@@ -60,6 +60,9 @@ namespace Balloonatic.Core
 
         /// <summary>True once the basket has come down soft on the delivery deck. The level's whole point.</summary>
         public bool Delivered;
+        public CargoKind Cargo;
+        public int PickupTick = -1;
+        public string CargoStatus => Delivered ? "delivered" : Cargo == CargoKind.None ? "waiting" : "carried";
 
         /// <summary>Run is over — a soft landing (any outcome that ends the flight) freezes input.</summary>
         public bool Complete;
@@ -129,6 +132,8 @@ namespace Balloonatic.Core
                 VelocityX = VelocityX,
                 LevelId = LevelId,
                 Delivered = Delivered,
+                Cargo = Cargo,
+                PickupTick = PickupTick,
                 Complete = Complete,
                 Bounces = Bounces,
                 BounceTick = BounceTick,
@@ -194,6 +199,12 @@ namespace Balloonatic.Core
                 return;
 
             state.Heating = input.Heat;
+            if (state.Cargo == CargoKind.None && level.OverLaunchDeck(state.X)
+                && Math.Abs(state.Altitude - SimTuning.DeckTopAltitude) <= 24f)
+            {
+                state.Cargo = level.Package;
+                state.PickupTick = state.Tick;
+            }
 
             if (input.Heat)
             {
@@ -250,8 +261,9 @@ namespace Balloonatic.Core
                     if (-state.VelocityY <= SimTuning.SoftLandingVy)
                     {
                         state.VelocityY = 0f;
-                        if (overDelivery)
+                        if (overDelivery && state.Cargo == level.Package)
                         {
+                            state.Cargo = CargoKind.None;
                             state.Delivered = true;
                             state.Complete = true;
                             state.CompletedAtTick = state.Tick;
@@ -394,6 +406,8 @@ namespace Balloonatic.Core
             h = Mix(h, Bits(state.X));
             h = Mix(h, Bits(state.VelocityX));
             h = Mix(h, state.Delivered ? 1UL : 0UL);
+            h = Mix(h, (ulong)state.Cargo);
+            h = Mix(h, unchecked((ulong)state.PickupTick));
             h = Mix(h, state.Complete ? 1UL : 0UL);
             h = Mix(h, (ulong)state.Bounces);
             h = Mix(h, (ulong)state.BounceTick);

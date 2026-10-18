@@ -6,6 +6,7 @@ test('every ballast loadout can land and a missed course returns safely',async({
  const errors=watchForErrors(page); await bootGame(page);
  for(const bags of [2,1,0]){
   await act(page,'reset=1717');
+  await act(page,'step=1'); // collect the launch parcel before testing the final approach
   await page.evaluate(()=>window.__GAME.raw('warp','550=100'));
   for(let i=2;i>bags;i--)await page.evaluate(async()=>{await window.__GAME.set('ballast',1);await window.__GAME.step(1);});
   await act(page,'step=600');

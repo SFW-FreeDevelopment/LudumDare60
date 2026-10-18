@@ -49,8 +49,11 @@ complete; implementation is proceeding in the order below.
   Verified: 66 unit tests, 84 browser tests; reviewed `18-wind-approach-*` at both sizes.
   Instrument space is reserved above the envelope; heat gauge marks load-dependent hover temperature.
   Screenshot exports retry only transient file access errors and settle screen transitions.
-- [ ] **I19 — Real delivery state** (~90m)
+- [x] **I19 — Real delivery state** (~90m)
   One visible teddy pickup, carried cargo, matching nursery recipient, and grateful completion.
+  Verified: 69 unit tests, 86 browser tests; reviewed `19-cargo-pickup-*` and `19-cargo-home-*`.
+  Empty/wrong parcels cannot complete a delivery; pickup/delivery state is hashed and replayed.
+  The existing parcel icon and recipient marker will receive their final art in I22.
 - [ ] **I20 — Nursery tutorial route** (~90m)
   Safe teaching geometry, useful altitude choice, readable destination; legal replay with hazards on.
 - [ ] **I21 — Charlotte and craft** (~90m)

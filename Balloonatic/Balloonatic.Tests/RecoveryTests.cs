@@ -10,7 +10,7 @@ public class RecoveryTests
     public void Every_loadout_can_cool_descend_and_land_without_another_bag(int bags)
     {
         LevelDef calm = new("calm", "Calm", 400, new[]{new WindBand(0,400,1,1)}, System.Array.Empty<GustZone>(),600,60);
-        SimState state = new(){Seed=1234, X=600, Altitude=160, BallastHeld=bags, VelocityY=0};
+        SimState state = new(){Seed=1234, X=600, Altitude=160, BallastHeld=bags, VelocityY=0, Cargo=calm.Package};
         for(int i=0;i<1200 && !state.Delivered;i++)
         {
             state.X=600; state.VelocityX=0; // isolates descent from the wind puzzle
