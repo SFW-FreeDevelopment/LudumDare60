@@ -46,8 +46,8 @@ Windows desktop head for iteration and a Blazor WebGL head that is the actual su
 ## Current submission status
 The three-course concept and improvement queue are implemented; current technical verification and
 archive details live in `docs/SUBMISSION.md`. Steven approved the initial flight feel and completed
-the listening review on October 18, 2026: *"Sounds are good"*. Public hosting and the final jam-entry
-upload remain Steven's submission steps.
+the listening review on October 18, 2026: *"Sounds are good"*. The game is now publicly playable at
+https://stevengarberg.itch.io/charlottes-balloonatic (I36). The Ludum Dare entry workflow remains next.
 The I31–I35 playtest corrections and refreshed archive are verified under I34 (`ld60-review-v3`).
 Steven confirmed the world-sign jitter is fixed; the updated preview includes the clarified rest perch.
 

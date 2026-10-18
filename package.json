@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "dotnet run --project Balloonatic/Balloonatic.Desktop -c Release",
     "art": "node tools/build-art.cjs",
+    "itch:art": "node tools/build-itch.cjs",
     "build": "dotnet build Balloonatic/Balloonatic.sln -c Release",
     "unit": "dotnet test Balloonatic/Balloonatic.sln -c Release",
     "web": "dotnet publish Balloonatic/Balloonatic.Blazor.GL -c Release -o export/web",
@@ -15,7 +16,8 @@
     "shot": "playwright test --grep @shot --update-snapshots",
     "check": "npm run build && npm run unit && npm run web && playwright test",
     "audio": "node audio/.audio/generate.js",
-    "verify:web": "node tools/verify-web.cjs"
+    "verify:web": "node tools/verify-web.cjs",
+    "verify:itch": "node tools/verify-itch.cjs"
   },
   "devDependencies": {
     "@playwright/test": "^1.64.1"

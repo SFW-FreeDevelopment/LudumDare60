@@ -1,5 +1,7 @@
 # Charlotte's Balloonatic
 
+Play in your browser: **https://stevengarberg.itch.io/charlottes-balloonatic**
+
 A small sky adventure for Charlotte, built for Ludum Dare 60's **Old Tech** theme. Fly a wicker
 hot-air balloon with Charlotte and her bunny: hold the burner to rise, release early to cool and
 settle, and choose your altitude to ride the wind. Deliver a bottle to the nursery, reunite a lost

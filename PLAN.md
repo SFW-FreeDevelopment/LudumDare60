@@ -144,6 +144,17 @@ recoverable flight, one meaningful beautiful delivery, readable UI and WebGL val
 
 ## Playtest corrections — October 18
 
+- [x] **I36 — Cute, playable itch.io page** (~90m)
+  Set up Steven's logged-in itch.io project with reproducible storefront art, readable cozy styling,
+  actual game screenshots and the verified WebGL ZIP. Prove hosted browser play and public access;
+  record the URL and leave the Ludum Dare entry workflow for Steven's next request.
+  Verified: zero compiler warnings, 182 unit tests and 124 browser tests. Published at
+  https://stevengarberg.itch.io/charlottes-balloonatic in Steven's verified Chrome account. Four
+  Aseprite storefront exports reproduce byte for byte. Anonymous production tests at 1280×720 and
+  420×760 prove public access, real keyboard input, all three deliveries, perched rest and clean
+  credits, with zero errors/failed downloads. Reviewed `36-itch-{page,copy,flight}-*`; saved the page
+  copy, theme and production report under `art/itch/`. Ludum Dare page remains untouched.
+
 - [x] **I31 — Credits menu copy** (~30m)
   Remove the sound-provider credit and any AI wording from the player-facing credits menu.
   Assert the displayed copy through the bridge and review desktop/narrow credits.
@@ -305,7 +316,8 @@ recoverable flight, one meaningful beautiful delivery, readable UI and WebGL val
   put on the entry page.
   *Status:* corrected review archive, isolated clone, HTTP ZIP checks and entry copy verified under I34.
   `ld60-review-v3` identifies this candidate; earlier review/submission tags are preserved. Listening is
-  approved; public hosting and the actual final jam-entry upload remain open; see `docs/SUBMISSION.md`.
+  approved and public itch.io hosting is complete under I36. The Ludum Dare page and final jam-entry
+  upload remain open; see `docs/SUBMISSION.md`.
 
 ### Stretch (in order, only when I13 is safe)
 Level 4 Moonlight Bay · Level 5 Star Observatory · ending crib scene ("Sweet dreams, Charlotte.

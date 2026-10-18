@@ -1,7 +1,7 @@
 # LD entry copy — Charlotte's Balloonatic
 
 Review copy for the Ludum Dare 60 **Jam** entry, theme **Old Tech**. The WebGL archive has index.html
-at its root. Add the final playable hosting URL when Steven publishes the entry.
+at its root. Playable URL: https://stevengarberg.itch.io/charlottes-balloonatic
 
 ## Blurb
 

@@ -1,0 +1,62 @@
+[
+  {
+    "viewport": "desktop",
+    "mode": "desktop",
+    "url": "https://stevengarberg.itch.io/charlottes-balloonatic",
+    "gameUrl": "https://html-classic.itch.zone/html/19840176/index.html?v=1792304148",
+    "ready": true,
+    "public": true,
+    "realHeatInput": true,
+    "creditsClean": true,
+    "perchParked": true,
+    "voyage": [
+      {
+        "level": "nursery-skies",
+        "hearts": 3,
+        "stars": 3
+      },
+      {
+        "level": "winding-trail",
+        "hearts": 3,
+        "stars": 3
+      },
+      {
+        "level": "night-crossing",
+        "hearts": 2,
+        "stars": 3
+      }
+    ],
+    "errors": [],
+    "failures": []
+  },
+  {
+    "viewport": "narrow",
+    "mode": "mobile browser; keyboard/mouse required",
+    "url": "https://stevengarberg.itch.io/charlottes-balloonatic",
+    "gameUrl": "https://html-classic.itch.zone/html/19840176/index.html?v=1792304148",
+    "ready": true,
+    "public": true,
+    "realHeatInput": true,
+    "creditsClean": true,
+    "perchParked": true,
+    "voyage": [
+      {
+        "level": "nursery-skies",
+        "hearts": 3,
+        "stars": 3
+      },
+      {
+        "level": "winding-trail",
+        "hearts": 3,
+        "stars": 3
+      },
+      {
+        "level": "night-crossing",
+        "hearts": 2,
+        "stars": 3
+      }
+    ],
+    "errors": [],
+    "failures": []
+  }
+]

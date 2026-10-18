@@ -1,0 +1,13 @@
+{
+  "background": "#d7d7fb",
+  "body": "#fbe8c7",
+  "text": "#372229",
+  "links": "#a92b64",
+  "buttons": "#a92b64",
+  "font": "Lora",
+  "embed": {
+    "width": 960,
+    "height": 540,
+    "fullscreen": true
+  }
+}

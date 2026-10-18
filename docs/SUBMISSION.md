@@ -1,7 +1,7 @@
-# WebGL review candidate
+# WebGL release and itch.io page
 
-This corrected local review build was prepared October 18, 2026. Public hosting and the jam-entry
-upload have not been performed. Steven approved initial flight feel with **"Seems to feel fine at
+This corrected build was prepared October 18, 2026 and published on itch.io under I36. The Ludum Dare
+entry has not been updated. Steven approved initial flight feel with **"Seems to feel fine at
 first play"** and audio with **"Sounds are good"**. His follow-up **"Jitter is fixed"** confirms I32.
 The unclear Breeze Perch prompted I35: a wider rest deck, stable parking and explicit takeoff guidance.
 
@@ -62,9 +62,21 @@ individual playtest-correction evidence. The refreshed desktop preview is open f
 
 ## Remaining submission work
 
-- Choose the public browser-game host, upload the archive and add its playable URL to the jam entry.
-  Updated entry copy is in `docs/LD_ENTRY.md`.
-- Original I13 remains the public submission gate. This review package does not claim an upload.
+- Public game: https://stevengarberg.itch.io/charlottes-balloonatic — free browser play, published in
+  Steven Garberg's verified Chrome account. Project ID `5179249`; uploaded WebGL build `19840176`.
+- The cover, title banner, cloud/heart background and scenic launch panel come from `npm run itch:art`.
+  Four PNG exports reproduce byte for byte through Aseprite MCP; sources are in `art/itch/src/`.
+  The page uses cream/lavender/plum colors, Lora type, four real gameplay images and clear controls.
+- `npm run verify:itch -- https://stevengarberg.itch.io/charlottes-balloonatic` uses fresh anonymous
+  browser contexts. Desktop and mobile-browser views load the public page and actual iframe, accept
+  real Enter/Space input, complete all three normal-collision routes, park on the perch and verify
+  clean credits. Both runs have zero browser errors or failed requests. Desktop evidence is 1280×720;
+  mobile evidence is 420×760 at DPR 1. Mobile retains itch.io's compatibility warning because the game
+  requires keyboard/mouse; touch support is not advertised. Reviewed `36-itch-{page,copy,flight}-*`.
+- Page copy has no tool/provider branding. itch.io's mandatory generation disclosure is completed
+  accurately; the asset source records remain in the repository.
+- Original I13 still needs the Ludum Dare page, playable URL and final entry submission. Steven
+  explicitly deferred that workflow until after itch.io setup; no Ludum Dare edits were made.
 
 ## Repeat the artifact check
 

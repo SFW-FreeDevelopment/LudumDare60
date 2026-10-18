@@ -12,6 +12,10 @@ so the page before WASM loads follows the same art and type rules as the game.
 World sign and recipient-tag slices also use the shared glyph masks. Their board, lettering and post
 are exported together, so camera travel moves one sprite rather than independently rounded text.
 
+`npm run itch:art` composes the storefront cover, banner, repeating background and launch panel from
+these same sprites and glyphs, then exports PNGs and `.aseprite` sources through Aseprite MCP under
+`art/itch/`. `theme.json` records the page colors/type/embed and `description.html` holds its copy.
+
 Art-authoring prerequisites: Node, uv, Aseprite, and the Python Aseprite MCP server. Set
 `ASEPRITE_MCP_DIR` to the server checkout and `ASEPRITE_PATH` to the executable if they are outside
 the usual `~/Repos/aseprite-mcp` and Steam locations. The build reuses the same stdio entry point as
