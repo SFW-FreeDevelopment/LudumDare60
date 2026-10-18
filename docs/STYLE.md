@@ -10,7 +10,9 @@ an in-game texture. Current evidence is `docs/screenshots/21-*` through `30-*`.
 - Design space: **640×360**. Internal sprite/render density: **1280×720**.
 - World positions snap to half a design pixel; UI text snaps to whole design pixels. Moving world
   signs have lettering and board baked into one Aseprite sprite, sharing the platform grid.
-- Nearest-neighbor, integer upscaling while the design canvas fits; fractional reduction below ×1.
+- Nearest-neighbor presentation fills the largest 16:9 area available, including fractional scales.
+  Steven's itch.io frame correction supersedes the original whole-number upscaling rule: a 960×540
+  embed uses scale1.5 rather than surrounding a 640×360 game with unused space.
 - Render-time letterboxing uses `Theme.LetterBox`. The canvas follows its page/container size.
 - Review at 1280×720 and 420×760. Narrow presentation still requires keyboard or mouse input.
 

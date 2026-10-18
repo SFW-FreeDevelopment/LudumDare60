@@ -1,18 +1,18 @@
 # WebGL release and itch.io page
 
-This corrected build was prepared October 18, 2026 and published on itch.io under I36. The Ludum Dare
+This corrected build was prepared October 18, 2026 and published on itch.io under I36, then updated
+under I37 to fill the host frame. The Ludum Dare
 entry has not been updated. Steven approved initial flight feel with **"Seems to feel fine at
 first play"** and audio with **"Sounds are good"**. His follow-up **"Jitter is fixed"** confirms I32.
 The unclear Breeze Perch prompted I35: a wider rest deck, stable parking and explicit takeoff guidance.
 
 ## Artifact and source
 
-- Archive: `dist/charlottes-balloonatic-ld60-web.zip`, **15,701,197 bytes (14.97 MiB)**.
-- SHA-256: `5359177AB2D24AA059754BBB6FD0FA3C7A99DBE0AF0129506390B7DF6A42AD27`.
+- Archive: `dist/charlottes-balloonatic-ld60-web.zip`, **15,700,810 bytes (14.97 MiB)**.
+- SHA-256: `58C5232C1580D9012A847F750560EDC80502D2BE4FE2938986B80AE7CA4B9006`.
 - `index.html` is at the archive root. Serve over HTTP; file URLs cannot boot WASM.
-- Runtime and generated assets: `566e482` (I35), including the I31–I33 playtest corrections.
-- Review tag: `ld60-review-v3`, including this verification record and the refreshed entry copy.
-  Earlier `ld60-review-v2` and `ld60-submit` tags are preserved.
+- Runtime: I37 frame-fit fix atop `9882684`, including the I31–I36 playtest and hosting changes.
+- Review tag: `ld60-review-v4`. Earlier review/submission tags are preserved.
 
 The credits menu and entry copy have no AI or sound-provider credits. World signs have baked lettering that
 moves with their boards. Basket-foot contacts support deck edges, and a landed basket can slide into
@@ -21,17 +21,17 @@ warms the burner and lifts off. Internal source/provenance records remain with t
 
 ## Verification
 
-`npm run check` passes **182 unit tests and 124 Playwright tests**, with zero compiler warnings or
+`npm run check` passes **182 unit tests and 126 Playwright tests**, with zero compiler warnings or
 errors across the pure core, shared game, desktop and WebGL heads. Browser assertions use the real
 `window.__GAME` bridge. Screenshots are separately reviewed at 1280×720 and 420×760.
 
-An isolated GitHub clone under `_scratch/review-v3-clean` passed `npm ci`, art/audio re-export and the
-full check at the final runtime commit. All **18 regenerated exports** match the working candidate
+The earlier I34 candidate (`566e482`, `ld60-review-v3`) was verified from an isolated GitHub clone
+under `_scratch/review-v3-clean`: `npm ci`, art/audio re-export and the full check. All **18 regenerated exports** matched that candidate
 byte for byte: atlas/slices, boot styling/images/labels, and eight mastered WAVs. Art re-export uses
 the Aseprite MCP; audio mastering uses archived source renders. Normal builds require neither
 authoring tool.
 
-The root publish started with the previous `export/web` moved aside. The new ZIP was extracted into
+For that I34 package audit, the root publish started with the previous `export/web` moved aside. Its ZIP was extracted into
 `_scratch/zip-v3-final` and tested over compressed and raw HTTP, rather than from the development tree.
 The compressed archive transferred **4,360,495 bytes (4.16 MiB)** over 82 requests. Local first-frame
 readiness was **732 / 780 ms** (desktop / narrow). With music, burner and breeze actively playing,
@@ -63,7 +63,7 @@ individual playtest-correction evidence. The refreshed desktop preview is open f
 ## Remaining submission work
 
 - Public game: https://stevengarberg.itch.io/charlottes-balloonatic — free browser play, published in
-  Steven Garberg's verified Chrome account. Project ID `5179249`; uploaded WebGL build `19840176`.
+  Steven Garberg's verified Chrome account. Project ID `5179249`; current WebGL build `19840864`.
 - The cover, title banner, cloud/heart background and scenic launch panel come from `npm run itch:art`.
   Four PNG exports reproduce byte for byte through Aseprite MCP; sources are in `art/itch/src/`.
   The page uses cream/lavender/plum colors, Lora type, four real gameplay images and clear controls.
@@ -73,6 +73,12 @@ individual playtest-correction evidence. The refreshed desktop preview is open f
   clean credits. Both runs have zero browser errors or failed requests. Desktop evidence is 1280×720;
   mobile evidence is 420×760 at DPR 1. Mobile retains itch.io's compatibility warning because the game
   requires keyboard/mouse; touch support is not advertised. Reviewed `36-itch-{page,copy,flight}-*`.
+- I37's replacement ZIP fills the 960×540 iframe at scale1.5. Presentation preserves aspect ratio
+  without rounding the scale down to a whole design multiple. New local resize tests cover 960×540,
+  1024×576, 800×600, 420×760 and 1280×720, unchanged simulation hashes and pointer alignment. The
+  hosted check now rejects unused frame space through `window.__GAME.metrics()`. It passes the new
+  upload at both sizes with real heat input and all three routes. Reviewed `37-embed-*` and
+  `37-itch-flight-*`; the hosted geometry/route report is `art/itch/verification.json`.
 - Page copy has no tool/provider branding. itch.io's mandatory generation disclosure is completed
   accurately; the asset source records remain in the repository.
 - Original I13 still needs the Ludum Dare page, playable URL and final entry submission. Steven

@@ -3,11 +3,11 @@
   "url": "https://stevengarberg.itch.io/charlottes-balloonatic",
   "editUrl": "https://itch.io/game/edit/5179249",
   "projectId": 5179249,
-  "buildId": 19840176,
+  "buildId": 19840864,
   "published": "2026-10-18",
   "pricing": "free; no payments",
   "archive": "dist/charlottes-balloonatic-ld60-web.zip",
-  "archiveSha256": "5359177AB2D24AA059754BBB6FD0FA3C7A99DBE0AF0129506390B7DF6A42AD27",
+  "archiveSha256": "58C5232C1580D9012A847F750560EDC80502D2BE4FE2938986B80AE7CA4B9006",
   "screenshots": [
     "docs/screenshots/35-perch-takeoff-desktop.png",
     "docs/screenshots/35-perch-rest-desktop.png",

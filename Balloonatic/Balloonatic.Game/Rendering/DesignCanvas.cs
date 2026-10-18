@@ -7,8 +7,8 @@ namespace Balloonatic.Rendering
 {
     /// <summary>
     /// Renders the game at the fixed 640x360 design resolution and presents it scaled into whatever
-    /// the window or canvas actually is: integer scaling while it still fits, fractional only when the
-    /// viewport is smaller (a phone in the LD page), always nearest-neighbour, always letterboxed.
+    /// the window or canvas actually is: fit the available area, preserving aspect ratio and using
+    /// nearest-neighbour sampling. Letterboxing is only needed when the aspect ratios differ.
     /// One code path for the desktop head and the WebGL head, so what I see in a browser is what the
     /// entry shows.
     ///
@@ -178,8 +178,6 @@ namespace Balloonatic.Rendering
             int surfaceHeight = pp.BackBufferHeight > 0 ? pp.BackBufferHeight : _device.Viewport.Height;
 
             float scale = Math.Min(surfaceWidth / (float)Width, surfaceHeight / (float)Height);
-            if (scale >= 1f)
-                scale = (float)Math.Floor(scale);
             _scale = scale;
 
             int drawW = (int)Math.Round(Width * scale);

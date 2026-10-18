@@ -1,6 +1,6 @@
 # Build baseline and verification harness
 
-Current candidate contracts include I23–I35 below. Earlier sections record the scaffold history;
+Current candidate contracts include I23–I37 below. Earlier sections record the scaffold history;
 the final measured build and packaging audit is in [SUBMISSION.md](SUBMISSION.md).
 
 Numbers are recorded so later initiatives have something to compare against instead of a feeling.
@@ -437,3 +437,9 @@ basket at its contact point, with zero horizontal velocity; holding heat unmoors
 warms for takeoff. Delivery decks retain their sliding rule. Nearby HUD hints teach rising above the
 deck and releasing heat; a parked basket displays `REST + READ WIND` and `HOLD SPACE TO LIFT`.
 `state.parked` is derived from perch contact, heat and velocity. Evidence: `35-perch-{rest,takeoff}-*`.
+
+I37: presentation fits the largest 16:9 rectangle in the available backbuffer, including fractional
+scales. The 960×540 itch.io frame uses scale1.5, filling both axes. Pixel snapping and nearest-neighbor
+sampling remain; only aspect-ratio differences create letterboxing. Resizing does not change sim
+hashes, and pointer hit testing uses the exact presentation scale and offsets. The production itch.io
+check now asserts this geometry through `window.__GAME.metrics()` before testing gameplay.

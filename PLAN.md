@@ -144,6 +144,15 @@ recoverable flight, one meaningful beautiful delivery, readable UI and WebGL val
 
 ## Playtest corrections — October 18
 
+- [x] **I37 — Fill the itch.io game frame** (~60m)
+  Replace whole-number-only presentation scaling with aspect-preserving fit. Assert 960×540 and
+  other non-integer sizes, letterboxing only for aspect differences, and pointer alignment after
+  resizing. Replace the hosted ZIP and verify the actual itch.io iframe through the bridge.
+  Verified: zero compiler warnings, 182 unit tests and 126 browser tests. Resizes preserve hashes;
+  clicks work at scale1.5. The uploaded build `19840864` reports a 960×540 backbuffer and scale1.5,
+  filling the actual iframe. Anonymous desktop/mobile tests retain real input and all three legal
+  deliveries with zero errors or failed requests. Reviewed `37-embed-*` and `37-itch-flight-*`.
+
 - [x] **I36 — Cute, playable itch.io page** (~90m)
   Set up Steven's logged-in itch.io project with reproducible storefront art, readable cozy styling,
   actual game screenshots and the verified WebGL ZIP. Prove hosted browser play and public access;

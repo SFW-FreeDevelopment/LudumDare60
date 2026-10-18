@@ -261,11 +261,9 @@ test('the canvas owns the page and the design frame letterboxes inside it', asyn
   expect(values.backbuffer).toBe(`${geometry.canvasWidth}x${geometry.canvasHeight}`);
   expect(Number(values.frames)).toBeGreaterThan(0);
 
-  // 640x360 scaled to fit: whole-number scale while it fits, fractional only when the viewport is
-  // smaller than the design size (a phone in the entry page).
+  // Fit the available area, including host frames between whole design multiples (960x540).
   const raw = Math.min(geometry.canvasWidth / 640, geometry.canvasHeight / 360);
-  const expectedScale = raw >= 1 ? Math.floor(raw) : raw;
-  expect(Number(values.scale)).toBeCloseTo(expectedScale, 3);
+  expect(Number(values.scale)).toBeCloseTo(raw, 3);
 });
 
 test('I9 hazards: warp onto a rock and the mirror spends a heart @smoke', async ({ page }) => {

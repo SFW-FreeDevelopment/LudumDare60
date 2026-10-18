@@ -1,6 +1,7 @@
 // Anonymous production smoke checks for our own itch.io page and uploaded WebGL build.
 const {chromium,devices}=require('@playwright/test'),assert=require('node:assert/strict'),path=require('node:path'),fs=require('node:fs');
 const url=process.argv[2],buildOnly=process.argv.includes('--build');
+const prefix=process.env.GAME_PROOF_PREFIX||'36-itch';
 if(!url)throw Error('Pass the public page URL, or a hosted build URL with --build.');
 (async()=>{
  const browser=await chromium.launch(),report=[];
@@ -11,7 +12,7 @@ if(!url)throw Error('Pass the public page URL, or a hosted build URL with --buil
   const response=await page.goto(url,{waitUntil:'domcontentloaded',timeout:180000});
   if(!response.ok())console.error({status:response.status(),retryAfter:response.headers()['retry-after'],body:(await page.locator('body').innerText()).slice(0,1200)});
   assert(response.ok(),`HTTP ${response.status()}`);
-  const shot=pose=>page.screenshot({path:path.join(__dirname,`../docs/screenshots/36-itch-${pose}-${name}.png`)});
+  const shot=pose=>page.screenshot({path:path.join(__dirname,`../docs/screenshots/${prefix}-${pose}-${name}.png`)});
   let game=page;
   if(!buildOnly){
    await page.getByRole('heading',{name:'🎈 Float. Explore. Deliver dreams.',exact:true}).waitFor();
@@ -23,6 +24,11 @@ if(!url)throw Error('Pass the public page URL, or a hosted build URL with --buil
    game=await (await page.locator('iframe#game_drop').elementHandle()).contentFrame();
   }
   await game.waitForFunction(()=>window.__GAME?.ready===true,null,{timeout:180000});
+  const fit=await game.evaluate(async()=>{const c=document.querySelector('#theCanvas');const m=Object.fromEntries((await window.__GAME.metrics()).split(';').map(p=>p.split('=')));return {width:c.width,height:c.height,scale:Number(m.scale),backbuffer:m.backbuffer};});
+  const expectedScale=Math.min(fit.width/640,fit.height/360);
+  assert(Math.abs(fit.scale-expectedScale)<.001,`Game leaves unused host space: ${JSON.stringify(fit)}`);
+  assert.equal(fit.backbuffer,`${fit.width}x${fit.height}`);
+  if(fit.width*9===fit.height*16){assert(Math.abs(fit.width-640*fit.scale)<1);assert(Math.abs(fit.height-360*fit.scale)<1);}
   assert.equal(await game.evaluate(()=>window.__GAME.screen()),'menu');
   const canvas=game.locator('#theCanvas');await canvas.press('Enter');
   await game.waitForFunction(async()=>await window.__GAME.screen()==='world');
@@ -41,7 +47,7 @@ if(!url)throw Error('Pass the public page URL, or a hosted build URL with --buil
   const perch=await game.evaluate(()=>window.__GAME.state());assert.equal(perch.parked,true);assert.equal(perch.hint,'PERCHED: SPACE');
   await game.waitForTimeout(350);if(!buildOnly){await page.locator('iframe#game_drop').scrollIntoViewIfNeeded();await shot('flight');}
   assert.deepEqual(errors,[]);assert.deepEqual(failures,[]);
-  report.push({viewport:name,mode:!buildOnly&&name==='narrow'?'mobile browser; keyboard/mouse required':'desktop',url,gameUrl:game.url(),ready:true,public:!buildOnly,realHeatInput:true,creditsClean:true,perchParked:true,voyage,errors,failures});await context.close();
+  report.push({viewport:name,mode:!buildOnly&&name==='narrow'?'mobile browser; keyboard/mouse required':'desktop',url,gameUrl:game.url(),ready:true,public:!buildOnly,fit,realHeatInput:true,creditsClean:true,perchParked:true,voyage,errors,failures});await context.close();
  }}finally{await browser.close();}
- fs.mkdirSync(path.join(__dirname,'../_scratch'),{recursive:true});fs.writeFileSync(path.join(__dirname,'../_scratch/i36-host-proof.json'),JSON.stringify(report,null,2));console.log(JSON.stringify(report,null,2));
+ fs.mkdirSync(path.join(__dirname,'../_scratch'),{recursive:true});fs.writeFileSync(path.join(__dirname,prefix==='36-itch'?'../_scratch/i36-host-proof.json':`../_scratch/${prefix}-proof.json`),JSON.stringify(report,null,2));console.log(JSON.stringify(report,null,2));
 })().catch(e=>{console.error(e);process.exitCode=1;});

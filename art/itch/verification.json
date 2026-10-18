@@ -3,9 +3,15 @@
     "viewport": "desktop",
     "mode": "desktop",
     "url": "https://stevengarberg.itch.io/charlottes-balloonatic",
-    "gameUrl": "https://html-classic.itch.zone/html/19840176/index.html?v=1792304148",
+    "gameUrl": "https://html-classic.itch.zone/html/19840864/index.html?v=1792307186",
     "ready": true,
     "public": true,
+    "fit": {
+      "width": 960,
+      "height": 540,
+      "scale": 1.5,
+      "backbuffer": "960x540"
+    },
     "realHeatInput": true,
     "creditsClean": true,
     "perchParked": true,
@@ -33,9 +39,15 @@
     "viewport": "narrow",
     "mode": "mobile browser; keyboard/mouse required",
     "url": "https://stevengarberg.itch.io/charlottes-balloonatic",
-    "gameUrl": "https://html-classic.itch.zone/html/19840176/index.html?v=1792304148",
+    "gameUrl": "https://html-classic.itch.zone/html/19840864/index.html?v=1792307186",
     "ready": true,
     "public": true,
+    "fit": {
+      "width": 420,
+      "height": 760,
+      "scale": 0.656,
+      "backbuffer": "420x760"
+    },
     "realHeatInput": true,
     "creditsClean": true,
     "perchParked": true,
