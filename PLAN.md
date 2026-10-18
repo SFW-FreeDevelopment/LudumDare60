@@ -7,6 +7,10 @@ One initiative = one commit, ticked here in that same commit. Each initiative is
 minutes. Work top to bottom; do not start a later initiative to avoid feeling a earlier one.
 
 ## Clock
+The clock and milestones below are the original scaffold's planning snapshot. For the October 17
+assessment and improvement queue, use the section immediately below; re-estimate remaining time
+before implementation.
+
 | | |
 | --- | --- |
 | Now | Sat Oct 17, ~05:00 EDT |
@@ -16,6 +20,55 @@ minutes. Work top to bottom; do not start a later initiative to avoid feeling a 
 
 Milestones: **feel gate** (I5) by Sun ~20:00 · **content freeze** (I10) by Mon 12:00 ·
 **audio+juice** (I12) by Mon 15:30 · **submission** (I13) 16:00–17:30.
+
+## Assessment and improvement queue — October 17
+
+Full findings, evidence, dependencies, acceptance criteria and cuts: [docs/ASSESSMENT.md](docs/ASSESSMENT.md).
+The original checked initiatives below remain implementation history; they are not a claim that the
+game meets the reference's creative bar. This queue takes priority over stretch work. Planning is
+complete; implementation of this queue has not started.
+
+- [x] **I15 — Assess current game and plan recovery** (documentation)
+  Compared the reference and shared conversation with code, desktop launch/idle behavior and published
+  WebGL probes; reviewed `docs/screenshots/15-assessment-*.png`. Verified Release build with zero
+  warnings/errors, 58 unit tests and 78 Chromium tests at both viewports. Confirmed empty-ballast
+  descent trap, volume-9 audio failure, missing cargo/recipient state, and hazard-disabled route proof.
+- [ ] **I16 — Audio settings reliability** (~60m)
+  Correct 0–10 normalization and independent music/SFX/burner control; browser endpoint/mute regression.
+- [ ] **I17 — Recoverable flight** (~90m)
+  Landable 0/1/2-bag loadouts, clearer thermal response, forgiving course recovery; human flight gate.
+- [ ] **I18 — Readable wind and approach** (~90m)
+  Wind ladder/neighbor preview, matching world cues, and gentle/fast approach feedback.
+- [ ] **I19 — Real delivery state** (~90m)
+  One visible teddy pickup, carried cargo, matching nursery recipient, and grateful completion.
+- [ ] **I20 — Nursery tutorial route** (~90m)
+  Safe teaching geometry, useful altitude choice, readable destination; legal replay with hazards on.
+- [ ] **I21 — Charlotte and craft** (~90m)
+  Reference-led rounded balloon, readable Charlotte/bunny, portrait and minimal reactions.
+- [ ] **I22 — Nursery environment assets** (~90m)
+  One nursery landmark/recipient, coherent island modules and rounded cloud variants; reproducible sources.
+- [ ] **I23 — Compose the sky** (~90m)
+  Replace dominant ground slab with cloud depth, authored scenery and a clear arrival; calm parallax.
+- [ ] **I24 — Type, HUD and narrow readability** (~90m)
+  Shared readable type/layout and cargo HUD; real focus/hit targets and both viewport reviews.
+- [ ] **I25 — Title and menu composition** (~90m)
+  Illustrated title/logo, clear Start Adventure/dedication, short teaching copy and illustrated courses.
+- [ ] **I26 — Voyage and closure** (~60m)
+  Distinct destination thumbnails, truthful progress, remembered results/settings and a simple dedication.
+- [ ] **I27 — Toy Isles** (~90m)
+  Distinct toy landmark and opposing-wind delivery, using the approved kit; active-hazard route proof.
+- [ ] **I28 — Cloud Garden** (~90m)
+  Garden/windmill landmark, telegraphed gust challenge and safe approach; active-hazard route proof.
+- [ ] **I29 — Dream-world sound** (~60m)
+  Gentle music-box character, restrained mix and appropriate Charlotte reactions; provenance and listening gate.
+- [ ] **I30 — Submission revalidation** (~90m)
+  Full gates, real-collision voyage, settings/reload/focus-loss coverage, both viewport reviews and
+  fresh WebGL/archive smoke. Reconcile STYLE/credits/completion claims and finish I13's ship requirements.
+
+**Budget:** I16–I25 ~14.5 focused hours; the rest ~6.5 hours, plus 2–3 hours contingency.
+Judge controls after I20 and the full first slice after I25 before extending it.
+**Cut first:** I27–I28, elaborate progression/map work, collectibles and extra animation. Preserve
+recoverable flight, one meaningful beautiful delivery, readable UI and WebGL validation.
 
 ## Design decisions (answers to `docs/CONCEPT.md` §16)
 1. **Burner:** hold-to-heat with a temperature integrator. No intensity slider — one verb, and the
