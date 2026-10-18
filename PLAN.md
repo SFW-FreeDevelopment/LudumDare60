@@ -112,6 +112,8 @@ complete; implementation is proceeding in the order below.
   prompts/sources, byte-reproducible offline mastering, independent music/effects/ambience routing.
   Reviewed `29-concern-*` and `29-joy-*`; payload ~4.21 MiB, local frame cadence ~16.67 ms.
   **Pending: Steven's listening review** of music, loop joins, effects and mix. The box remains open.
+  Steven clarified: *"I had played with audio off because I didn't know you did that yet"*.
+  Playback/level measurements establish technical health; they do not substitute for listening.
 - [x] **I30a — Close browser interaction and motion edges** (~60m)
   Final audit follow-up: pause safely on focus loss, return from pause settings to the flight,
   freeze remaining decorative frames under Reduced Motion, and prove the full voyage with collisions.
@@ -124,9 +126,16 @@ complete; implementation is proceeding in the order below.
   logo, clouds, palette and pixel glyphs during cold boot, then remove the shell on renderer readiness.
   Verified: `npm run art` palette audit; Release build zero warnings, 83 unit tests and 118 browser
   tests. Held cold boot and ready menu screenshots (`30-branded-*`) opened and judged at both sizes.
-- [ ] **I30 — Submission revalidation** (~90m)
+- [x] **I30 — Submission revalidation** (~90m)
   Full gates, real-collision voyage, settings/reload/focus-loss coverage, both viewport reviews and
   fresh WebGL/archive smoke. Reconcile STYLE/credits/completion claims and prepare I13's review candidate.
+  Verified: root and fresh-clone full gates, zero compiler warnings, 83 unit tests and 118 browser
+  tests. Eighteen art/audio re-exports match byte for byte. Clean publish and extracted ZIP prove the
+  normal-collision voyage, active WebAudio, replay and storage reload at both sizes, with zero errors.
+  Compressed transfer 4.15 MiB; active-audio frame cadence ~16.67 ms; raw-host boot also passes.
+  Opened and judged all final `30-package-*` desktop/narrow views; entry/style/provenance reconciled.
+  Archive, SHA-256 and review tag are recorded in `docs/SUBMISSION.md`. I29/I11 listening and I13's
+  public submission remain explicit human gates; this is a verified local review candidate.
 
 **Budget:** I16–I25 ~14.5 focused hours; the rest ~6.5 hours, plus 2–3 hours contingency.
 Judge controls after I20 and the full first slice after I25 before extending it.
@@ -242,6 +251,7 @@ recoverable flight, one meaningful beautiful delivery, readable UI and WebGL val
   `assets/audio/SOURCES.md`; volumes live in settings; every call behind a mute check so a missing clip
   can never throw in the browser.
   *Done when:* the WebGL build boots and plays with zero console errors, and Steven has listened.
+  *Status:* replaced and technically verified under I29; human listening remains open after a muted playtest.
 - [x] **I12 — Juice + performance** (~90m)
   Burner puffs, star sparkles, sand puffs, basket sway, delivery celebration, screen shake behind the
   reduced-motion setting, screen transitions; then a budget pass: boot time, payload size, 60 fps in a
@@ -254,6 +264,9 @@ recoverable flight, one meaningful beautiful delivery, readable UI and WebGL val
   archive; `ld60-submit` tag.
   *Done when:* the submission checklist is run end to end and the last screenshot is one Steven would
   put on the entry page.
+  *Status:* improved review archive, fresh clone, HTTP ZIP checks and entry copy verified under I30.
+  `ld60-review-v2` identifies this candidate; the earlier `ld60-submit` tag is preserved. Listening,
+  public hosting and the actual final jam-entry upload remain open; see `docs/SUBMISSION.md`.
 
 ### Stretch (in order, only when I13 is safe)
 Level 4 Moonlight Bay · Level 5 Star Observatory · ending crib scene ("Sweet dreams, Charlotte.

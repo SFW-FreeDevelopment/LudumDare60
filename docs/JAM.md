@@ -43,10 +43,11 @@ Windows desktop head for iteration and a Blazor WebGL head that is the actual su
    size — audio is usually what makes a WebGL build fat.
 5. **Push policy:** `main` is pushed once per completed initiative.
 
-## Still open
-- The concept paragraph (blocking `PLAN.md`).
-- Submission logistics: where the WebGL build is hosted for the entry page, and the archive that goes
-  with it.
+## Current submission status
+The three-course concept and improvement queue are implemented; current technical verification and
+archive details live in `docs/SUBMISSION.md`. Steven approved the initial flight feel; the listening
+review remains open in `PLAN.md` because his playtest was muted. Public hosting and the final
+jam-entry upload remain Steven's submission steps.
 
 ## References
 - KNI engine: https://github.com/kniEngine/kni (templates: `nkast.Kni.Templates`)

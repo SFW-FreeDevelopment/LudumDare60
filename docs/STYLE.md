@@ -1,119 +1,101 @@
-# Charlotte's Balloonatic — STYLE (locked)
+# Charlotte's Balloonatic — STYLE
 
-The source of truth for every visual decision (AGENTS.md makes it one). The palette is **sampled from
-`docs/reference/concept-sheet.png`** — `tools/sample-palette.ps1` regenerates the evidence in
-`docs/reference/palette.txt` — and it exists in code in exactly one place:
-`Balloonatic/Balloonatic.Game/Theme.cs`. No other C# file may hold a colour literal, and no screen may
-draw a shape the kit does not own. If a screenshot and this file disagree, the screenshot is wrong.
+The implemented style is locked here. Palette values live in `Balloonatic/Balloonatic.Game/Theme.cs`;
+Aseprite's generator uses its matching `PAL`. New player-facing UI uses `Kit`, `UiLayout`, `PixelFont`
+and the shared sprite atlas. The concept sheet guides silhouette, color and mood; its panels are not
+an in-game texture. Current evidence is `docs/screenshots/21-*` through `30-*`.
 
-## Resolution and scaling (locked)
+## Canvas and pixels
 
-| Decision | Value |
+- Design space: **640×360**. Internal sprite/render density: **1280×720**.
+- World positions snap to half a design pixel; UI text snaps to whole design pixels.
+- Nearest-neighbor, integer upscaling while the design canvas fits; fractional reduction below ×1.
+- Render-time letterboxing uses `Theme.LetterBox`. The canvas follows its page/container size.
+- Review at 1280×720 and 420×760. Narrow presentation still requires keyboard or mouse input.
+
+## Palette
+
+These are the current values from Theme.cs, including the slate-blue cliffs restored in I22.
+
+| Group | Name / hex |
 | --- | --- |
-| Design canvas | **640 × 360** logical pixels, everything pixel-snapped to integer coordinates |
-| Upscaling | nearest-neighbour, **whole-number scale while it fits** (1280×720 = ×2) |
-| Small viewports | fractional scale allowed only below ×1 (a phone in the entry page) |
-| Letterboxing | render-time, always, in `DesignCanvas`; the bars are `Theme.LetterBox` |
-| Page canvas | sized to the page's CSS pixels by `shell.js`, which then tells the head that size |
-| Two viewports under test | 1280×720 and 420×760 — both get screenshots at every initiative |
+| Wood, paper, ink | `Ink` #0B1129 · `PanelBrown` #372229 · `WoodDark` #653A38 · `WoodMid` #B7633D · `WoodLight` #BD733E · `WickerDark` #875449 · `WickerLight` #D2B383 · `TagCream` #FBE8C7 · `SignCream` #F6C28B · `Cream` #FAF6F9 |
+| Sky | `NightIndigo` #1D1D44 · `NightBlue` #072467 · `SkyHigh` #1849AA · `SkyMid` #3775D7 · `SkyLow` #57A7FA · `SkyPale` #87A8F8 · `DuskTeal` #69BAC5 |
+| Clouds | `CloudLavender` #D7D7FB · `CloudShade` #B6B8FA · `CloudWhite` #FAF6F9 |
+| Balloon / flame | `BalloonCream` #FAF6F9 · `BalloonPinkLight` #FB9796 · `BalloonPink` #F96777 · `BalloonRed` #D1244B · `BalloonPlum` #A92B64 · `FlameYellow` #FFC21D · `FlameOrange` #FF9321 · `FlameRed` #E84E1B |
+| Islands / water | `LeafGreen` #36A565 · `GrassLight` #7CD487 · `MossGreen` #237A54 · `BarkBrown` #8D5726 · `RockSlate` #5D769B · `RockDark` #585687 · `WaterPale` #7FD7E0 · `WaterCyan` #5EC6F1 |
+| Charlotte / objects | `Skin` #F6C28B · `SkinShadow` #F48558 · `HairBrown` #8D5726 · `DressPink` #F974B5 · `SandTan` #D2B383 |
+| Instruments | `StarGold` #F1BF37 · `HeartPink` #F73E6A · `HeartEmpty` #74534F · `WindLowBand` #D7D7FB · `WindMidBand` #FFC21D · `WindHighBand` #5EC6F1 |
+| Wells / frame | `Dim` #241A1E · `LetterBox` #071022 |
 
-## Palette (locked)
+Art pixels are opaque or transparent, palette-audited after every export. UI colors come from Theme.
+Pause uses the ink veil at alpha150; the six-frame screen transition uses ink alpha140 down to zero.
+Reduced-motion damage uses neutral RGB150 sprite modulation instead of blinking. White in the canvas
+renderer is an identity texture/tint, rather than a visual palette color. The heat gauge is the sole
+gradient; other shading uses discrete clusters, ramps and outlined shapes.
 
-37 named values in `Theme.cs`, grouped by what they paint. The names below are the names in code.
+Within the HUD, pink reads as hearts, gold as rating/attention and lavender/gold/cyan identify wind.
+Fabric pink, brass gold and flower colors also belong naturally to their world objects. Raised wood
+uses lit top/left and shaded bottom/right edges; panel and glyph shadows use Ink.
 
-| Group | Name → hex |
-| --- | --- |
-| Chrome (wood, paper, ink) | `Ink` #21272B · `PanelBrown` #492C23 · `WoodDark` #372729 · `WoodMid` #8C4F2A · `WoodLight` #BD733E · `WickerDark` #815A3E · `WickerLight` #A8774A · `TagCream` #F1DBAB · `Cream` #F4EBD9 |
-| Sky, by altitude | `NightIndigo` #1D1D44 · `NightBlue` #324787 · `SkyBlue` #4D8ACD · `SkyPale` #79A2E8 · `DuskTeal` #69BAC5 |
-| Cloud mass | `CloudLavender` #B7B8E7 · `CloudWhite` #F5F6F9 |
-| Balloon and burner | `BalloonPinkLight` #F4AEB9 · `BalloonPink` #EF7C8D · `BalloonRed` #D1244B · `FlameYellow` #FFC42E · `FlameOrange` #FF9321 · `FlameRed` #E84E1B |
-| World | `LeafGreen` #36A565 · `GrassLight` #7CD487 · `MossGreen` #237A54 · `RockSlate` #5D769B · `RockDark` #3C4972 · `WaterPale` #7FD7E0 · `WaterCyan` #5EC6F1 |
-| Charlotte and her things | `Skin` #F6D5B8 · `HairBrown` #8D5726 · `SandTan` #D2B383 |
-| Information only | `StarGold` #F1BF37 (score, rating) · `HeartPink` #F73E6A (hearts) · `HeartEmpty` #74534F · `WindLowBand` #B7B8E7 · `WindMidBand` #FFC42E · `WindHighBand` #5EC6F1 |
-| Frame | `Dim` #2A1F1C (meter wells) · `LetterBox` #0B0E17 |
+## Subject and art
 
-Rules about them, not just a list:
+Old Tech reads through burner flame, thermometer, rope, wicker, sandbags, wooden decks and windsocks.
+No CRT, scanlines, phosphor, chromatic aberration, curved-glass filter, bloom or dither overlay.
 
-- **`Ink` outlines every UI shape.** Nothing sits unoutlined on sky; that is what makes the sheet's art read
-  as one picture, and it is the cheapest way to keep new art on-style.
-- **Saturated colour is information.** Gold means score or rating, pink means a life, the flame ramp means
-  burner heat, and the wind ramp (lavender → gold → cyan) means *which altitude band you are in*. Nothing
-  decorative may borrow them, or the readouts stop meaning anything.
-- **One light direction, always.** Anything raised uses `Theme.WoodRamp`: lit top and left, shaded bottom
-  and right. Panels, buttons, slats, baskets and gauges all modelled the same way.
-- No gradients except inside the heat gauge, no alpha below 0.85 except cloud haze, no anti-aliasing
-  anywhere, no pure `#FFFFFF` and no pure `#000000`.
+The hero is a rounded pink/cream balloon with visible rigging, a heart basket, Charlotte and her bunny.
+Idle, happy and worried expressions share the portrait and full craft. Carried parcels use distinct
+bottle/teddy/letter sprites. A nursery house, alphabet blocks and a flowered windmill identify the three
+destinations in flight, on the course selector and on the map. Blue/purple tapering cliffs, greenery,
+small flowers and cyan waterfalls sit over a sea of clouds. Dark gust clouds have a gold marker.
 
-## Old Tech — carried by the machine, not by a filter
+All raster art comes from the committed deterministic generator through Aseprite MCP, with named
+slices, .aseprite source and PNG exports. `npm run art` is the re-export command. Shared selectors in
+WorldArt keep parcel, landmark and reaction art consistent. The style diagnostic retains legacy kit
+geometry for component inspection; player art comes from the atlas.
 
-The theme is the balloon's 1890s technology: **burner flame, temperature gauge, sandbags, rope and wicker,
-windsocks and wooden platforms**, drawn in the same 16-bit style as everything else, and visible on the
-menu, the HUD and the game-over screen — not only during play.
+The WebGL cold-boot shell uses Aseprite crops from that same atlas. Its CSS palette and SVG labels
+are generated from Theme and the game's 5×7 glyph masks. The shell stays visible until the renderer
+and saved settings are ready, then gives way to the title; loading has no separate font or palette.
 
-Banned outright (docs/CONCEPT.md Amendment 2): scanlines, phosphor or bloom glow, curved glass, chromatic
-aberration, dithered overlays, CRT green or amber. The entry must not look like a photograph of a screen.
+## Type and controls
 
-## Type
+The custom 5×7 pixel face is drawn in code. The title logo is a generated Aseprite slice with a cream
+outline and pink shaded lettering. Body/heading scales come from Kit, rather than individual screens.
 
-One hand-authored **5×7 pixel font** (`Rendering/PixelFont.cs`): no font file in the payload, no content
-pipeline dependency, identical pixels on desktop and WebGL. Lowercase input maps to uppercase; UI copy is
-uppercase, like the sheet's own menus. The display lettering that needs personality — the logo — is drawn
-as art in I8, not set in a font.
-
-| Role | Font scale | Design px | Used for |
-| --- | --- | --- | --- |
-| Display | 4 | 20 | title logo (art, not type) |
-| Title | 3 | 15 | screen titles, "DELIVERED!", ratings |
-| Body | **2** | 10 | HUD labels, menu items — the minimum size for anything the player must read |
-| Micro | 1 | 5 | legends, digits inside a gauge, nothing at 420 px width |
-
-Every string over wood or sky gets a **one-pixel hard shadow in `Ink`, down and right** — never a blur.
-
-## Grid, spacing, silhouette
-
-- 8 px grid; positions and sizes are multiples of 8 wherever a component allows.
-- Borders 2 px. Corners cut 1–2 px (`DesignCanvas.CutRectangle`) — the silhouette language for panels,
-  meters, tags, buttons and the balloon envelope.
-- Panel padding 8 px; buttons 16 px tall; HUD margin 8 px; gaps between HUD blocks 8 px.
-
-## The kit — the only UI vocabulary
-
-`Balloonatic/Balloonatic.Game/Rendering/Kit.cs`, used by every screen:
-
-| Component | What it is | Where it appears |
+| Role | At design width or larger | Below design width |
 | --- | --- | --- |
-| `Panel` / `Tag` | wood-framed panel with a cream paper label | every screen's framing, section headings |
-| `Button` | wooden slat with rest / hover / press, plus a cream focus ring in the 1 px gap outside | menus, settings |
-| `HeatMeter` | vertical gauge, gradient fill, cream tick marks, flame cap while firing | HUD, style sheet |
-| `Flame` | three-band flicker driven by tick, not wall clock | burner, gauges |
-| `Hearts` / `Stars` / `Sandbags` | 8 px readout shapes with lit and spent states | HUD, delivery rating |
-| `WindChevrons` | count = strength, point = direction, colour = altitude band | HUD, style sheet |
-| `Windsock` | the same information in the world, on a post | levels, tutorial islands |
-| `Balloon` | striped envelope, wicker basket, Charlotte and the bunny, burner flame | gameplay, menus |
-| `Cloud` / `Island` | parallax cloud puffs, floating island with grass cap and rock body | world layers |
+| Essential body and buttons | scale2 / 14 px high | scale3 / 21 design px high (~14 CSS px at 420 wide) |
+| Screen heading | scale3 / 21 px high | scale4 / 28 design px high |
+| Secondary world signs / tiny diagnostic tags | scale1–2 | nonessential; the HUD repeats the actual goal |
 
-The style sheet screen (`__GAME.screen('style')`) draws all of it in one picture; committed screenshots of
-it are what "on-palette" is checked against.
+Text has an ink hard shadow when needed for contrast. The objective has a wood panel to keep world
+marks out of its lettering. Rating appears on results and the map, rather than a zero-valued flight
+counter. The flight HUD leads with cargo/destination and one short control or gust hint.
 
-## Motion
+Main action buttons are 32–40 design pixels tall, with a warm lit hover face, arrow and cream keyboard
+focus ring. The compact corner pause control is 32×28; the result action is 272×36. UiLayout supplies
+the same bounds to drawing, hit testing and the browser bridge. Keyboard activation receives the same
+screen change as a pointer press. Kit also owns a sunk pressed-state shape used in component previews.
+Panels use 1–2 px cut corners, 2 px borders, an 8 px outer margin and the shared wood/paper language.
 
-| Event | Duration | Shape |
-| --- | --- | --- |
-| Hover | 90 ms | face lightens one ramp step, `>` marker slides in |
-| Press | 1 frame + 2 frames | slat sinks 1 px into its own shadow |
-| Screen change | 180 ms | slide 8 px + fade |
-| Damage | 120 ms flash, 1.2 s invulnerability flicker | tint + blink |
-| Delivery | 400 ms | rise, star sparkles, rating counts up |
-| Wind gust | 600 ms | chevrons lengthen, windsock straightens |
+## Motion and feedback
 
-Everything visible derives from the simulation tick rather than wall clock, so a stepped frame is
-byte-reproducible. The **Reduced Motion** setting collapses slides and flashes to cross-fades and stops
-screen shake.
+- Simulation is fixed 60 Hz. World art reads state; it never writes physics or random state.
+- Camera lead is bounded by velocity; Reduced Motion removes it and shake.
+- Scenery parallax is slow (0.12–0.30); autonomous cloud drift is 0.6 design px/s and stops in Reduced Motion.
+- Wind marks use seconds, direction and strength from the actual wind data.
+- Screen changes use a six-render-frame ink fade (~100 ms at 60 Hz); Reduced Motion cuts directly.
+- Burner, bird flaps, windsock cloth and mill sails derive from the flight clock and freeze in Reduced Motion.
+- Damage uses the invulnerability blink, or a steady dim tint in Reduced Motion. Bird movement remains
+  tied to collision positions. Dropped bags remain visible; decorative sand/puffs stop in Reduced Motion.
+- Results freeze flight scenery at completion; delivery sparkles celebrate briefly, or form a static
+  ring in Reduced Motion. Time/rating are the completed result, rather than a running counter.
+- Audio feedback is gentle balloon machinery, a separate music-box loop and positive delivery cues;
+  the audio provenance file owns the sound details and listening gate.
 
-## Judgement checklist (run at every initiative's screenshot review)
+## Review
 
-- [ ] Every colour traceable to `Theme.cs`; compare against `docs/screenshots/01-style-*.png`.
-- [ ] Anything the player must read is ≥ 10 design px, shadowed, unclipped, not overlapping.
-- [ ] Ink outlines present, one light direction, no default font, no default widget, no white flash.
-- [ ] Old Tech readable in the frame itself — and no CRT artefacts sneaking in.
-- [ ] 420×760 reviewed alongside 1280×720 whenever the player reads or presses something.
+Open the screenshots. Check essential text at the actual narrow size, hero/hazard/deck separation,
+landmark silhouettes, cargo/recipient clarity, focus states and unclipped actions. Green behavioral
+checks do not approve aesthetics. Human flight and listening gates remain explicit in PLAN.md.

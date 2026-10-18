@@ -1,14 +1,17 @@
-﻿# Build baseline and verification harness
+# Build baseline and verification harness
+
+Current candidate contracts are I23–I30b below. Earlier sections record the scaffold history;
+the final measured build and packaging audit is in [SUBMISSION.md](SUBMISSION.md).
 
 Numbers are recorded so later initiatives have something to compare against instead of a feeling.
 Measured by the Playwright suite (`npx playwright test`), which serves the published WebGL build
 exactly the way an entry host would.
 
-## WebGL build â€” I0 baseline (2026-10-17)
+## WebGL build — I0 baseline (2026-10-17)
 
 | Metric | Value | How it is measured |
 | --- | --- | --- |
-| Cold boot to first drawn frame | **~470â€“510 ms** | `window.__GAME.readyAtMs`, page start â†’ first `Draw` |
+| Cold boot to first drawn frame | **~470–510 ms** | `window.__GAME.readyAtMs`, page start → first `Draw` |
 | Transferred payload | **2.83 MB over 76 requests** | `performance.getEntriesByType('resource')` transfer sizes, brotli-served |
 | Published payload on disk | 17.18 MB across 204 files (59 `.br` sidecars, 2.81 MB) | `export/web/` after `dotnet publish` |
 | `dotnet build` (5 projects, Release) | ~11 s | measured |
@@ -30,13 +33,13 @@ npm run serve    # serve export/web on http://localhost:4173 (brotli/gzip aware)
 npm test         # Playwright against the served WebGL build, 1280x720 + 420x760
 npm run shot     # rewrite snapshots + refresh docs/screenshots review copies
 npm run check    # build + unit + web + test: the "never commit red" gate
-npm run dev      # desktop head (OpenGL/SDL2) for feel â€” the only way to judge game feel
+npm run dev      # desktop head (OpenGL/SDL2) for feel — the only way to judge game feel
 ```
 
 ## `window.__GAME`
 
 One JavaScript surface over one .NET entry point (`Bridge.BridgeCall`), which forwards to
-`Balloonatic.Core.TestHarness` â€” the same object the xunit suite drives directly, so the protocol is
+`Balloonatic.Core.TestHarness` — the same object the xunit suite drives directly, so the protocol is
 pinned in one place and cannot drift between browser and unit tests.
 
 | Call | Purpose |
@@ -46,10 +49,10 @@ pinned in one place and cannot drift between browser and unit tests.
 | `screen()` | which screen the game is actually drawing |
 | `screen(id)` | request a screen change; answered `ok:requested=<id>`, applied by the game's own frame loop, so callers poll `screen()` to confirm it |
 | `reset(seed)`, `seed()`, `tick()`, `hash()`, `state()` | scripted replays with a comparable hash |
-| `set('heat', 1)`, `set('ballast', 1)` | inject input â€” **there is no left/right**, and the protocol rejects one |
+| `set('heat', 1)`, `set('ballast', 1)` | inject input — **there is no left/right**, and the protocol rejects one |
 | `step(n)`, `pause()`, `resume()` | move the clock by hand, so screenshots do not depend on frame rate |
 | `temperature()`, `altitude()`, `velocity()`, `ballast()` | the balloon model's readouts, fixed-format strings so browser and xunit can assert the same numbers |
-| `x()`, `velocityX()` | downwind distance and horizontal velocity â€” the wind's side of the model |
+| `x()`, `velocityX()` | downwind distance and horizontal velocity — the wind's side of the model |
 | `level()`, `level(id)` | read or switch the authored level; switching re-launches the flight (`ok:level=<id>`, `error:unknown-level:<id>`) |
 | `restart()` | the player's R mid-flight over the wire: same seed, same level, same screen, unpaused (`ok:<hash>`) |
 | `advance()` | the player's R after a delivery: next authored level (wraps after the last), fresh run on a derived seed, unpaused (`ok:<hash>`) |
@@ -69,17 +72,17 @@ reads state and never writes it, so effects cannot perturb a replay.
 
 ## Evidence layout
 
-- `tests/*-snapshots/*.png` â€” committed pixel baselines (regression net, `maxDiffPixelRatio` 1 %)
-- `docs/screenshots/NN-<initiative>-<what>-<project>.png` â€” review copies a human is expected to judge
+- `tests/*-snapshots/*.png` — committed pixel baselines (regression net, `maxDiffPixelRatio` 1 %)
+- `docs/screenshots/NN-<initiative>-<what>-<project>.png` — review copies a human is expected to judge
 
 ## Known gaps carried forward (deliberate, I0 scope)
 
-1. **HiDPI**: the canvas is sized in CSS pixels, so on a 2Ã— display the browser upscales it smoothly.
-   Pixel-art crispness on retina wants a `devicePixelRatio`-aware surface size â€” I6/I7 territory.
-2. **Fractional downscale** below 1Ã— (a 420-px-wide phone) uses nearest sampling, so thin wind dashes
-   shimmer slightly. Fix is a linear sampler below 1Ã— â€” I12 polish pass.
+1. **HiDPI**: the canvas is sized in CSS pixels, so on a 2× display the browser upscales it smoothly.
+   Pixel-art crispness on retina wants a `devicePixelRatio`-aware surface size — I6/I7 territory.
+2. **Fractional downscale** below 1× (a 420-px-wide phone) uses nearest sampling, so thin wind dashes
+   shimmer slightly. Fix is a linear sampler below 1× — I12 polish pass.
 3. **Kit art stands in for real sprites**: the balloon, islands and clouds in the kit are procedural
-   stand-ins; I8's Aseprite output replaces them. The font decision is settled (hand-authored 5Ã—7 in
+   stand-ins; I8's Aseprite output replaces them. The font decision is settled (hand-authored 5×7 in
    `PixelFont.cs`, no content-pipeline dependency) and the style-sheet screenshot proves the text path
    on WebGL.
 
@@ -87,7 +90,7 @@ reads state and never writes it, so effects cannot perturb a replay.
 
 - **Font**: hand-authored pixel font in code, not MGCB `.spritefont`. No font file in the payload, no
   pipeline dependency, identical pixels on both heads; the display logo remains a drawn asset (I8).
-- **Palette**: sampled from the concept sheet, not chosen â€” `tools/sample-palette.ps1` prints the
+- **Palette**: sampled from the concept sheet, not chosen — `tools/sample-palette.ps1` prints the
   evidence and `docs/STYLE.md` locks it. Where a ramp needed a step the sheet lacks, `Theme.cs` marks
   it `INTERPOLATED`.
 - **Screen switching**: `screen(id)` is a request the game applies on its own frame, and `screen()`
@@ -326,28 +329,28 @@ bags. Cargo goes from waiting to carried to delivered and is consumed only at th
 wind-only diagnostic. Core tests record actual heat/ballast inputs and replay them with normal
 collisions, requiring matching full state hashes on every course. Nursery's active route loses no hearts.
 The measured human feel gate remains open until Steven reports on the desktop build.
-# I23 scenery contract
+## I23 scenery contract
 
 The shared `SkyBackdrop` draws daytime sky, distant Aseprite islands and a cloud sea behind the
 collidable world. `raw('backdrop')` reports `floor=clouds`, `atmosphere=day` and decorative drift in
 design pixels. Drift is 0.6 pixels per second (ticks divided by 60); Reduced Motion stops it. Wind
 streaks use seconds too. Drawing leaves the simulation hash unchanged. Sky evidence covers low,
 middle, ceiling and arrival views at both required sizes in `23-sky-*`.
-# I24 UI contract
+## I24 UI contract
 
 `raw('ui')` exposes the actual shared pause/result rectangles and current essential type scale.
 Body text uses scale 2 at the design width and scale 3 when the canvas is reduced below it. The
 world HUD shows cargo and destination; rating is reserved for the result panel. A 272×36 result
 button supports pointer input and Enter. Screenshot evidence: `24-readable-flight-*` and
 `24-delivery-action-*`. Menu layouts receive the same type treatment in I25.
-# I25 menu contract
+## I25 menu contract
 
 The title logo is a generated Aseprite slice, with the same hero and bunny used in flight. All menu
 actions now use shared `UiLayout` bounds, exposed through `raw('ui')`; tests click the actual controls.
 Settings, pause, credits and illustrated course choices use the adaptive body/heading scale. Controls
 are at least 32 design pixels tall. `25-*` records every menu at desktop and narrow sizes. Screenshot
 review copies wait 16 rendered frames so the six-frame transition has settled before export.
-# I26 save and voyage contract
+## I26 save and voyage contract
 
 WebGL stores versioned best ratings and settings in `localStorage['balloonatic.save.v1']` after changes,
 with a 400 ms polling interval. Storage denial falls back to session play. Save loading validates the
@@ -359,7 +362,7 @@ format for verification; `flushSave()` flushes browser storage when needed. Desk
 After the last course, the map leads home to the dedication. Replay explicitly launches a fresh first
 flight, preserving best ratings. All player-facing course launches reset completion/cargo/hearts via
 the normal restart path. Screenshot evidence: `26-voyage-record-*`, `26-sweet-dreams-*`.
-# I27 opposing-wind route
+## I27 opposing-wind route
 
 Toy Isles has a homeward low band, forward middle band, return band and optional fast high band. A
 perch marks carrying air. The control hint and `state.hint` say `RISE FOR > WIND` when the player needs
@@ -370,7 +373,7 @@ The objective panel shields text from world marks; four-band instruments use dis
 
 Parcel assignment now follows the reference's delivery examples: nursery bottle, Toy Isles teddy;
 Cloud Garden's letter is added in I28. Earlier I19 screenshots/notes describe its original teddy MVP.
-# I28 garden route
+## I28 garden route
 
 Cloud Garden delivers a letter to the garden windmill. Its first carrying band crosses a visible
 gust bank at x380–500 / altitude210–236; flowers mark two resting perches. `state.hint` warns before
@@ -378,7 +381,7 @@ entry, `state.stormWind` reports the effective gust and becomes zero with Wind A
 normal-collision recordings prove the flight actually meets the bank and still lands; replay hashes
 match. The mill has two Aseprite frames and freezes under Reduced Motion. Recipient messages sit above
 the buildings rather than over their defining details. Evidence: `28-garden-*` at both sizes.
-# I29 audio contract
+## I29 audio contract
 
 Eight current clips come from archived ElevenLabs renders and prompts. `npm run audio` masters them
 offline into mono 22.05 kHz WAVs; repeated exports match byte-for-byte with the installed ffmpeg.
@@ -387,7 +390,7 @@ independently; breeze shares the SFX bus and pauses with the world. `raw('audio'
 loop states, last cue, giggle/jingle counts and queued cues. Damage requests creak, delivery requests
 jingle and delayed giggle; leaving a completed flight clears delayed sounds. Endpoint/mute tests
 remain in place. Technical playback checks cannot replace Steven's listening judgment.
-# I30a interaction and presentation contract
+## I30a interaction and presentation contract
 
 Blur/hidden-page events clear input and request pause; focus return waits for deliberate resume.
 The desktop head uses the same pause rule on window deactivation. Settings entered from pause return
@@ -401,3 +404,11 @@ script hashes identically with active/muted audio and both motion settings. The 
 uses normal collisions on all three stages and reaches the explicit ending. Boot timing is logged
 without an absolute speed assertion. Evidence: `30-focus-pause-*`, `30-pause-settings-*`,
 `30-reduced-motion-*`, `30-voyage-all-home-*`.
+
+## I30b loading contract
+
+The page uses Aseprite hero/logo/cloud crops before WASM starts. `npm run art` regenerates those
+crops, palette CSS and SVG labels from the game's own glyph masks. `#boot-shell` stays visible until
+the first rendered frame, surface setup and saved settings are ready, then is removed. The cold-boot
+test holds the framework manifest request, verifies the shell while `__GAME.ready` is false, releases
+it and asserts the ready menu through the bridge. Evidence: `30-branded-{boot,ready}-*` at both sizes.

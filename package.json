@@ -14,7 +14,8 @@
     "test": "playwright test",
     "shot": "playwright test --grep @shot --update-snapshots",
     "check": "npm run build && npm run unit && npm run web && playwright test",
-    "audio": "node audio/.audio/generate.js"
+    "audio": "node audio/.audio/generate.js",
+    "verify:web": "node tools/verify-web.cjs"
   },
   "devDependencies": {
     "@playwright/test": "^1.64.1"

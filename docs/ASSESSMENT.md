@@ -2,6 +2,9 @@
 
 Assessed October 17, 2026. Baseline: `fdaa674`, plus the pre-existing screenshot changes in the working tree. This is a planning pass; no game implementation has been changed.
 
+This document preserves the pre-improvement findings. For the implemented recovery work, reviewed
+screenshots and current gates, see [../PLAN.md](../PLAN.md) and [SUBMISSION.md](SUBMISSION.md).
+
 ## Verdict
 
 The technical foundation is worth keeping. The game implements altitude-driven steering, deterministic simulation, browser delivery, menus, hazards, and a useful test bridge. But the experience currently reads as a balloon navigation test course. The reference promises a small, magical delivery adventure with Charlotte and her bunny as its heart.

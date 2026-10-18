@@ -1,93 +1,82 @@
 # Charlotte's Balloonatic
 
-Ludum Dare 60 entry — theme **Old Tech**. A baby named Charlotte crosses a sky of floating islands in
-an old-fashioned hot-air balloon with no engine and no steering: heat to rise, cooling to sink,
-sandbags for emergencies, and the wind at whatever altitude you choose as your only means of going
-anywhere. Deliveries are the reason to make the trip.
+A small sky adventure for Charlotte, built for Ludum Dare 60's **Old Tech** theme. Fly a wicker
+hot-air balloon with Charlotte and her bunny: hold the burner to rise, release early to cool and
+settle, and choose your altitude to ride the wind. Deliver a bottle to the nursery, reunite a lost
+teddy with the Toy Isles, and carry a letter to the Cloud Garden windmill.
 
-Built with [KNI](https://github.com/kniEngine/kni). The entry is a **WebGL** build (Blazor WebAssembly);
-a Windows desktop head exists so the balloon's feel can be judged at the keyboard.
+The deliverable is **WebGL / Blazor WebAssembly**, built with KNI. The Windows desktop head is for
+judging flight feel and sound. Three short courses lead through a moonlit voyage map to a dedication.
 
-- Rules and workflow: [`AGENTS.md`](AGENTS.md)
-- Initiative list and design decisions: [`PLAN.md`](PLAN.md)
-- Concept and theme: [`docs/CONCEPT.md`](docs/CONCEPT.md) · jam context: [`docs/JAM.md`](docs/JAM.md)
-- Build baselines and the `window.__GAME` test bridge: [`docs/BASELINE.md`](docs/BASELINE.md)
-- Visual evidence: [`docs/screenshots/`](docs/screenshots)
+## Run
 
-## Toolchain
+Requirements: .NET SDK 8+ (verified here with 10.0.101), Node 20+, and Playwright Chromium.
 
-.NET SDK 8 or newer (built against 10.0.101), Node 20+, Playwright Chromium
-(`npx playwright install chromium`), and the KNI templates
-(`dotnet new install nkast.Kni.Templates`).
-
-## Run it
-
-```bash
-npm install
-npm run dev      # desktop head — fastest way to feel it
-npm run web      # publish the WebGL entry build to export/web/
-npm run serve    # serve it at http://localhost:4173 like an entry host would
-npm test         # Playwright against the served WebGL build, two viewports
-npm run check    # build + unit tests + WebGL publish + Playwright — the commit gate
+```sh
+npm ci
+npx playwright install chromium
+npm run dev      # desktop playtest
+npm run web      # publish to export/web/
+npm run serve    # http://localhost:4173
+npm test         # Chromium, desktop and narrow viewports
+npm run check    # all heads + unit tests + WebGL publish + browser suite
+npm run zip      # archive from the published WebGL output
 ```
 
-## Controls
+The checked-in PNGs and WAVs build without art/audio tools. To regenerate them:
+
+```sh
+npm run art      # installed Aseprite MCP; see art/README.md
+npm run audio    # archived ElevenLabs renders + ffmpeg; no provider request
+```
+
+## Play
 
 | Input | Action |
 | --- | --- |
-| <kbd>Space</kbd> / hold left mouse | Burner — heat rises |
-| release | Cool air — sink |
-| <kbd>B</kbd> / right mouse | Drop a sandbag (there are two; they are the brake) |
-| <kbd>↑↓</kbd> / <kbd>W</kbd><kbd>S</kbd> | Menu focus |
-| <kbd>Enter</kbd> | Confirm · fly on from the world map |
-| <kbd>R</kbd> | After a delivery: the voyage chart. After a crash or empty hearts: fly this sky again |
-| <kbd>Esc</kbd> | Pause in flight · back out of a menu |
+| Hold Space / left mouse | Heat the balloon and rise |
+| Release | Cool gradually and descend; let go before the landing |
+| B / right mouse | Drop one of two sandbags for extra lift and gentler descent |
+| Arrows / Enter | Select and activate menu actions; Left/Right adjust settings |
+| Enter / result button | Open the voyage chart after a delivery; retry after lost hearts |
+| R | Restart the current flight; after delivery, open the voyage chart |
+| Escape / pause button | Pause; resume deliberately after focus loss |
 
-Fully keyboard-playable; the focus ring is as designed as the hover state. Settings offer music and
-sfx volume, wind assist, and Reduced Motion (which removes shake, flicker, puffs, and screen
-transitions — the visuals were tuned against a motion-sickness floor, and they stay there).
+The wind ladder previews neighboring bands. Chevrons show direction and strength; **altitude is the
+steering**. Land gently on the clear timber deck. A missed course returns Charlotte safely for another
+approach, preserving cargo and spent bags. All ballast loadouts can descend and land.
 
-## The theme, carried honestly
+Nursery Skies teaches burner/cooling and a breeze perch. Toy Isles needs a climb out of homeward air.
+Cloud Garden adds a marked gust bank and resting flower perches. Wind Assist removes gust buffeting;
+Reduced Motion stills decorative frames, drift, shake and transitions. Music and effects have separate
+0–10 controls. Play requires a keyboard or mouse; the narrow layout is verified at 420×760.
 
-**Old Tech** is the machine, not a filter: a burner you feather by hand, a temperature gauge with a
-live flame, rope and wicker, sandbags as the only brake, windsocks and storm banks you read like a
-chart. No CRT scanlines anywhere — the 16-bit look comes from what the balloon *is*, and there are
-no left/right controls because a balloon has no rudder: horizontal travel is the wind's, and the
-wind is chosen by altitude.
+Best delivery ratings and settings are remembered in browser storage; storage denial falls back to
+session play. Desktop records last for the session. Start Adventure and the ending's Fly Again launch
+a fresh first flight while preserving best ratings; Choose Sky launches any course directly.
 
-## Credits & provenance
+## Theme and credits
 
-- Engine: [KNI](https://github.com/kniEngine/kni) 4.3 (MonoGame-family, .NET), shipped as Blazor
-  WebAssembly/WebGL.
-- Art: generated — `art/.art/generate.js` computes every sprite through the Aseprite MCP
-  (sources + exports under `art/`, palette audit in `art/.art/audit.js`).
-- Audio: generated — `audio/.audio/generate.js` synthesizes the whole chiptune kit
-  (`assets/audio/SOURCES.md` records each clip's recipe).
-- Font: hand-authored 5×7 pixel face (`PixelFont.cs`).
-- Design and code: Steven Garberg. *For Charlotte ♥*
+Old Tech comes from the burner, thermometer, rope, wicker, sandbags and windsocks. The subject carries
+the theme in clean pixel art, with a pink rounded balloon and floating dream islands.
 
-## Submitting
+- Game and direction: Steven Garberg / Gigabite Games. *For Charlotte ♥*
+- Engine: KNI 4.3, C#, Blazor WebAssembly and WebGL.
+- Pixel art: committed generator scripts through Aseprite MCP; source and palette-audited exports in
+  `art/`. See [art/README.md](art/README.md).
+- Music and all seven effects: **ElevenLabs**, archived source renders/prompts and offline mastering.
+  See [assets/audio/SOURCES.md](assets/audio/SOURCES.md).
+- Pixel font: the game's custom 5×7 face. Code assistance included Qwen and OpenAI Codex;
+  the entry's generated-art/audio workflow is disclosed in the provenance files.
 
-`npm run zip` builds `dist/charlottes-balloonatic-ld60-web.zip` — the published `wwwroot` with
-`index.html` at the archive root, which is what the LD page wants. Copy-paste entry text (blurb,
-controls, theme note, credits) lives in [`docs/LD_ENTRY.md`](docs/LD_ENTRY.md).
+## Review and submission
 
-## Layout
+`dist/charlottes-balloonatic-ld60-web.zip` contains the published `wwwroot`, with `index.html` at its
+root. Serve over HTTP. [docs/LD_ENTRY.md](docs/LD_ENTRY.md) has entry copy and
+[docs/SUBMISSION.md](docs/SUBMISSION.md) records candidate verification and remaining human checks.
+The archive is prepared for review; hosting and the public jam entry are Steven's final submission steps.
 
-| Path | What lives there |
-| --- | --- |
-| `Balloonatic/Balloonatic.Core/` | Pure deterministic simulation — no KNI types, no platform APIs |
-| `Balloonatic/Balloonatic.Game/` | Shared draw layer, screens, design-resolution canvas |
-| `Balloonatic/Balloonatic.Desktop/` | Windows/OpenGL dev head |
-| `Balloonatic/Balloonatic.Blazor.GL/` | **The entry**: WebGL/Blazor head + `window.__GAME` bridge |
-| `Balloonatic/Balloonatic.Tests/` | xunit on the sim and the harness protocol |
-| `tests/` | Playwright suite and committed pixel baselines |
-| `tools/serve.mjs` | Static host that serves the entry build the way a real host would |
-| `export/web/` | Published WebGL build (generated, not committed) |
-
-## Links
-
-Event: <https://ldjam.com/events/ludum-dare/60> · Previous entries:
-<https://ldjam.com/users/steven-garberg/games>
-
-*For Charlotte ♥*
+[PLAN.md](PLAN.md) tracks the improvement work. [docs/ASSESSMENT.md](docs/ASSESSMENT.md) explains the
+reference comparison; [docs/STYLE.md](docs/STYLE.md) locks the implemented visual language;
+[docs/BASELINE.md](docs/BASELINE.md) records the bridge and verification history. Reviewed evidence
+lives in [docs/screenshots/](docs/screenshots/).
