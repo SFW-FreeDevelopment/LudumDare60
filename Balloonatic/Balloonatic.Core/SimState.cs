@@ -95,6 +95,8 @@ namespace Balloonatic.Core
         /// period: the course cannot hit you before you have seen it.
         /// </summary>
         public int HurtTick;
+        public int Recoveries;
+        public int RecoveryTick = -600;
 
         /// <summary>
         /// Wind Assist (I7 setting): the sky forgives gusts. Band winds still steer — the game stays
@@ -135,6 +137,8 @@ namespace Balloonatic.Core
                 Heating = Heating,
                 Hearts = Hearts,
                 HurtTick = HurtTick,
+                Recoveries = Recoveries,
+                RecoveryTick = RecoveryTick,
                 WindAssist = WindAssist,
                 Screen = Screen,
             };
@@ -294,6 +298,19 @@ namespace Balloonatic.Core
             state.VelocityX += (wind - state.VelocityX) * SimTuning.WindFollowRate * dt;
             state.X += state.VelocityX * dt;
 
+            // Preserve cargo, health, and spent ballast. A missed island is another approach,
+            // not an invisible wall or a run stranded outside the camera's bounds.
+            if (state.X < -SimTuning.RecoveryMargin || state.X > level.CourseLength + SimTuning.RecoveryMargin)
+            {
+                state.X = state.X < 0f ? 0f : level.CourseLength - 120f;
+                state.Altitude = SimTuning.DeckTopAltitude + 72f;
+                state.VelocityX = state.VelocityY = 0f;
+                state.Temperature = SimTuning.TempAmbient;
+                state.Recoveries++;
+                state.RecoveryTick = state.Tick;
+                state.HurtTick = state.Tick; // time to regain control before another collision
+            }
+
             // ---- I9 hazards: rocks and birds are things, and things you fly into cost a heart.
             // One hit per InvulnTicks window; the knockback throws the balloon away from what it hit,
             // so a collision is never a freeze — you are always left somewhere to fly on from.
@@ -384,6 +401,8 @@ namespace Balloonatic.Core
             h = Mix(h, state.Heating ? 1UL : 0UL);
             h = Mix(h, (ulong)state.Hearts);
             h = Mix(h, (ulong)state.HurtTick);
+            h = Mix(h, (ulong)state.Recoveries);
+            h = Mix(h, unchecked((ulong)state.RecoveryTick));
             h = Mix(h, state.WindAssist ? 1UL : 0UL);
             foreach (char c in state.Screen)
                 h = Mix(h, c);

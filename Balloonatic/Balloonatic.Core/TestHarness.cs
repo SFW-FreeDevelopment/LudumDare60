@@ -406,6 +406,7 @@ namespace Balloonatic.Core
               .Append("\"completedAtTick\":").Append(_state.CompletedAtTick.ToString(CultureInfo.InvariantCulture)).Append(',')
               .Append("\"bounces\":").Append(_state.Bounces.ToString(CultureInfo.InvariantCulture)).Append(',')
               .Append("\"hearts\":").Append(_state.Hearts.ToString(CultureInfo.InvariantCulture)).Append(',')
+              .Append("\"recoveries\":").Append(_state.Recoveries.ToString(CultureInfo.InvariantCulture)).Append(',')
               .Append("\"windAssist\":").Append(_state.WindAssist ? "true" : "false").Append(',')
               .Append("\"settings\":\"").Append(AppSettings.Describe()).Append("\",")
               .Append("\"hash\":\"").Append(SimRules.HashHex(_state)).Append('"')

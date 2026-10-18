@@ -106,7 +106,7 @@ namespace Balloonatic.Core
         /// would touch down, how high is left to fall, and whether the imagined flight even reaches
         /// the deck at all. One sandbag is spent on entering the final zone: the loaded sink outruns
         /// the soft-landing rule, and arriving soft is the point — one bag stays aboard, because a
-        /// balloon that has dropped both will not come down at all.
+        /// lighter balloon has a gentler final descent. Every loadout remains landable.
         /// </summary>
         public static bool Deliver(SimState state, LevelDef level, float maxSeconds)
         {

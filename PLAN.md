@@ -39,6 +39,11 @@ complete; implementation is proceeding in the order below.
   Existing narrow type issue is tracked by I24; audio mix is mirrored through `raw('audioMix')`.
 - [ ] **I17 — Recoverable flight** (~90m)
   Landable 0/1/2-bag loadouts, clearer thermal response, forgiving course recovery; human flight gate.
+  Engineering verified: 63 unit tests and 82 browser tests; reviewed `17-flight-recovery-*` and
+  refreshed flight baselines. **Pending: Steven's feel report** (desktop playtest copy is open).
+  The tested mechanical fix is committed; the box stays open until the human gate is satisfied.
+  Independent readability/content work may proceed while that report is pending; no feel approval
+  is inferred from automated solvability.
 - [ ] **I18 — Readable wind and approach** (~90m)
   Wind ladder/neighbor preview, matching world cues, and gentle/fast approach feedback.
 - [ ] **I19 — Real delivery state** (~90m)

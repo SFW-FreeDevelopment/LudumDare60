@@ -97,6 +97,8 @@ namespace Balloonatic.Screens
         /// </summary>
         static void DrawLandingFeedback(DesignCanvas canvas, LevelDef level, SimState state, float camX, float camAlt)
         {
+            if (!state.Complete && state.Recoveries > 0 && state.Tick - state.RecoveryTick < 180)
+                Kit.Tag(canvas, 170, 64, "A KIND BREEZE - TRY ANOTHER APPROACH");
             if (state.Bounces > 0 && !state.Complete
                 && state.Tick - state.BounceTick < SimTuning.BounceReasonSteps)
             {

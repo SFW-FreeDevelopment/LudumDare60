@@ -18,22 +18,22 @@ namespace Balloonatic.Core
         public const float TempMax = 1.00f;
 
         /// <summary>Temperature gained per second of held heat: ~3 s from ambient to pegged.</summary>
-        public const float HeatRate = 0.22f;
+        public const float HeatRate = 0.26f;
 
         /// <summary>Base cooling per second toward ambient — the envelope always leaks heat.</summary>
-        public const float CoolBase = 0.06f;
+        public const float CoolBase = 0.08f;
 
         /// <summary>Extra cooling proportional to how far above ambient the envelope is: hot air escapes faster.</summary>
-        public const float CoolProportional = 0.20f;
+        public const float CoolProportional = 0.32f;
 
         /// <summary>Upward acceleration per unit of temperature. At pegged heat with no ballast this is the rise ceiling.</summary>
         public const float LiftGain = 210f;
 
         /// <summary>Constant downward acceleration of envelope, basket, Charlotte and the bunny.</summary>
-        public const float Gravity = 62f;
+        public const float Gravity = 84f;
 
         /// <summary>Downward acceleration per sandbag still aboard. Two of these is the level's ballast.</summary>
-        public const float BallastPerBag = 22f;
+        public const float BallastPerBag = 8f;
 
         /// <summary>Sandbags per level, non-recoverable once dropped (docs/PLAN.md decision 8).</summary>
         public const int BagCapacity = 2;
@@ -52,11 +52,13 @@ namespace Balloonatic.Core
         public const float WindFollowRate = 2.0f;
 
         /// <summary>
-        /// Descent speed at or below which touching a deck counts as a soft landing — the whole landing
-        /// skill in one number. It is slower than terminal descent (~25 px/s), so arriving soft means
-        /// having closed the burner early and let the envelope bleed heat on approach.
+        /// All cold loadouts descend below this speed (12..21 px/s). A normal approach never
+        /// requires spending a sandbag; high-speed impacts still bounce harmlessly.
         /// </summary>
-        public const float SoftLandingVy = 18f;
+        public const float SoftLandingVy = 24f;
+
+        /// <summary>Outside this margin a friendly breeze returns the craft to a safe approach.</summary>
+        public const float RecoveryMargin = 200f;
 
         /// <summary>Surface height of launch and delivery decks, design px above the ground plane.</summary>
         public const float DeckTopAltitude = 38f;
