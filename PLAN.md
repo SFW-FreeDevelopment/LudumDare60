@@ -37,16 +37,16 @@ complete; implementation is proceeding in the order below.
   Correct 0–10 normalization and independent music/SFX/burner control; browser endpoint/mute regression.
   Verified: build clean, 58 unit tests, 80 browser tests; reviewed `16-audio-settings-*` at both sizes.
   Existing narrow type issue is tracked by I24; audio mix is mirrored through `raw('audioMix')`.
-- [ ] **I17 — Recoverable flight** (~90m)
+- [x] **I17 — Recoverable flight** (~90m)
   Landable 0/1/2-bag loadouts, clearer thermal response, forgiving course recovery; human flight gate.
   Engineering verified: 63 unit tests and 82 browser tests; reviewed `17-flight-recovery-*` and
-  refreshed flight baselines. **Pending: Steven's feel report** (desktop playtest copy is open).
-  The tested mechanical fix is committed; the box stays open until the human gate is satisfied.
-  Independent readability/content work may proceed while that report is pending; no feel approval
-  is inferred from automated solvability.
+  refreshed flight baselines. **Human gate passed:** Steven's first-play report was
+  *"Seems to feel fine at first play"*, after being asked about heat, wind and landing with spent bags.
+  This is an initial feel verdict; further tuning can follow more play. Steven delegated the remaining
+  visual/reference judgment to the agent: *"Not sure, you take a look"*.
   Follow-up: clamp rising flight at the authored sky ceiling, keep the envelope clear of the HUD,
   and allow cooling to descend again. Verified: 76 unit tests, 94 browser tests; reviewed
-  `17-flight-ceiling-*`. This does not close the human feel gate.
+  `17-flight-ceiling-*`. Final regression gate: 83 unit tests, 118 browser tests, zero compiler warnings.
 - [x] **I18 — Readable wind and approach** (~90m)
   Wind ladder/neighbor preview, matching world cues, and gentle/fast approach feedback.
   Verified: 66 unit tests, 84 browser tests; reviewed `18-wind-approach-*` at both sizes.
@@ -119,9 +119,12 @@ complete; implementation is proceeding in the order below.
   Verified: 83 unit tests, 116 browser tests; reviewed all `30-focus-pause-*`, `30-pause-settings-*`,
   `30-reduced-motion-*`, `30-voyage-all-home-*`. Full collision-enabled voyage reaches 3/3 and the
   ending. Active/muted audio + motion profiles preserve identical flight hashes; compiler warnings zero.
+- [ ] **I30b — Brand the WebGL boot shell** (~45m)
+  Final package audit found the template's black/system-font/marquee loader. Reuse the Aseprite hero,
+  logo, clouds, palette and pixel glyphs during cold boot, then remove the shell on renderer readiness.
 - [ ] **I30 — Submission revalidation** (~90m)
   Full gates, real-collision voyage, settings/reload/focus-loss coverage, both viewport reviews and
-  fresh WebGL/archive smoke. Reconcile STYLE/credits/completion claims and finish I13's ship requirements.
+  fresh WebGL/archive smoke. Reconcile STYLE/credits/completion claims and prepare I13's review candidate.
 
 **Budget:** I16–I25 ~14.5 focused hours; the rest ~6.5 hours, plus 2–3 hours contingency.
 Judge controls after I20 and the full first slice after I25 before extending it.
