@@ -142,6 +142,21 @@ Judge controls after I20 and the full first slice after I25 before extending it.
 **Cut first:** I27–I28, elaborate progression/map work, collectibles and extra animation. Preserve
 recoverable flight, one meaningful beautiful delivery, readable UI and WebGL validation.
 
+## Playtest corrections — October 18
+
+- [x] **I31 — Credits menu copy** (~30m)
+  Remove the sound-provider credit and any AI wording from the player-facing credits menu.
+  Assert the displayed copy through the bridge and review desktop/narrow credits.
+  Verified: zero compiler warnings, 83 unit tests and 118 browser tests; `creditstext` mirrors the
+  displayed rows. Updated the two credits baselines and reviewed `31-credits-*` at both sizes.
+- [ ] **I32 — Stable world signs** (~60m)
+  Keep sign lettering, board and supporting world geometry on the same rendering grid during travel.
+  Inspect a moving sequence and prove sign-to-platform placement through the bridge.
+- [ ] **I33 — Platform contact and sliding** (~90m)
+  Align deck artwork and collision surfaces, support ordinary landings across each full deck,
+  and allow a landed basket to slide across to the delivery area. Prove edge approaches, takeoff,
+  hard contacts, both drift directions and the full voyage in WebGL.
+
 ## Design decisions (answers to `docs/CONCEPT.md` §16)
 1. **Burner:** hold-to-heat with a temperature integrator. No intensity slider — one verb, and the
    lift curve does the expressing.

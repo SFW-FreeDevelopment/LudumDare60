@@ -53,6 +53,7 @@ namespace Balloonatic
             if (name == "progress") return game.ProgressStatus();
             if (name == "ui")
                 return game.UiStatus();
+            if (name == "creditstext")return game.CreditsText();
             if (name == "backdrop")
                 return game.BackdropStatus();
             if (name == "art")

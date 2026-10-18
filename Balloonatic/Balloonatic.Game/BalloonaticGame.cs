@@ -429,6 +429,7 @@ namespace Balloonatic
             ((UiHost)this).LiveSettingsChanged();return "ok";
         }
         public string UiStatus() => UiLayout.Describe(canvas, Harness.State.Screen, Harness.State.Complete);
+        public string CreditsText() => string.Join("|", CreditsScreen.Lines);
         public string BackdropStatus() => SkyBackdrop.Describe(Harness.State);
         public string ArtStatus() => WorldArt.Describe(Harness.State);
 

@@ -5,14 +5,15 @@ using Microsoft.Xna.Framework;
 namespace Balloonatic.Screens
 {
     /// <summary>
-    /// Credits (I7), short enough to read in one look and honest: the tools are listed because they
-    /// are the workshop, and the dedication leads because it is the reason. The heart is the font's
+    /// Credits (I7), short enough to read in one look; the dedication leads. The heart is the font's
     /// own ♥ — the same five-by-seven cells as every other letter, so the love is typeset, not pasted.
     /// </summary>
     sealed class CreditsScreen : IUiScreen
     {
         readonly UiHost _host;
         bool _hover;
+        internal static readonly string[] Lines = { "A BRAVE GIRL. A BIG SKY.", "BY GIGABITE GAMES",
+            "ENGINE: KNI / WEBGL", "ART: ASEPRITE", "LD60 / OLD TECH" };
 
         public CreditsScreen(UiHost host) => _host = host;
 
@@ -32,8 +33,7 @@ namespace Balloonatic.Screens
             Kit.MenuBackdrop(canvas);Kit.Panel(canvas,new Rectangle(48,16,544,336));
             int font=Kit.Body(canvas);
             PixelFont.DrawCenteredShadowed(canvas,"FOR CHARLOTTE ♥",320,32,Theme.HeartPink,Kit.Heading(canvas));
-            string[] lines={"A BRAVE GIRL. A BIG SKY.","BY GIGABITE GAMES","ENGINE: KNI / WEBGL","ART: ASEPRITE + SCRIPTS","SOUND: ELEVENLABS","LD60 / OLD TECH"};
-            for(int i=0;i<lines.Length;i++)PixelFont.DrawCenteredShadowed(canvas,lines[i],320,92+i*32,Theme.TagCream,font);
+            for(int i=0;i<Lines.Length;i++)PixelFont.DrawCenteredShadowed(canvas,Lines[i],320,92+i*36,Theme.TagCream,font);
             Kit.Button(canvas,UiLayout.Back,"BACK",_hover?Kit.UiState.Hover:Kit.UiState.Rest,focused:true);
         }
     }

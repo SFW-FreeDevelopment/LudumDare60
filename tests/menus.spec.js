@@ -8,6 +8,10 @@ test('the illustrated menu family has readable shared controls and a keyboard ro
  await clickUi(page,'settings');await expect.poll(()=>act(page,'screen')).toBe('settings');await capture('settings');
  await clickUi(page,'back');await expect.poll(()=>act(page,'screen')).toBe('menu');
  await clickUi(page,'credits');await expect.poll(()=>act(page,'screen')).toBe('credits');await capture('credits');
+ const credits=await page.evaluate(()=>window.__GAME.raw('creditstext'));
+ expect(credits).toContain('BY GIGABITE GAMES');expect(credits).toContain('ART: ASEPRITE');
+ expect(credits).not.toMatch(/ELEVENLABS|OPENAI|QWEN|\bAI\b|GENERAT/i);
+ await reviewShot(page,{path:path.join(SHOTS_DIR,`31-credits-${info.project.name}.png`)});
  await clickUi(page,'back');await expect.poll(()=>act(page,'screen')).toBe('menu');
  await page.keyboard.press('ArrowDown');await page.keyboard.press('Enter');await expect.poll(()=>act(page,'screen')).toBe('levels');
  await capture('skies');await clickUi(page,'course0');await expect.poll(()=>act(page,'screen')).toBe('world');
