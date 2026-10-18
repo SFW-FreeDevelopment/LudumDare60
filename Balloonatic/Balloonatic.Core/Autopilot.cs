@@ -108,7 +108,7 @@ namespace Balloonatic.Core
         /// the soft-landing rule, and arriving soft is the point — one bag stays aboard, because a
         /// lighter balloon has a gentler final descent. Every loadout remains landable.
         /// </summary>
-        public static bool Deliver(SimState state, LevelDef level, float maxSeconds)
+        public static bool Deliver(SimState state, LevelDef level, float maxSeconds, bool hazards = false, Action<SimInput>? record = null)
         {
             float cruise = BandCenter(CarryingBand(level));
             float lowest = Math.Max(BandCenter(level.Bands[0]), SimTuning.DeckTopAltitude + LowestFloor);
@@ -127,7 +127,7 @@ namespace Balloonatic.Core
             {
                 if (decideIn <= 0)
                 {
-                    chosen = BestIdea(state, level, ideas);
+                    chosen = BestIdea(state, level, ideas, hazards);
                     decideIn = ReplanSeconds * Sim.StepHz;
                 }
                 decideIn--;
@@ -144,7 +144,8 @@ namespace Balloonatic.Core
                     braked = true;
                 }
 
-                SimRules.Step(state, input, level, hazards: false);   // the ghost proves the wind line
+                record?.Invoke(input);
+                SimRules.Step(state, input, level, hazards);
                 if (state.Delivered)
                     return true;
             }
@@ -158,7 +159,7 @@ namespace Balloonatic.Core
         /// everything else; nothing here reads anything but state and level, so the chosen flight path
         /// is reproducible to the step.
         /// </summary>
-        static float BestIdea(SimState state, LevelDef level, float[] ideas)
+        static float BestIdea(SimState state, LevelDef level, float[] ideas, bool hazards)
         {
             float bestScore = float.MinValue;
             float bestAlt = ideas[0];
@@ -167,8 +168,9 @@ namespace Balloonatic.Core
             {
                 SimState sim = state.Clone();
                 for (int k = 0; k < horizon && !sim.Delivered; k++)
-                    SimRules.Step(sim, TowardAltitude(sim, alt), level, hazards: false);
-                float score = ScoreLanding(sim, level);
+                    SimRules.Step(sim, TowardAltitude(sim, alt), level, hazards);
+                float score = ScoreLanding(sim, level) - (state.Hearts - sim.Hearts) * 2000f;
+                if (sim.Complete && !sim.Delivered) score -= 20000f;
                 if (score > bestScore)
                 {
                     bestScore = score;

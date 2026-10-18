@@ -3,6 +3,7 @@ using System.Globalization;
 
 namespace Balloonatic.Core
 {
+    public readonly record struct RestDeck(float X, float Altitude, float HalfWidth);
     /// <summary>
     /// One altitude band of wind: the only steering the player has. Bands are authored per level, so a
     /// level's puzzle is "which heights carry me where".
@@ -209,14 +210,16 @@ namespace Balloonatic.Core
         public string CarryObjective { get; }
         public string DeliveredMessage { get; }
         public string RequestLabel { get; }
+        public RestDeck[] Platforms { get; }
 
         public LevelDef(string id, string name, float worldHeight, WindBand[] bands, GustZone[] gusts, float courseLength, int parSeconds,
-                        RockDef[]? rocks = null, BirdDef[]? birds = null, StormZone[]? storms = null, CargoKind package = CargoKind.Teddy)
+                        RockDef[]? rocks = null, BirdDef[]? birds = null, StormZone[]? storms = null, CargoKind package = CargoKind.Teddy, RestDeck[]? platforms = null)
         {
             Id = id;
             Name = name;
             NameUpper = name.ToUpperInvariant();
             Package = package;
+            Platforms = platforms ?? Array.Empty<RestDeck>();
             PackageName = package == CargoKind.Bottle ? "BOTTLE" : package == CargoKind.Letter ? "LETTER" : "TEDDY";
             DestinationName = id == "nursery-skies" ? "NURSERY" : id == "winding-trail" ? "TOY ROOM" : "COTTAGE";
             CollectObjective = "COLLECT THE " + PackageName;
@@ -335,8 +338,8 @@ namespace Balloonatic.Core
                 {
                     new RockDef(300f, 320f, 8f, 240, 0),
                     new RockDef(540f, 340f, 8f, 300, 90),
-                    new RockDef(200f, 20f, 4f, 240, 40),
-                }),
+                    new RockDef(200f, 345f, 4f, 240, 40),
+                }, platforms: new[] { new RestDeck(220f, 120f, 36f) }),
 
             // Toy Isles, a zigzag: the middle air sprints, the upper air rebukes you, and the low air —
             // the air a landing is made from — carries gently home. The bird works the mid sprint and

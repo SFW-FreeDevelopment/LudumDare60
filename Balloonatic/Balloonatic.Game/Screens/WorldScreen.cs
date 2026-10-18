@@ -311,6 +311,15 @@ namespace Balloonatic.Screens
 
             DrawIsland(canvas, level, state, camX, groundY, worldX: 0, name: "HOME", launch: true);
             DrawIsland(canvas, level, state, camX, groundY, worldX: (int)level.CourseLength, name: level.DestinationName, launch: false);
+            foreach (RestDeck deck in level.Platforms)
+            {
+                float x = ScreenX(deck.X, camX), y = ScreenY(deck.Altitude, camAlt);
+                Kit.Island(canvas, x - deck.HalfWidth, y + 4, (int)deck.HalfWidth * 2, 24);
+                Kit.Platform(canvas, new Rectangle(Round(x - deck.HalfWidth), Round(y), (int)deck.HalfWidth * 2, 5));
+                WindBand wind = level.BandAt(deck.Altitude + 1f);
+                Kit.Windsock(canvas, x + 20, y, wind.Direction, wind.Strength);
+                Kit.Tag(canvas, Round(x)-30, Round(y)+10, "BREEZE PERCH");
+            }
         }
 
         static void DrawIsland(

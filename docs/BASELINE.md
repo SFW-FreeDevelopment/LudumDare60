@@ -315,3 +315,14 @@ Steven flew the desktop head and reported three things; each became a rule, not 
   transferred payload **3.13 MB over 76 requests** (audio kit included, budget 8 MB); average rAF
   frame time in live heated play **16.67 ms** with p95 16.80 ms — a steady 60 fps in the Chromium
   tab. `tests/budget.spec.js` logs the first two and asserts all three every suite run.
+
+## Current recovery and route contracts (I17–I20, October 17)
+
+Every ballast loadout now cools into a landable descent (gravity 84, each bag 8, landing limit 24 px/s).
+Travel beyond a course margin returns the craft to a safe approach without spending health or restoring
+bags. Cargo goes from waiting to carried to delivered and is consumed only at the matching recipient.
+`state()` mirrors cargo, pickup tick, recipient, recovery count, wind band, heat trend and approach.
+`raw('fly', '120')` flies with normal rock/bird/storm collisions. `deliver()` retains the original
+wind-only diagnostic. Core tests record actual heat/ballast inputs and replay them with normal
+collisions, requiring matching full state hashes on every course. Nursery's active route loses no hearts.
+The measured human feel gate remains open until Steven reports on the desktop build.

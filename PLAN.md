@@ -54,8 +54,12 @@ complete; implementation is proceeding in the order below.
   Verified: 69 unit tests, 86 browser tests; reviewed `19-cargo-pickup-*` and `19-cargo-home-*`.
   Empty/wrong parcels cannot complete a delivery; pickup/delivery state is hashed and replayed.
   The existing parcel icon and recipient marker will receive their final art in I22.
-- [ ] **I20 — Nursery tutorial route** (~90m)
+- [x] **I20 — Nursery tutorial route** (~90m)
   Safe teaching geometry, useful altitude choice, readable destination; legal replay with hazards on.
+  Verified: 73 unit tests, 88 browser tests; reviewed `20-nursery-perch-*` and `20-nursery-home-*`.
+  A landing perch marks the faster breeze; low teaching corridor is clear. Recorded legal input
+  replays match full state hashes on all three courses with collisions enabled; nursery retains 3 hearts.
+  Human feel approval is still tracked under I17, independently of these route proofs.
 - [ ] **I21 — Charlotte and craft** (~90m)
   Reference-led rounded balloon, readable Charlotte/bunny, portrait and minimal reactions.
 - [ ] **I22 — Nursery environment assets** (~90m)

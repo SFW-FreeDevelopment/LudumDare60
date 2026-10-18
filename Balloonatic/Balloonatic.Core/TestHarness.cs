@@ -202,12 +202,13 @@ namespace Balloonatic.Core
                 }
 
                 case "deliver":
+                case "fly":
                 {
                     int seconds = 120;
                     if (a.Length > 0 && (!int.TryParse(a, NumberStyles.Integer, CultureInfo.InvariantCulture, out seconds) || seconds < 1))
                         return "error:bad-arg:deliver";
                     seconds = Math.Min(seconds, 300);
-                    bool delivered = Autopilot.Deliver(_state, LevelCatalog.Get(_state.LevelId), seconds);
+                    bool delivered = Autopilot.Deliver(_state, LevelCatalog.Get(_state.LevelId), seconds, hazards: name == "fly");
                     return delivered ? "ok:delivered" : "error:not-delivered";
                 }
 
@@ -416,6 +417,7 @@ namespace Balloonatic.Core
               .Append("\"cargoStatus\":\"").Append(_state.CargoStatus).Append("\",")
               .Append("\"pickupTick\":").Append(_state.PickupTick).Append(',')
               .Append("\"recipient\":\"").Append(level.DestinationName).Append("\",")
+              .Append("\"platforms\":").Append(level.Platforms.Length).Append(',')
               .Append("\"windAssist\":").Append(_state.WindAssist ? "true" : "false").Append(',')
               .Append("\"settings\":\"").Append(AppSettings.Describe()).Append("\",")
               .Append("\"hash\":\"").Append(SimRules.HashHex(_state)).Append('"')

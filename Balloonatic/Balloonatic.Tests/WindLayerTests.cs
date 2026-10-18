@@ -17,7 +17,7 @@ namespace Balloonatic.Tests
         static void HoldAt(TestHarness h, LevelDef level, float target, int steps)
         {
             for (int i = 0; i < steps; i++)
-                SimRules.Step(h.State, Autopilot.TowardAltitude(h.State, target), level);
+                SimRules.Step(h.State, Autopilot.TowardAltitude(h.State, target), level, hazards: false);
         }
 
         [Fact]
@@ -46,6 +46,7 @@ namespace Balloonatic.Tests
 
             HoldAt(h, level, 190f, 300);     // drift out with the middle band
             float drifting = F(h, "velocityX");
+            h.State.X = 400f; // isolate band reversal from the off-course recovery boundary
 
             HoldAt(h, level, 330f, 1020);    // climb into the top band, - direction (the hold is gentle)
 

@@ -282,6 +282,20 @@ namespace Balloonatic.Core
                 }
             }
 
+            foreach (RestDeck deck in level.Platforms)
+            {
+                if (state.VelocityY >= 0f || prevAltitude < deck.Altitude || state.Altitude > deck.Altitude
+                    || Math.Abs(state.X - deck.X) > deck.HalfWidth) continue;
+                state.Altitude = deck.Altitude;
+                if (-state.VelocityY <= SimTuning.SoftLandingVy) state.VelocityY = 0f;
+                else
+                {
+                    state.VelocityY = -state.VelocityY * SimTuning.BounceRestitution;
+                    state.Bounces++; state.BounceTick = state.Tick;
+                }
+                break;
+            }
+
             if (state.Altitude <= SimTuning.GroundAltitude)
             {
                 // On the ground the balloon sits: descending into the ground stops it, and the landing
