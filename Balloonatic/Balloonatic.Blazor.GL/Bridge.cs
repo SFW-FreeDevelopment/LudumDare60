@@ -54,6 +54,7 @@ namespace Balloonatic
             if (name == "ui")
                 return game.UiStatus();
             if (name == "creditstext")return game.CreditsText();
+            if (name == "worldsigns")return game.SignsStatus();
             if (name == "backdrop")
                 return game.BackdropStatus();
             if (name == "art")

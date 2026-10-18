@@ -149,13 +149,18 @@ recoverable flight, one meaningful beautiful delivery, readable UI and WebGL val
   Assert the displayed copy through the bridge and review desktop/narrow credits.
   Verified: zero compiler warnings, 83 unit tests and 118 browser tests; `creditstext` mirrors the
   displayed rows. Updated the two credits baselines and reviewed `31-credits-*` at both sizes.
-- [ ] **I32 — Stable world signs** (~60m)
+- [x] **I32 — Stable world signs** (~60m)
   Keep sign lettering, board and supporting world geometry on the same rendering grid during travel.
   Inspect a moving sequence and prove sign-to-platform placement through the bridge.
+  Verified: Aseprite palette audit (61 slices), zero compiler warnings, 83 unit tests and 120 browser
+  tests. World signs/recipient tags are single atlas quads; `worldsigns` reports their actual placement.
+  Fractional camera phases retain fixed parent offsets and unchanged sim hashes; reviewed `32-signs-*`.
 - [ ] **I33 — Platform contact and sliding** (~90m)
   Align deck artwork and collision surfaces, support ordinary landings across each full deck,
   and allow a landed basket to slide across to the delivery area. Prove edge approaches, takeoff,
   hard contacts, both drift directions and the full voyage in WebGL.
+- [ ] **I34 — Refresh the corrected review package** (~45m)
+  Fresh-clone and extracted-archive checks for the playtest fixes; refresh candidate evidence and ZIP.
 
 ## Design decisions (answers to `docs/CONCEPT.md` §16)
 1. **Burner:** hold-to-heat with a temperature integrator. No intensity slider — one verb, and the

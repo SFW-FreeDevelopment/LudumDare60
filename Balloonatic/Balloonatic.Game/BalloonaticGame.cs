@@ -430,6 +430,7 @@ namespace Balloonatic
         }
         public string UiStatus() => UiLayout.Describe(canvas, Harness.State.Screen, Harness.State.Complete);
         public string CreditsText() => string.Join("|", CreditsScreen.Lines);
+        public string SignsStatus() => WorldScreen.SignsStatus(Harness.State);
         public string BackdropStatus() => SkyBackdrop.Describe(Harness.State);
         public string ArtStatus() => WorldArt.Describe(Harness.State);
 

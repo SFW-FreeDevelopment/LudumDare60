@@ -749,6 +749,29 @@ const SPRITES = {
   "flame-hud":    { w: 28, h: 28, frames: FLAME_HUD.map(x2) },
 };
 
+// Bake moving boards and lettering together on the same internal pixel grid.
+const signFontSource=require('fs').readFileSync(require('path').join(__dirname,
+  '../../Balloonatic/Balloonatic.Game/Rendering/PixelFont.cs'),'utf8');
+const signGlyphs=Object.fromEntries([...signFontSource.matchAll(/\['([^']+)'\] = Split\("([^"]+)"\)/g)].map(m=>[m[1],m[2].split('|')]));
+function worldSign(text,post) {
+  const w=post?Math.max(32,text.length*6+7):text.length*6+5,h=post?14:11,px=[];
+  if(post)px.push(...fillPixels(w-2,h*2,4,16,PAL.bark));
+  px.push(...fillPixels(0,2,w*2,h*2-4,PAL.K),...fillPixels(2,0,w*2-4,h*2,PAL.K));
+  px.push(...fillPixels(2,2,w*2-4,h*2-4,PAL.paper));
+  if(!post)px.push(...fillPixels(2,(h-2)*2,w*2-4,2,PAL.paperWarm));
+  const tx=post?Math.floor((w*2-(text.length*6-1)*2)/2):6;
+  [...text].forEach((ch,i)=>{
+    if(ch===' ')return;
+    if(!signGlyphs[ch])throw new Error('Missing sign glyph: '+ch);
+    signGlyphs[ch].forEach((row,y)=>[...row].forEach((v,x)=>{
+      if(v==='#')px.push(...fillPixels(tx+(i*6+x)*2,4+y*2,2,2,PAL.K));
+    }));
+  });
+  return {w:w*2,h:(h+(post?8:0))*2,frames:[px]};
+}
+for(const [name,text]of Object.entries({home:'HOME',nursery:'NURSERY',toy:'TOY ROOM',garden:'GARDEN',cottage:'COTTAGE'}))SPRITES['sign-'+name]=worldSign(text,true);
+for(const [name,text]of Object.entries({perch:'BREEZE PERCH',bottle:'BOTTLE?',teddy:'TEDDY?',letter:'LETTER?',thanks:'THANK YOU!'}))SPRITES['tag-'+name]=worldSign(text,false);
+
 function pack(sheetWidth) {
   const out = [];
   let x = 4, y = 4, rowH = 0;

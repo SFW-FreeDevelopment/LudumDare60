@@ -150,6 +150,18 @@ namespace Balloonatic.Screens
         static float ScreenX(float worldX, float camX) => worldX - camX + Sim.DesignWidth / 2f;
         static float ScreenY(float altitude, float camAlt) => Sim.DesignHeight / 2f - (altitude - camAlt);
 
+        public static string SignsStatus(SimState state)
+        {
+            LevelDef level=LevelCatalog.Get(state.LevelId);
+            (float camX,float camAlt)=Camera(state,level);
+            float groundY=ScreenY(0,camAlt);
+            var signs=new System.Collections.Generic.List<string>{
+                WorldSigns.Island("HOME",ScreenX(0,camX),groundY).Json("HOME"),
+                WorldSigns.Island(level.DestinationName,ScreenX(level.CourseLength,camX),groundY).Json(level.DestinationName)};
+            foreach(RestDeck deck in level.Platforms)signs.Add(WorldSigns.Perch(ScreenX(deck.X,camX),ScreenY(deck.Altitude,camAlt)).Json("BREEZE PERCH"));
+            return "["+string.Join(",",signs)+"]";
+        }
+
         /// <summary>Text and only text keeps the coarse grid: type must not wobble by half a pixel.</summary>
         static int Round(float v) => (int)MathF.Round(v);
 
@@ -193,7 +205,7 @@ namespace Balloonatic.Screens
                 Sprites.Draw(canvas, WorldArt.Perch(level), x - deck.HalfWidth, y - 3);
                 WindBand wind = level.BandAt(deck.Altitude + 1f);
                 Kit.Windsock(canvas, x + 20, y, wind.Direction, wind.Strength);
-                Kit.Tag(canvas, Round(x)-30, Round(y)+10, "BREEZE PERCH");
+                WorldSigns.Perch(x,y).Draw(canvas);
             }
         }
 
@@ -213,23 +225,14 @@ namespace Balloonatic.Screens
             // Buildings sit on the rear edge; the clear timber deck in front is the landing surface.
             Sprites.Draw(canvas, WorldArt.Landmark(level, launch, Clock(state)), x - 6f, groundY - 105f);
 
-            // A sign on the deck: what this island is for, in the paper-and-ink language of the sheet.
-            // The board glides with the island; its lettering holds the coarse grid (Round) — text that
-            // half-steps inside a moving board looks broken, a board gliding under still text looks built.
-            float signY = groundY - 52;
-            int xi = Round(x);
-            canvas.Fill(x - 1, signY + 12, 2, 8, Theme.BarkBrown);
-            int signWidth = Math.Max(32, PixelFont.Width(name) + 8);
-            canvas.CutRectangle(x - signWidth / 2, signY - 2, signWidth, 14, 1, Theme.Ink);
-            canvas.Fill(x - signWidth / 2 + 1, signY - 1, signWidth - 2, 12, Theme.TagCream);
-            PixelFont.Draw(canvas, name, xi - name.Length * 3 + 1, Round(signY) + 2, Theme.Ink);
+            WorldSigns.Island(name,x,groundY).Draw(canvas);
             if (launch && state.CargoStatus == "waiting")
                 Sprites.Draw(canvas, WorldArt.Parcel(level.Package), x - 36, groundY - 53);
             if (!launch)
             {
                 Sprites.Draw(canvas, "recipient", state.Delivered ? 1 : 0, x + 37, groundY - 64);
                 if (state.Delivered) Sprites.Draw(canvas, WorldArt.Parcel(level.Package), x + 22, groundY - 53);
-                Kit.Tag(canvas, xi + 10, Round(groundY) - 120, state.Delivered ? "THANK YOU!" : level.RequestLabel);
+                WorldSigns.Recipient(canvas,level,state.Delivered,x+10,groundY-120);
             }
 
             // The windsock flies off the windward post of the deck — the truth about this altitude,

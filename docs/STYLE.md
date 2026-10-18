@@ -8,7 +8,8 @@ an in-game texture. Current evidence is `docs/screenshots/21-*` through `30-*`.
 ## Canvas and pixels
 
 - Design space: **640×360**. Internal sprite/render density: **1280×720**.
-- World positions snap to half a design pixel; UI text snaps to whole design pixels.
+- World positions snap to half a design pixel; UI text snaps to whole design pixels. Moving world
+  signs have lettering and board baked into one Aseprite sprite, sharing the platform grid.
 - Nearest-neighbor, integer upscaling while the design canvas fits; fractional reduction below ×1.
 - Render-time letterboxing uses `Theme.LetterBox`. The canvas follows its page/container size.
 - Review at 1280×720 and 420×760. Narrow presentation still requires keyboard or mouse input.
